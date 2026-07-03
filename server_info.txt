@@ -1,0 +1,494 @@
+
+=== CMD: cat /home/umunsi/backend-api/.env ===
+PORT=3000
+NODE_ENV=production
+DATABASE_URL="postgresql://umunsi_app:KWIZERA783450859%40k@127.0.0.1:5432/umunsi_db?schema=public"
+JWT_SECRET=umunsi-prod-jwt-dW11bnNpLmNvbS0yMDI2LTkzLjEyNy4xODYuMjE3
+JWT_EXPIRE=7d
+FRONTEND_URL=https://umunsi.com
+BACKEND_URL=https://umunsi.com
+CORS_ORIGIN=https://umunsi.com,https://www.umunsi.com,https://umunsi-chi.vercel.app
+API_URL=https://umunsi.com
+NODE_TLS_REJECT_UNAUTHORIZED=0
+UPLOAD_DIR=/home/umunsi/backend-api/uploads
+MAX_FILE_SIZE=50000000
+
+=== CMD: cat /home/umunsi/backend-api/prisma/schema.prisma ===
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  username   String   @unique
+  password   String
+  firstName  String?
+  lastName   String?
+  role       String @default("USER")
+  isPremium  Boolean  @default(false)
+  premiumSince DateTime?
+  premiumUntil DateTime?
+  avatar     String?
+  bio        String?
+  phone      String?
+  profileUrl String?
+  isActive   Boolean  @default(true)
+  isVerified Boolean  @default(false)
+  lastLogin  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  news News[]
+  mediaFiles MediaFile[]
+  posts Post[]
+  supportPayments SupportPayment[]
+  premiumPostAccess PremiumPostAccess[]
+  classifiedAds ClassifiedAd[] @relation("ClassifiedAuthor")
+  reviewedClassifiedAds ClassifiedAd[] @relation("ClassifiedReviewer")
+  classifiedBroadcasts ClassifiedBroadcast[] @relation("ClassifiedBroadcastCreator")
+
+  @@map("users")
+}
+
+model ClassifiedAd {
+  id             String   @id @default(cuid())
+  userId         String
+  reviewedById   String?
+  category       String
+  title          String
+  description    String
+  phone          String
+  email          String
+  attachmentName String?
+  attachmentUrl  String?
+  durationDays   Int
+  priceRwf       Int
+  status         String   @default("PENDING")
+  reviewNote     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user       User  @relation("ClassifiedAuthor", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy User? @relation("ClassifiedReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+  @@map("classified_ads")
+}
+
+model ClassifiedBroadcast {
+  id          String   @id @default(cuid())
+  message     String
+  createdById String
+  createdAt   DateTime @default(now())
+
+  createdBy User @relation("ClassifiedBroadcastCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@map("classified_broadcasts")
+}
+
+model SupportPayment {
+  id               String   @id @default(cuid())
+  userId           String
+  provider         String   @default("KPAY")
+  purpose          String   @default("PREMIUM_SUPPORT")
+  amount           Float
+  currency         String   @default("RWF")
+  status           String   @default("PENDING")
+  txRef            String   @unique
+  flwTransactionId String?
+  checkoutUrl      String?
+  providerStatus   String?
+  customerEmail    String?
+  paidAt           DateTime?
+  errorMessage     String?
+  metadata         String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("support_payments")
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  color       String?
+  icon        String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  news News[]
+  posts Post[]
+
+  @@map("categories")
+}
+
+model News {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  content       String
+  excerpt       String?
+  featuredImage String?
+  status        String  @default("DRAFT")
+  publishedAt   DateTime?
+  viewCount     Int         @default(0)
+  likeCount     Int         @default(0)
+  isFeatured    Boolean     @default(false)
+  isBreaking    Boolean     @default(false)
+  isTrending    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+
+  @@map("news")
+}
+
+model MediaFile {
+  id            String   @id @default(cuid())
+  filename      String
+  originalName  String
+  mimeType      String
+  size          Int
+  url           String
+  thumbnailUrl  String?
+  category      String
+  tags          String
+  description   String?
+  isPublic      Boolean  @default(true)
+  isFeatured    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  uploadedById  String
+  uploadedBy    User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@map("media_files")
+}
+
+model Post {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  content       String
+  excerpt       String?
+  featuredImage String?
+  status        String  @default("DRAFT")
+  isPremium     Boolean     @default(false)
+  publishedAt   DateTime?
+  viewCount     Int         @default(0)
+  likeCount     Int         @default(0)
+  commentCount  Int         @default(0)
+  isFeatured    Boolean     @default(false)
+  isPinned      Boolean     @default(false)
+  allowComments Boolean     @default(true)
+  tags          String
+  metaTitle     String?
+  metaDescription String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  premiumPostAccess PremiumPostAccess[]
+
+  @@map("posts")
+}
+
+model PremiumPostAccess {
+  id         String   @id @default(cuid())
+  userId     String
+  postId     String
+  grantedBy  String?
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@map("premium_post_access")
+}
+
+
+
+=== CMD: cat /home/umunsi/frontend-app/src/index.css 2>/dev/null | head -60 ===
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Keep AdSense slots visible and responsive (do not collapse unfilled units). */
+.umunsi-ad-slot {
+  width: 100%;
+  min-height: 90px;
+  overflow: visible;
+}
+
+.umunsi-ad-slot ins.adsbygoogle {
+  display: block;
+  width: 100%;
+  min-height: inherit;
+}
+
+/* Day mode theme overrides */
+html.day-mode {
+  color-scheme: light;
+}
+
+html.day-mode body {
+  background: #f8f8f5;
+  color: #101418;
+}
+
+html.day-mode .bg-\[\#0b0e11\] {
+  background-color: #ffffff !important;
+}
+
+html.day-mode .bg-\[\#181a20\] {
+  background-color: #ffffff !important;
+}
+
+html.day-mode .bg-\[\#1e2329\] {
+  background-color: #f3f4ef !important;
+}
+
+html.day-mode .bg-\[\#2b2f36\] {
+  background-color: #e3e4de !important;
+}
+
+html.day-mode .bg-\[\#0f1115\] {
+  background-color: #f6f7f2 !important;
+}
+
+html.day-mode .bg-\[\#12161c\] {
+  background-color: #f3f4ef !important;
+}
+
+html.day-mode .bg-\[\#14181e\] {
+  background-color: #eff1ea !important;
+}
+
+/* Global fallback for Tailwind arbitrary color class names in markup */
+html.day-mode [class*="bg-[#0f1115]"] {
+  background-color: #f6f7f2 !important;
+}
+
+
+=== CMD: cat /home/umunsi/frontend-app/src/App.tsx 2>/dev/null | head -40 ===
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import Layout from './components/layout/Layout';
+import Home from './pages/Home';
+import Images from './pages/Images';
+import Religion from './pages/Religion';
+import Music from './pages/Music';
+import Entertainment from './pages/Entertainment';
+import CategoryPage from './pages/CategoryPage';
+import PostPage from './pages/PostPage';
+import Newsletter from './pages/Newsletter';
+import ClassifiedAds from './pages/ClassifiedAds';
+import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import SubscriberAccount from './pages/SubscriberAccount';
+import Register from './pages/Register';
+import TestLogin from './pages/TestLogin';
+import Profile from './pages/Profile';
+import AdminLayout from './components/layout/AdminLayout';
+import AdminDashboard from './pages/AdminDashboard';
+import Articles from './pages/admin/Articles';
+import BreakingNews from './pages/admin/BreakingNews';
+import FeaturedNews from './pages/admin/FeaturedNews';
+import News from './pages/admin/News';
+import Categories from './pages/admin/Categories';
+import Users from './pages/admin/Users';
+import Analytics from './pages/admin/Analytics';
+import Logs from './pages/admin/Logs';
+import Settings from './pages/admin/Settings';
+import MediaLibrary from './pages/admin/MediaLibrary';
+import AddMedia from './pages/admin/AddMedia';
+import Posts from './pages/admin/Posts';
+import AddPost from './pages/admin/AddPost';
+import EditPost from './pages/admin/EditPost';
+import PostDetail from './pages/admin/PostDetail';
+import Roles from './pages/admin/Roles';
+import AdsManagement from './pages/admin/AdsManagement';
+
+=== CMD: ls /home/umunsi/backend-api/uploads/ 2>/dev/null | head -20 ===
+articles
+avatars
+categories
+images
+media
+temp
+thumbnails
+users
+
+=== CMD: find /home/umunsi/backend-api/uploads -type d 2>/dev/null | head -10 ===
+/home/umunsi/backend-api/uploads
+/home/umunsi/backend-api/uploads/media
+/home/umunsi/backend-api/uploads/media/thumbnails
+/home/umunsi/backend-api/uploads/images
+/home/umunsi/backend-api/uploads/temp
+/home/umunsi/backend-api/uploads/thumbnails
+/home/umunsi/backend-api/uploads/avatars
+/home/umunsi/backend-api/uploads/users
+/home/umunsi/backend-api/uploads/categories
+/home/umunsi/backend-api/uploads/articles
+
+=== CMD: cat /home/umunsi/frontend-app/package.json 2>/dev/null ===
+{
+  "name": "react-vite-tailwind",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --outDir dist",
+    "lint": "bunx tsc --noEmit && bunx biome lint --write",
+    "format": "bunx biome format --write",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@types/node": "^24.3.0",
+    "lucide-react": "^0.541.0",
+    "quill": "^2.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-quill": "^2.0.0",
+    "react-router-dom": "^7.8.1",
+    "same-runtime": "^0.0.1",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4",
+    "@eslint/js": "^9.39.4",
+    "@types/react": "^18.3.22",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^8.32.1",
+    "@typescript-eslint/parser": "^8.32.1",
+    "@vitejs/plugin-react": "^4.5.0",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-typescript": "^3.10.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^15.15.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.6.3",
+    "typescript-eslint": "^8.32.1",
+    "vercel": "^54.9.1",
+    "vite": "^6.3.5"
+  }
+}
+
+=== CMD: cat /home/umunsi/backend-api/package.json 2>/dev/null | head -40 ===
+{
+  "name": "umunsi-server",
+  "version": "1.0.0",
+  "description": "Umunsi News Website Backend Server with Admin Dashboard",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "dev:frontend": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "vercel-build": "vite build",
+    "server": "node start-server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "node prisma/seed.js",
+    "uploads:stats": "node scripts/manage-uploads.js stats",
+    "uploads:clean": "node scripts/manage-uploads.js clean",
+    "uploads:structure": "node scripts/manage-uploads.js structure",
+    "uploads:maintenance": "node scripts/manage-uploads.js maintenance",
+    "import:wordpress": "node scripts/import-wordpress-wxr.js"
+  },
+  "keywords": [
+    "news",
+    "admin",
+    "dashboard",
+    "prisma",
+    "postgresql"
+  ],
+  "author": "Umunsi Team",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/client": "^5.7.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+
+=== CMD: cat /home/umunsi/frontend-app/.env.production 2>/dev/null ===
+# Production Environment Variables for Frontend
+VITE_API_URL=https://umunsi.com/api
+
+=== CMD: cat /home/umunsi/backend-api/.env.production 2>/dev/null ===
+PORT=3000
+NODE_ENV=production
+VITE_API_URL=/api
+DATABASE_URL="postgresql://umunsi_com_user:your_secure_password@localhost:5432/umunsi_db?schema=public"
+JWT_SECRET=generate-a-very-long-random-secret-key-here-min-32-chars
+JWT_EXPIRE=7d
+API_URL=https://umunsi.com
+FRONTEND_URL=https://umunsi-chi.vercel.app
+CORS_ORIGIN=https://umunsi-chi.vercel.app,https://umunsi.com,https://www.umunsi.com
+NODE_TLS_REJECT_UNAUTHORIZED=0
+LOG_LEVEL=info
+
+# SMS Providers (optional)
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_FROM_NUMBER=
+
+AFRICASTALKING_USERNAME=
+AFRICASTALKING_API_KEY=
+AFRICASTALKING_SENDER_ID=
+
+=== CMD: ls /home/umunsi/backups/ 2>/dev/null ===
+backend-api-20260606-135531
+databases
+public_20260415_104354
