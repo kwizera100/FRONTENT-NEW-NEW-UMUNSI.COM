@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -17,11 +18,11 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: "Umunsi.com — Inkuru z'u Rwanda n'Isi",
+    default: "Umunsi.com — Entertainment, Health & Social Life through Education",
     template: "%s | Umunsi.com",
   },
   description:
-    "Umunsi.com ni urubuga rw'inkuru z'icyamamare mu Rwanda no ku isi. Amakuru, Imikino, Ikoranabuhanga, Imyidagaduro, n'ibindi byinshi.",
+    "Entertainment, Health and Social Life through Education. Home of Umunsimedia.com students App",
   keywords: [
     "Umunsi",
     "amakuru",
@@ -65,6 +66,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="rw" className={`${inter.variable} ${poppins.variable}`}>
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3584259871242471"
+          crossOrigin="anonymous"
+          strategy="lazyOnload"
+        />
+      </head>
       <body className="font-sans">{children}</body>
     </html>
   );

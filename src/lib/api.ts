@@ -183,8 +183,19 @@ export const api = {
     fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: Math.max(limit * 5, 50), sortBy: "likeCount", sortOrder: "desc" })
       .then((r) => (r.data || []).slice(0, limit)),
 
-  getCategories: () =>
-    fetchAPI<CategoriesResponse>("/categories").then((r) => r.categories || []),
+  getCategories: async () => {
+    const all: ApiCategory[] = [];
+    let page = 1;
+    let totalPages = 1;
+    while (page <= totalPages) {
+      const r = await fetchAPI<CategoriesResponse & { pagination?: { totalPages: number } }>("/categories", { page, limit: 100 });
+      if (r.categories) all.push(...r.categories);
+      if (r.pagination?.totalPages) totalPages = r.pagination.totalPages;
+      else break;
+      page++;
+    }
+    return all;
+  },
 
   searchPosts: (q: string, limit = 20) =>
     fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", search: q, limit, sortBy: "publishedAt", sortOrder: "desc" })

@@ -19,11 +19,11 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/posts", label: "Inkuru", icon: FileText },
-  { href: "/admin/posts/new", label: "Andika inkuru", icon: PenSquare },
+  { href: "/admin/posts", label: "Articles", icon: FileText },
+  { href: "/admin/posts/new", label: "New Article", icon: PenSquare },
   { href: "/admin/media", label: "Media", icon: Image },
-  { href: "/admin/categories", label: "Ibyiciro", icon: FolderTree },
-  { href: "/admin/settings", label: "Igenamiterere", icon: Settings },
+  { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout({
@@ -100,17 +100,19 @@ export default function AdminLayout({
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors"
           >
             <Eye className="w-5 h-5" />
-            Reba urubuga
+            View Site
           </Link>
           <button
             onClick={() => {
               localStorage.removeItem("umunsi_admin_auth");
+              localStorage.removeItem("umunsi_admin_token");
+              localStorage.removeItem("umunsi_admin_user");
               router.push("/admin/login");
             }}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-white/60 hover:text-white hover:bg-red-600/20 transition-colors"
           >
             <LogOut className="w-5 h-5" />
-            Funga
+            Logout
           </button>
         </div>
       </aside>

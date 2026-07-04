@@ -2,11 +2,12 @@ import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
+import { ShareBar } from "@/components/article/ShareBar";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Clock, Eye, Share2, ArrowLeft } from "lucide-react";
+import { Clock, Eye } from "lucide-react";
 
 export const revalidate = 300;
 
@@ -44,67 +45,60 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <Image src={coverImage} alt={post.title} fill priority sizes="100vw" className="object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/40" />
         </div>
-        <div className="relative px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
+        <div className="relative px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-24">
           <div className="max-w-3xl">
             <Link
               href={`/category/${post.category?.slug || ""}`}
-              className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold text-white mb-6"
+              className="inline-flex items-center px-3 sm:px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold text-white mb-4 sm:mb-6"
               style={{ backgroundColor: post.category?.color || "#e5b60d" }}
             >
               {post.category?.name || ""}
             </Link>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white text-balance leading-tight mb-6 font-display">
+            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-white text-balance leading-tight mb-4 sm:mb-6 font-display">
               {post.title}
             </h1>
-            <p className="text-white/80 text-lg lg:text-xl mb-6 line-clamp-3">{post.excerpt}</p>
-            <div className="flex flex-wrap items-center gap-4 text-white/70 text-sm">
-              <span className="font-bold text-white text-base">{authorName}</span>
-              <span className="flex items-center gap-1"><Clock className="w-4 h-4" />{formatDate(publishedDate)}</span>
-              <span className="flex items-center gap-1"><Eye className="w-4 h-4" />{post.likeCount.toLocaleString()} byayeho</span>
-              <span className="flex items-center gap-1"><Clock className="w-4 h-4" />5 min gusoma</span>
+            <p className="text-white/80 text-base sm:text-lg lg:text-xl mb-4 sm:mb-6 line-clamp-3">{post.excerpt}</p>
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/70 text-xs sm:text-sm">
+              <span className="font-bold text-white text-sm sm:text-base">{authorName}</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{formatDate(publishedDate)}</span>
+              <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{post.likeCount.toLocaleString()} byayeho</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{mappedPost.readTime} min gusoma</span>
             </div>
           </div>
         </div>
       </div>
 
-      <article className="py-10 lg:py-16">
+      <article className="py-8 lg:py-16">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-14">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-14">
             <div className="lg:col-span-2">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl mb-8">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl sm:rounded-2xl mb-6 sm:mb-8">
                 <Image src={coverImage} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               </div>
 
-              <div className="flex items-center gap-3 mb-8 pb-6 border-b border-gray-100">
-                <span className="text-sm font-bold text-gray-500 flex items-center gap-1"><Share2 className="w-4 h-4" /> Sanga:</span>
-                {["Facebook", "Twitter", "WhatsApp", "LinkedIn"].map((platform) => (
-                  <button key={platform} className="px-3 py-1.5 rounded-lg bg-gray-50 hover:bg-[#e5b60d]/10 text-gray-700 hover:text-[#e5b60d] text-sm font-semibold transition-colors">
-                    {platform}
-                  </button>
-                ))}
-              </div>
+              <ShareBar title={post.title} slug={post.slug} />
 
               <div
-                className="prose prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 [&_p]:text-lg [&_p]:leading-relaxed [&_p]:mb-4"
+                className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 [&_p]:text-base sm:[&_p]:text-lg [&_p]:leading-relaxed [&_p]:mb-4 [&_img]:rounded-xl [&_img]:max-w-full [&_img]:h-auto"
                 dangerouslySetInnerHTML={{ __html: post.content || "" }}
               />
             </div>
 
             <aside className="space-y-6">
-              <div className="bg-white rounded-2xl border border-gray-100 p-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-xl">
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-lg sm:text-xl shrink-0">
                     {authorName.charAt(0)}
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900">{authorName}</h3>
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-gray-900 truncate">{authorName}</h3>
                     <p className="text-sm text-gray-400">Umwanditsi</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 sticky top-24">
-                <h3 className="text-lg font-black text-gray-900 mb-5 font-display">Inkuru zizwi cyane</h3>
+              <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 lg:sticky lg:top-24">
+                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-4 sm:mb-5 font-display">Inkuru zizwi cyane</h3>
                 <div className="space-y-1">
                   {popular.map((p, i) => (
                     <Link key={p.id} href={`/article/${p.slug}`} className="group flex gap-3 items-start py-3 border-b border-gray-50 last:border-0">

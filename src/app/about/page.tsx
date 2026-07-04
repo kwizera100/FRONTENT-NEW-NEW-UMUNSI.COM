@@ -14,7 +14,7 @@ export default function AboutPage() {
           Tuzwiho
         </h1>
         <p className="text-xl text-ink-500 mb-12">
-          Umunsi.com ni urubuga rw&apos;inkuru z&apos;icyamamare mu Rwanda no ku isi.
+          Entertainment, Health and Social Life through Education. Home of Umunsimedia.com students App
         </p>
 
         <div className="prose prose-lg max-w-none mb-12">

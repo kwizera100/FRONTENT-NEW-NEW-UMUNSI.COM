@@ -23,7 +23,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed">
-              Umunsi.com — Inkuru z&apos;u Rwanda n&apos;Isi. Amakuru y&apos;ukuri, imikino, imyidagaduro, n&apos;ikoranabuhanga.
+              Entertainment, Health and Social Life through Education. Home of Umunsimedia.com students App
             </p>
           </div>
 

@@ -1,8 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 import type { Post } from "@/lib/data";
-import { formatTimeAgo } from "@/lib/utils";
 
 interface HeroFeaturedSectionProps {
   featured: Post[];
@@ -40,20 +39,10 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
                     {main.category.name}
                   </span>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-7">
-                  <h1 className="text-2xl lg:text-4xl font-black text-white leading-tight mb-3 font-display group-hover:text-[#e5b60d] transition-colors line-clamp-3">
+                <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 lg:p-7">
+                  <h1 className="text-xl sm:text-2xl lg:text-4xl font-black text-white leading-tight font-display group-hover:text-[#e5b60d] transition-colors line-clamp-3">
                     {main.title}
                   </h1>
-                  <p className="text-white/80 text-sm lg:text-base line-clamp-2 mb-4 hidden sm:block">
-                    {main.excerpt}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-white/70">
-                    <span className="font-semibold text-white">{main.author.name}</span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      {formatTimeAgo(main.publishedAt)}
-                    </span>
-                  </div>
                 </div>
               </div>
             </Link>

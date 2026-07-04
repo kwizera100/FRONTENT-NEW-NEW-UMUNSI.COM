@@ -5,6 +5,7 @@ import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
 import { BreakingNewsSection } from "@/components/home/BreakingNewsSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
+import { LoadMore } from "@/components/home/LoadMore";
 
 export const revalidate = 300;
 
@@ -36,7 +37,17 @@ export default async function HomePage() {
 
       <main>
         <HeroFeaturedSection featured={featured} popular={popular} />
-        <BreakingNewsSection posts={latest.slice(0, 8)} />
+
+        <section className="py-8 lg:py-12 bg-white">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 mb-6 lg:mb-8">
+              <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
+              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru zose</h2>
+            </div>
+            <LoadMore initialPosts={latest} />
+          </div>
+        </section>
+
         <EntertainmentSection entertainment={entertainment} amatangazo={amatangazo} />
 
         {otherCategories.map((cat) => {
