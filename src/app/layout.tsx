@@ -46,8 +46,9 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   icons: {
     icon: "/favicon.svg",
-    apple: "/images/logo.png",
+    apple: "/images/round-logo.png",
   },
+  manifest: "/site.webmanifest",
 };
 
 export const viewport = {
