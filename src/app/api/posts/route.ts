@@ -5,13 +5,13 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api"
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const params = new URLSearchParams();
-  ["category", "featured", "breaking", "trending", "limit", "page", "search", "status"].forEach((key) => {
+  ["category", "featured", "breaking", "trending", "limit", "page", "search", "status", "sortBy", "sortOrder"].forEach((key) => {
     const val = searchParams.get(key);
     if (val) params.set(key, val);
   });
 
   try {
-    const res = await fetch(`${API_BASE}/news?${params.toString()}`, {
+    const res = await fetch(`${API_BASE}/posts?${params.toString()}`, {
       headers: {
         "User-Agent": "UmunsiFrontend/1.0",
         Accept: "application/json",

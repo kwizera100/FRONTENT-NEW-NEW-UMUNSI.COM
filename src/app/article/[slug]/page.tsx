@@ -11,28 +11,29 @@ import { Clock, Eye, Share2, ArrowLeft } from "lucide-react";
 export const revalidate = 300;
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const [allCategories, latestNews, trendingNews] = await Promise.all([
+  const [allCategories, post, trendingPosts] = await Promise.all([
     api.getCategories(),
-    api.getLatestNews(20),
-    api.getTrendingNews(5),
+    api.getPostBySlug(params.slug),
+    api.getTrendingPosts(5),
   ]);
 
   const categories = allCategories as ApiCategory[];
-  const post = latestNews.find((p) => p.slug === params.slug);
 
   if (!post) notFound();
+
+  const latestPosts = await api.getPostsByCategory(post.category?.slug || "", 4);
 
   const mappedPost = mapApiPost(post);
   const coverImage = mappedPost.coverImage;
   const authorName = mappedPost.author.name;
   const publishedDate = mappedPost.publishedAt;
 
-  const related = latestNews
-    .filter((p) => p.category?.slug === post.category?.slug && p.id !== post.id)
+  const related = latestPosts
+    .filter((p) => p.id !== post.id)
     .slice(0, 3)
     .map(mapApiPost);
 
-  const popular = trendingNews.map(mapApiPost);
+  const popular = trendingPosts.map(mapApiPost);
 
   return (
     <>

@@ -1,9 +1,9 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
+const SERVER_BASE = "https://api.umunsi.com";
 
 const HEADERS: HeadersInit = {
   "User-Agent": "UmunsiFrontend/1.0 (Next.js; +https://umunsi.com)",
   "Accept": "application/json",
-  "Content-Type": "application/json",
 };
 
 async function fetchAPI<T = any>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<T> {
@@ -34,39 +34,51 @@ async function fetchAPI<T = any>(endpoint: string, params?: Record<string, strin
   }
 }
 
+function fixImageUrl(url: string | null | undefined): string {
+  if (!url) return "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+  return `${SERVER_BASE}${url}`;
+}
+
 export interface ApiPost {
   id: string;
   title: string;
   slug: string;
   content: string;
-  excerpt: string;
+  excerpt: string | null;
   featuredImage: string | null;
   status: string;
+  isPremium: boolean;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
-  viewCount?: number;
   likeCount: number;
+  commentCount: number;
   isFeatured: boolean;
-  isBreaking: boolean;
-  isTrending: boolean;
+  isPinned: boolean;
+  allowComments: boolean;
+  tags: string[];
+  metaTitle: string | null;
+  metaDescription: string | null;
   authorId: string;
   categoryId: string;
   author: {
     id: string;
-    username: string;
     firstName: string | null;
     lastName: string | null;
+    username: string;
     avatar: string | null;
+    profileUrl: string | null;
+    role: string;
+    isVerified: boolean;
   };
   category: {
     id: string;
     name: string;
     slug: string;
     color: string | null;
-    icon: string | null;
-    description?: string | null;
   };
+  shareCount?: number;
 }
 
 export interface ApiCategory {
@@ -82,17 +94,20 @@ export interface ApiCategory {
   _count?: { news: number };
 }
 
-export interface NewsResponse {
+interface PostsResponse {
   success: boolean;
-  news: ApiPost[];
-  total?: number;
-  page?: number;
-  totalPages?: number;
+  data: ApiPost[];
+  pagination: { page: number; limit: number; total: number; pages: number };
 }
 
-export interface CategoriesResponse {
+interface CategoriesResponse {
   success: boolean;
   categories: ApiCategory[];
+}
+
+interface SinglePostResponse {
+  success: boolean;
+  data: ApiPost;
 }
 
 function mapAuthorName(author: ApiPost["author"]): string {
@@ -105,11 +120,11 @@ export function mapApiPost(post: ApiPost) {
     id: post.id,
     slug: post.slug,
     title: post.title,
-    excerpt: post.excerpt || "",
+    excerpt: post.excerpt || post.title,
     content: post.content || "",
     featured: post.isFeatured,
     published: post.status === "PUBLISHED",
-    views: post.viewCount || post.likeCount || 0,
+    views: post.likeCount || 0,
     publishedAt: post.publishedAt || post.createdAt,
     createdAt: post.createdAt,
     category: {
@@ -118,45 +133,60 @@ export function mapApiPost(post: ApiPost) {
       name: post.category?.name || "Uncategorized",
       nameEn: post.category?.name || "",
       color: post.category?.color || "#e5b60d",
-      icon: post.category?.icon || "Flame",
-      description: post.category?.description || "",
+      icon: "Flame",
+      description: "",
       order: 0,
     },
     author: {
       name: mapAuthorName(post.author),
+      avatar: fixImageUrl(post.author?.avatar),
     },
     media: [],
-    tags: [],
-    readTime: 5,
-    coverImage: post.featuredImage || "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80",
+    tags: Array.isArray(post.tags) ? post.tags : [],
+    readTime: Math.max(3, Math.ceil((post.content || "").length / 1000)),
+    coverImage: fixImageUrl(post.featuredImage),
   };
 }
 
 export const api = {
-  getFeaturedNews: (limit = 10) =>
-    fetchAPI<NewsResponse>("/news/featured", { limit }).then((r) => r.news || []),
+  getFeaturedPosts: (limit = 10) =>
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: Math.max(limit * 3, 30), sortBy: "publishedAt", sortOrder: "desc" })
+      .then((r) => (r.data || []).filter((p) => p.isFeatured).slice(0, limit)),
 
-  getBreakingNews: (limit = 10) =>
-    fetchAPI<NewsResponse>("/news/breaking", { limit }).then((r) => r.news || []),
+  getLatestPosts: (limit = 20, page = 1) =>
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit, page, sortBy: "publishedAt", sortOrder: "desc" })
+      .then((r) => r.data || []),
 
-  getTrendingNews: (limit = 10) =>
-    fetchAPI<NewsResponse>("/news/trending", { limit }).then((r) => r.news || []),
+  getPostsByCategory: async (categorySlug: string, limit = 20, page = 1) => {
+    const categories = await api.getCategories();
+    const cat = (categories as ApiCategory[]).find((c) => c.slug === categorySlug);
+    if (!cat) return [];
+    return fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", category: cat.id, limit, page, sortBy: "publishedAt", sortOrder: "desc" })
+      .then((r) => r.data || []);
+  },
 
-  getLatestNews: (limit = 20, page = 1) =>
-    fetchAPI<NewsResponse>("/news", { status: "PUBLISHED", limit, page }).then((r) => r.news || []),
+  getPostBySlug: async (slug: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/posts/${slug}`, {
+        headers: HEADERS,
+        next: { revalidate: 300 },
+      });
+      if (!res.ok) return null;
+      const data: SinglePostResponse = await res.json();
+      return data.data || null;
+    } catch {
+      return null;
+    }
+  },
 
-  getNewsByCategory: (categorySlug: string, limit = 20, page = 1) =>
-    fetchAPI<NewsResponse>("/news", { status: "PUBLISHED", category: categorySlug, limit, page }).then((r) => r.news || []),
-
-  getNewsById: (id: string) =>
-    fetchAPI<{ success: boolean; news: ApiPost }>(`/news/${id}`).then((r) => r.news || null),
+  getTrendingPosts: (limit = 10) =>
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: Math.max(limit * 5, 50), sortBy: "likeCount", sortOrder: "desc" })
+      .then((r) => (r.data || []).slice(0, limit)),
 
   getCategories: () =>
     fetchAPI<CategoriesResponse>("/categories").then((r) => r.categories || []),
 
-  getAdsBanners: () =>
-    fetchAPI("/ads-banners"),
-
-  searchNews: (q: string, limit = 20) =>
-    fetchAPI<NewsResponse>("/news", { status: "PUBLISHED", search: q, limit }).then((r) => r.news || []),
+  searchPosts: (q: string, limit = 20) =>
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", search: q, limit, sortBy: "publishedAt", sortOrder: "desc" })
+      .then((r) => r.data || []),
 };

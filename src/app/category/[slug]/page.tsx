@@ -11,7 +11,7 @@ export const revalidate = 300;
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const [allCategories, categoryPosts] = await Promise.all([
     api.getCategories(),
-    api.getNewsByCategory(params.slug, 24),
+    api.getPostsByCategory(params.slug, 24),
   ]);
 
   const categories = allCategories as ApiCategory[];

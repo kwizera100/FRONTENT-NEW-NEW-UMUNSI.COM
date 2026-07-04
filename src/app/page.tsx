@@ -9,21 +9,21 @@ import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [featuredNews, latestNews, trendingNews, categories, entertainmentNews, amatangazoNews] =
+  const [featuredPosts, latestPosts, trendingPosts, categories, entertainmentPosts, amatangazoPosts] =
     await Promise.all([
-      api.getFeaturedNews(5),
-      api.getLatestNews(20),
-      api.getTrendingNews(6),
+      api.getFeaturedPosts(5),
+      api.getLatestPosts(20),
+      api.getTrendingPosts(6),
       api.getCategories(),
-      api.getNewsByCategory("imyidagaduro", 5),
-      api.getNewsByCategory("amatangazo", 6),
+      api.getPostsByCategory("imyidagaduro", 5),
+      api.getPostsByCategory("amatangazo", 6),
     ]);
 
-  const featured = featuredNews.map(mapApiPost);
-  const latest = latestNews.map(mapApiPost);
-  const popular = trendingNews.map(mapApiPost);
-  const entertainment = entertainmentNews.map(mapApiPost);
-  const amatangazo = amatangazoNews.map(mapApiPost);
+  const featured = featuredPosts.map(mapApiPost);
+  const latest = latestPosts.map(mapApiPost);
+  const popular = trendingPosts.map(mapApiPost);
+  const entertainment = entertainmentPosts.map(mapApiPost);
+  const amatangazo = amatangazoPosts.map(mapApiPost);
 
   const excludeSlugs = ["imyidagaduro", "amatangazo", "inkuru-nyamukuru"];
   const otherCategories = (categories as ApiCategory[]).filter(
