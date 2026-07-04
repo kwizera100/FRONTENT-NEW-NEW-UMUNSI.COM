@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Flame, Megaphone, Music, Trophy, Cpu, Film, HeartPulse, Briefcase, Globe, MapPin } from "lucide-react";
 
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+const iconMap: Record<string, React.ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Flame,
   Megaphone,
   Music,
@@ -31,14 +31,14 @@ export function CategoryBar({ categories = [] }: { categories?: CategoryBarCateg
             Ibyiciro:
           </span>
           {categories.map((cat) => {
-            const Icon = iconMap[cat.icon] || Flame;
+            const Icon = iconMap[cat.icon || ""] || Flame;
             return (
               <Link
                 key={cat.id}
                 href={`/category/${cat.slug}`}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-ink-50 hover:bg-ink-900 hover:text-white transition-all shrink-0 group"
               >
-                <Icon className="w-4 h-4" style={{ color: cat.color }} />
+                <Icon className="w-4 h-4" style={{ color: cat.color || "#f43f5e" }} />
                 <span className="text-sm font-semibold whitespace-nowrap">{cat.name}</span>
               </Link>
             );

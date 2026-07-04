@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, TrendingUp } from "lucide-react";
+import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HeaderCategory {
@@ -39,32 +39,36 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
     }
   }, [propCategories.length]);
 
+  const today = new Date().toLocaleDateString("rw-RW", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const mainNav = [
+    { name: "Ahabanza", slug: "" },
+    { name: "Inkuru Nyamukuru", slug: "inkuru-nyamukuru" },
+    { name: "Imikino", slug: "imikino" },
+    { name: "Imyidagaduro", slug: "imyidagaduro" },
+    { name: "Ikoranabuhanga", slug: "ikoranabuhanga" },
+    { name: "Ubuzima", slug: "ubuzima" },
+    { name: "Amatangazo", slug: "amatangazo" },
+  ];
+
   return (
     <>
       {/* Top bar */}
-      <div className="bg-ink-900 text-white text-xs hidden md:block">
-        <div className="container mx-auto px-4 flex items-center justify-between h-9">
+      <div className="bg-[#1a1a1a] text-white text-xs border-b border-white/10">
+        <div className="container mx-auto px-4 h-9 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-brand-400">
-              <TrendingUp className="w-3 h-3" /> Inkuru z'icyamamare
-            </span>
-            <span className="text-white/60">
-              {new Intl.DateTimeFormat("rw-RW", {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              }).format(new Date())}
-            </span>
+            <span className="text-white/60 hidden sm:inline">{today}</span>
+            <span className="text-[#e5b60d] font-semibold">Kigali, Rwanda</span>
           </div>
-          <div className="flex items-center gap-4 text-white/70">
-            <Link href="/admin" className="hover:text-brand-400 transition-colors">
-              Admin
-            </Link>
-            <span>|</span>
-            <span>Ikiyega: 24°C</span>
-            <span>|</span>
-            <span>Kigali, Rwanda</span>
+          <div className="flex items-center gap-4">
+            <Link href="/about" className="hover:text-[#e5b60d] transition-colors">Tuzwiho</Link>
+            <Link href="/contact" className="hover:text-[#e5b60d] transition-colors">Twandikire</Link>
+            <Link href="/admin/login" className="hover:text-[#e5b60d] transition-colors">Admin</Link>
           </div>
         </div>
       </div>
@@ -72,60 +76,76 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
       {/* Main header */}
       <header
         className={cn(
-          "sticky top-0 z-50 bg-white transition-all duration-300",
-          scrolled ? "shadow-lg" : "shadow-sm"
+          "sticky top-0 z-50 bg-white transition-all duration-300 border-b border-gray-200",
+          scrolled ? "shadow-md" : ""
         )}
       >
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-10 h-10 lg:w-12 lg:h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center text-white font-black text-xl lg:text-2xl shadow-lg">
-                U
-              </div>
-              <div>
-                <Image
-                  src="/images/logo.png"
-                  alt="Umunsi.com"
-                  width={180}
-                  height={48}
-                  className="h-10 lg:h-12 w-auto"
-                  priority
-                />
-              </div>
+          <div className="flex items-center justify-between h-20 lg:h-24">
+            {/* Logo group */}
+            <Link href="/" className="flex items-center gap-3 shrink-0">
+              <Image
+                src="/images/round-logo.png"
+                alt="Umunsi Logo"
+                width={56}
+                height={56}
+                className="h-12 w-12 lg:h-14 lg:w-14"
+                priority
+              />
+              <Image
+                src="/images/umunsi-text-logo.jpg"
+                alt="Umunsi.com"
+                width={180}
+                height={44}
+                className="h-9 lg:h-11 w-auto"
+                priority
+              />
             </Link>
 
             {/* Desktop nav */}
-            <nav className="hidden lg:flex items-center gap-1">
-              {categories.slice(0, 7).map((cat) => (
+            <nav className="hidden xl:flex items-center gap-1">
+              {mainNav.map((item) => (
                 <Link
-                  key={cat.id}
-                  href={`/category/${cat.slug}`}
-                  className="px-3 py-2 text-sm font-semibold text-ink-700 hover:text-brand-600 transition-colors rounded-lg hover:bg-brand-50"
+                  key={item.slug || "home"}
+                  href={item.slug ? `/category/${item.slug}` : "/"}
+                  className="px-3 py-2 text-sm font-bold text-gray-800 hover:text-[#e5b60d] transition-colors uppercase tracking-wide"
                 >
-                  {cat.name}
+                  {item.name}
                 </Link>
               ))}
-              <Link
-                href="/category/hanze"
-                className="px-3 py-2 text-sm font-semibold text-ink-700 hover:text-brand-600 transition-colors rounded-lg hover:bg-brand-50"
-              >
-                Hanze
-              </Link>
+              <div className="relative group">
+                <button className="px-3 py-2 text-sm font-bold text-gray-800 hover:text-[#e5b60d] transition-colors uppercase tracking-wide flex items-center gap-1">
+                  Ibindi <ChevronDown className="w-4 h-4" />
+                </button>
+                <div className="absolute top-full left-0 bg-white shadow-xl border border-gray-100 rounded-xl min-w-[200px] py-2 hidden group-hover:block">
+                  {categories
+                    .filter((c) => !mainNav.some((n) => n.slug === c.slug))
+                    .slice(0, 10)
+                    .map((cat) => (
+                      <Link
+                        key={cat.id}
+                        href={`/category/${cat.slug}`}
+                        className="block px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-[#e5b60d]/10 hover:text-[#e5b60d]"
+                      >
+                        {cat.name}
+                      </Link>
+                    ))}
+                </div>
+              </div>
             </nav>
 
             {/* Actions */}
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
-                className="p-2 rounded-lg hover:bg-brand-50 text-ink-700 transition-colors"
+                className="p-2.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
                 aria-label="Shakisha"
               >
                 <Search className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-brand-50 text-ink-700 transition-colors"
+                className="xl:hidden p-2.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
                 aria-label="Menu"
               >
                 {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -136,36 +156,43 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
           {/* Search bar */}
           {searchOpen && (
             <div className="pb-4 animate-fade-in">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
+              <form action="/search" className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
+                  name="q"
                   type="text"
                   placeholder="Shakisha inkuru..."
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-brand-100 focus:border-brand-500 outline-none text-lg"
+                  className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-[#e5b60d]/30 focus:border-[#e5b60d] outline-none text-lg bg-gray-50"
                   autoFocus
                 />
-              </div>
+              </form>
             </div>
           )}
         </div>
 
         {/* Mobile menu */}
         {isOpen && (
-          <div className="lg:hidden bg-white border-t animate-fade-in">
+          <div className="xl:hidden bg-white border-t animate-fade-in shadow-xl">
             <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
+              {mainNav.map((item) => (
+                <Link
+                  key={item.slug || "home"}
+                  href={item.slug ? `/category/${item.slug}` : "/"}
+                  onClick={() => setIsOpen(false)}
+                  className="px-4 py-3 text-base font-bold text-gray-800 hover:text-[#e5b60d] hover:bg-gray-50 rounded-xl"
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <div className="border-t border-gray-100 my-2" />
               {categories.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/category/${cat.slug}`}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-brand-50 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-600 hover:text-[#e5b60d] hover:bg-gray-50 rounded-xl"
                 >
-                  <span
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                  <span className="font-semibold text-ink-800">{cat.name}</span>
-                  <span className="text-xs text-ink-400 ml-auto">{cat.nameEn}</span>
+                  {cat.name}
                 </Link>
               ))}
             </nav>

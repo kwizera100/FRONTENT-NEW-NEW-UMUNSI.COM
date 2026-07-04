@@ -68,7 +68,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
           <div className="flex items-center gap-4">
             <div
               className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-white shadow-lg"
-              style={{ backgroundColor: category.color }}
+              style={{ backgroundColor: category.color || "#f43f5e" }}
             >
               <span className="text-3xl lg:text-4xl font-black">
                 {category.name.charAt(0)}
@@ -112,7 +112,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         </div>
       </section>
 
-      <Footer categories={allCategories} />
+      <Footer />
     </>
   );
 }

@@ -112,7 +112,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               </span>
               <span className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                {post.readTime} min gusoma
+                5 min gusoma
               </span>
             </div>
           </div>
@@ -240,7 +240,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         </section>
       )}
 
-      <Footer categories={allCategories} />
+      <Footer />
     </>
   );
 }

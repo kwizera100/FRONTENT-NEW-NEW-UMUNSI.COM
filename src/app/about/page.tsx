@@ -1,3 +1,5 @@
+"use client";
+
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import Link from "next/link";
@@ -12,18 +14,17 @@ export default function AboutPage() {
           Tuzwiho
         </h1>
         <p className="text-xl text-ink-500 mb-12">
-          Umunsi.com ni urubuga rw'inkuru z'icyamamare mu Rwanda no ku isi.
+          Umunsi.com ni urubuga rw&apos;inkuru z&apos;icyamamare mu Rwanda no ku isi.
         </p>
 
-        {/* Story */}
         <div className="prose prose-lg max-w-none mb-12">
           <p className="text-ink-700 leading-relaxed text-lg">
-            Umunsi.com ni urubuga rw'icyamamare rukeneye gutanga amakuru y'ukuri,
-            mw'imikino, ikoranabuhanga, imyidagaduro, n'ibindi byinshi. Tugamije
-            kuba urubuga rwa mbere mu Rwanda mu gutanga inkuru z'ubwiza bwishe.
+            Umunsi.com ni urubuga rw&apos;icyamamare rukeneye gutanga amakuru y&apos;ukuri,
+            mw&apos;imikino, ikoranabuhanga, imyidagaduro, n&apos;ibindi byinshi. Tugamije
+            kuba urubuga rwa mbere mu Rwanda mu gutanga inkuru z&apos;ubwiza bwishe.
           </p>
+        </div>
 
-        {/* Values */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 my-12">
           {[
             { icon: Target, title: "Intego", desc: "Gutanga inkuru z'ukuri n'ubwiza bwishe" },
@@ -46,11 +47,10 @@ export default function AboutPage() {
           ))}
         </div>
 
-        {/* CTA */}
         <div className="bg-gradient-to-br from-brand-600 to-brand-800 rounded-3xl p-10 lg:p-14 text-center text-white">
           <h2 className="text-3xl font-black mb-4">Wifuza kumurikirana natwe?</h2>
           <p className="text-white/80 mb-8 max-w-2xl mx-auto">
-            Turimo gushaka abanditsi bashya, abafotozi, n'abahanga mu byitabwaho.
+            Turimo gushaka abanditsi bashya, abafotozi, n&apos;abahanga mu byitabwaho.
           </p>
           <Link
             href="/contact"
