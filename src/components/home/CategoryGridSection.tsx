@@ -20,7 +20,7 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
 
   return (
     <section className="py-8 lg:py-10 bg-white border-t border-gray-100">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <span className="w-1.5 h-8 rounded-full" style={{ backgroundColor: accent }} />

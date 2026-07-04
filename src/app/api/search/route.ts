@@ -1,30 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 
 export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const q = searchParams.get("q");
+
+  if (!q || q.length < 2) {
+    return NextResponse.json({ news: [] });
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const q = searchParams.get("q");
-
-    if (!q || q.length < 2) {
-      return NextResponse.json({ posts: [] });
-    }
-
-    const posts = await prisma.post.findMany({
-      where: {
-        status: "PUBLISHED",
-        OR: [
-          { title: { contains: q, mode: "insensitive" } },
-          { excerpt: { contains: q, mode: "insensitive" } },
-          { content: { contains: q, mode: "insensitive" } },
-        ],
-      },
-      include: { category: true, author: { select: { username: true, firstName: true, lastName: true } } },
-      take: 20,
-      orderBy: { publishedAt: "desc" },
+    const res = await fetch(`${API_BASE}/news?search=${encodeURIComponent(q)}&status=PUBLISHED&limit=20`, {
+      headers: { "User-Agent": "UmunsiFrontend/1.0", Accept: "application/json" },
+      next: { revalidate: 60 },
     });
-
-    return NextResponse.json({ posts });
+    const data = await res.json();
+    return NextResponse.json({ posts: data.news || [] });
   } catch (error) {
     console.error("Search failed:", error);
     return NextResponse.json({ error: "Search failed" }, { status: 500 });

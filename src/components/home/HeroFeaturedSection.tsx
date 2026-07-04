@@ -17,7 +17,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
 
   return (
     <section className="py-6 lg:py-8 bg-white">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main featured */}
           <div className="lg:col-span-7">

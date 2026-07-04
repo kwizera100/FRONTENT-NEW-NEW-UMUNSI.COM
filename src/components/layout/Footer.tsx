@@ -8,24 +8,18 @@ export function Footer() {
   return (
     <footer className="bg-[#1a1a1a] text-white mt-16">
       {/* Main footer */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="flex items-center gap-3 mb-6">
-              <Image
-                src="/images/round-logo.png"
-                alt="Umunsi Logo"
-                width={60}
-                height={60}
-                className="h-14 w-14"
-              />
+            <Link href="/" className="flex items-center mb-6">
               <Image
                 src="/images/umunsi-text-logo.jpg"
                 alt="Umunsi.com"
-                width={160}
-                height={40}
-                className="h-9 w-auto brightness-0 invert"
+                width={180}
+                height={45}
+                className="h-10 w-auto brightness-0 invert"
+                priority
               />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed">
@@ -92,7 +86,7 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="container mx-auto px-4 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/50">
+        <div className="px-4 sm:px-6 lg:px-8 py-5 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-white/50">
           <p>© {new Date().getFullYear()} Umunsi.com. All rights reserved.</p>
           <p className="font-semibold text-[#e5b60d]">Designed by UMUNSI SITE Ltd</p>
         </div>

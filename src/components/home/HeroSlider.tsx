@@ -60,7 +60,7 @@ export function HeroSlider({ posts }: { posts: Post[] }) {
 
                   {/* Content */}
                   <div className="absolute inset-0 flex items-end">
-                    <div className="container mx-auto px-4 pb-10 lg:pb-16">
+                    <div className="px-4 sm:px-6 lg:px-8 pb-10 lg:pb-16">
                       <div className="max-w-3xl">
                         {/* Category badge */}
                         <Link

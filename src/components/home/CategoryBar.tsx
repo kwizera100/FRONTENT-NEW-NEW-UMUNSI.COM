@@ -25,7 +25,7 @@ interface CategoryBarCategory {
 export function CategoryBar({ categories = [] }: { categories?: CategoryBarCategory[] }) {
   return (
     <div className="bg-white border-y border-ink-100 py-4">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 lg:gap-4 overflow-x-auto scrollbar-hide pb-1">
           <span className="text-xs font-bold text-ink-400 uppercase shrink-0 hidden lg:inline">
             Ibyiciro:

@@ -39,13 +39,6 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
     }
   }, [propCategories.length]);
 
-  const today = new Date().toLocaleDateString("rw-RW", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-
   const mainNav = [
     { name: "Ahabanza", slug: "" },
     { name: "Inkuru Nyamukuru", slug: "inkuru-nyamukuru" },
@@ -58,21 +51,6 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
 
   return (
     <>
-      {/* Top bar */}
-      <div className="bg-[#1a1a1a] text-white text-xs border-b border-white/10">
-        <div className="container mx-auto px-4 h-9 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <span className="text-white/60 hidden sm:inline">{today}</span>
-            <span className="text-[#e5b60d] font-semibold">Kigali, Rwanda</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link href="/about" className="hover:text-[#e5b60d] transition-colors">Tuzwiho</Link>
-            <Link href="/contact" className="hover:text-[#e5b60d] transition-colors">Twandikire</Link>
-            <Link href="/admin/login" className="hover:text-[#e5b60d] transition-colors">Admin</Link>
-          </div>
-        </div>
-      </div>
-
       {/* Main header */}
       <header
         className={cn(
@@ -80,24 +58,16 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
           scrolled ? "shadow-md" : ""
         )}
       >
-        <div className="container mx-auto px-4">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 lg:h-24">
-            {/* Logo group */}
-            <Link href="/" className="flex items-center gap-3 shrink-0">
-              <Image
-                src="/images/round-logo.png"
-                alt="Umunsi Logo"
-                width={56}
-                height={56}
-                className="h-12 w-12 lg:h-14 lg:w-14"
-                priority
-              />
+            {/* Logo */}
+            <Link href="/" className="flex items-center shrink-0">
               <Image
                 src="/images/umunsi-text-logo.jpg"
                 alt="Umunsi.com"
-                width={180}
-                height={44}
-                className="h-9 lg:h-11 w-auto"
+                width={200}
+                height={50}
+                className="h-10 lg:h-12 w-auto"
                 priority
               />
             </Link>
@@ -155,7 +125,7 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
 
           {/* Search bar */}
           {searchOpen && (
-            <div className="pb-4 animate-fade-in">
+            <div className="px-4 sm:px-6 lg:px-8 pb-4 animate-fade-in">
               <form action="/search" className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
@@ -173,7 +143,7 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
         {/* Mobile menu */}
         {isOpen && (
           <div className="xl:hidden bg-white border-t animate-fade-in shadow-xl">
-            <nav className="container mx-auto px-4 py-4 flex flex-col gap-1">
+            <nav className="px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-1">
               {mainNav.map((item) => (
                 <Link
                   key={item.slug || "home"}

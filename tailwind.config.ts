@@ -9,6 +9,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      container: {
+        center: false,
+        padding: "1rem",
+        screens: {
+          "2xl": "100%",
+        },
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

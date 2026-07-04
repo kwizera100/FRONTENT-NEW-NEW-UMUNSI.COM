@@ -13,7 +13,7 @@ export function CategorySection({ category, posts }: CategorySectionProps) {
 
   return (
     <section className="py-8 lg:py-12">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         {/* Section header */}
         <div className="flex items-center justify-between mb-6 lg:mb-8">
           <div className="flex items-center gap-3">

@@ -17,7 +17,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
 
   return (
     <section className="py-8 lg:py-12 bg-gray-50">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main content */}
           <div className="lg:col-span-8">

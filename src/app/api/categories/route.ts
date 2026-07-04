@@ -1,40 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 
 export async function GET() {
   try {
-    const categories = await prisma.category.findMany({
-      where: { isActive: true },
-      orderBy: { name: "asc" },
-      include: {
-        _count: {
-          select: { posts: { where: { status: "PUBLISHED" } }, news: { where: { status: "PUBLISHED" } } },
-        },
-      },
+    const res = await fetch(`${API_BASE}/categories`, {
+      headers: { "User-Agent": "UmunsiFrontend/1.0", Accept: "application/json" },
+      next: { revalidate: 600 },
     });
-    return NextResponse.json(categories);
+    const data = await res.json();
+    return NextResponse.json(data.categories || data);
   } catch (error) {
     console.error("Failed to fetch categories:", error);
     return NextResponse.json({ error: "Failed to fetch categories" }, { status: 500 });
-  }
-}
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json();
-    const category = await prisma.category.create({
-      data: {
-        slug: body.slug,
-        name: body.name,
-        description: body.description,
-        color: body.color,
-        icon: body.icon,
-        isActive: body.isActive ?? true,
-      },
-    });
-    return NextResponse.json(category, { status: 201 });
-  } catch (error) {
-    console.error("Failed to create category:", error);
-    return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
   }
 }

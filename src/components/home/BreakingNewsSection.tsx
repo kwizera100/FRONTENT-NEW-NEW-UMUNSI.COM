@@ -16,7 +16,7 @@ export function BreakingNewsSection({ posts }: BreakingNewsSectionProps) {
 
   return (
     <section className="py-8 lg:py-12 bg-white border-t border-gray-100">
-      <div className="container mx-auto px-4">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
           <span className="w-1.5 h-8 bg-red-600 rounded-full" />
           <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru Nyamukuru</h2>
