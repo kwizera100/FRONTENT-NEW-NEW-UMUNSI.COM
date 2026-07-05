@@ -15,6 +15,7 @@ import {
   Type,
 } from "lucide-react";
 import { getYouTubeThumb, getYouTubeId } from "@/lib/utils";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import type { ApiCategory } from "@/lib/api";
 
 export default function NewPostPage() {
@@ -34,6 +35,8 @@ export default function NewPostPage() {
   >([]);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaCaption, setMediaCaption] = useState("");
+  const [showCoverUploader, setShowCoverUploader] = useState(false);
+  const [showMediaUploader, setShowMediaUploader] = useState(false);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -165,34 +168,65 @@ export default function NewPostPage() {
 
           {/* Media manager */}
           <div className="bg-white rounded-2xl border border-ink-100 p-5">
-            <h3 className="font-bold text-ink-900 mb-4 flex items-center gap-2">
+            <h3 className="font-bold text-ink-900 mb-1 flex items-center gap-2">
               <ImageIcon className="w-5 h-5 text-brand-600" />
               Media (Amafoto & Videwo)
             </h3>
+            <p className="text-xs text-ink-400 mb-4">
+              Ongera amafoto muri inkuru. Caption ni amahitamo — izagaragara munsi y'ifoto.
+            </p>
 
-            {/* Add media */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <input
-                type="text"
-                value={mediaUrl}
-                onChange={(e) => setMediaUrl(e.target.value)}
-                placeholder="URL y'ifoto cyangwa YouTube link..."
-                className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
-              />
-              <input
-                type="text"
-                value={mediaCaption}
-                onChange={(e) => setMediaCaption(e.target.value)}
-                placeholder="Caption (umwanzuro w'ifoto)..."
-                className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
-              />
+            {/* Upload area */}
+            {showMediaUploader ? (
+              <div className="space-y-3 mb-4">
+                <ImageUploader
+                  onUploadComplete={(url) => {
+                    const isYoutube = url.includes("youtube") || url.includes("youtu.be");
+                    setMediaItems([
+                      ...mediaItems,
+                      { url, type: isYoutube ? "youtube" : "image", caption: "" },
+                    ]);
+                    setShowMediaUploader(false);
+                  }}
+                  onClose={() => setShowMediaUploader(false)}
+                />
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <input
+                  type="text"
+                  value={mediaUrl}
+                  onChange={(e) => setMediaUrl(e.target.value)}
+                  placeholder="URL y'ifoto cyangwa YouTube link..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                />
+                <input
+                  type="text"
+                  value={mediaCaption}
+                  onChange={(e) => setMediaCaption(e.target.value)}
+                  placeholder="Caption (umwanzuro w'ifoto)..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                />
+                <button
+                  onClick={addMedia}
+                  disabled={!mediaUrl.trim()}
+                  className="px-4 py-2.5 bg-ink-900 hover:bg-ink-800 text-white font-bold rounded-xl text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <Plus className="w-4 h-4" /> Ongera
+                </button>
+              </div>
+            )}
+
+            {/* Upload from device button */}
+            {!showMediaUploader && (
               <button
-                onClick={addMedia}
-                className="px-4 py-2.5 bg-ink-900 hover:bg-ink-800 text-white font-bold rounded-xl text-sm flex items-center gap-2 transition-colors"
+                onClick={() => setShowMediaUploader(true)}
+                className="w-full py-3 mb-4 border-2 border-dashed border-brand-300 hover:border-brand-500 hover:bg-brand-50 rounded-xl text-sm font-bold text-brand-600 flex items-center justify-center gap-2 transition-colors"
               >
-                <Plus className="w-4 h-4" /> Ongera
+                <ImageIcon className="w-5 h-5" />
+                Kuramo ifoto ku byuma (Upload from device)
               </button>
-            </div>
+            )}
 
             {/* Media list */}
             <div className="space-y-3">
@@ -237,24 +271,51 @@ export default function NewPostPage() {
                     <p className="text-sm text-ink-600 mt-1 line-clamp-1">
                       {media.url}
                     </p>
-                    {media.caption && (
+                    {media.caption ? (
                       <p className="text-xs text-ink-400 mt-1 italic">
                         {media.caption}
                       </p>
+                    ) : (
+                      <input
+                        type="text"
+                        value={media.caption}
+                        onChange={(e) => {
+                          const updated = [...mediaItems];
+                          updated[i] = { ...updated[i], caption: e.target.value };
+                          setMediaItems(updated);
+                        }}
+                        placeholder="Ongera caption (amahitamo)..."
+                        className="w-full mt-1 px-2 py-1 text-xs rounded-lg border border-ink-200 focus:border-brand-500 outline-none"
+                      />
                     )}
                   </div>
-                  <button
-                    onClick={() => removeMedia(i)}
-                    className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                  <div className="flex flex-col gap-1">
+                    {media.caption && (
+                      <button
+                        onClick={() => {
+                          const updated = [...mediaItems];
+                          updated[i] = { ...updated[i], caption: "" };
+                          setMediaItems(updated);
+                        }}
+                        className="p-1.5 rounded-lg hover:bg-blue-50 text-ink-400 hover:text-blue-600 transition-colors"
+                        title="Hindura caption"
+                      >
+                        <Type className="w-3 h-3" />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeMedia(i)}
+                      className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
 
               {mediaItems.length === 0 && (
                 <p className="text-sm text-ink-400 text-center py-6">
-                  Nta media yongerewe. Ongera ifoto cyangwa YouTube link.
+                  Nta media yongerewe. Kuramo ifoto ku byuma cyangwa shyira URL.
                 </p>
               )}
             </div>
@@ -284,25 +345,73 @@ export default function NewPostPage() {
           {/* Cover image */}
           <div className="bg-white rounded-2xl border border-ink-100 p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
-              Ifoto y'icyamamare (Cover)
+              Ifoto y'icyamamare (Cover) — Ni amahitamo
             </label>
-            <input
-              type="text"
-              value={coverImage}
-              onChange={(e) => setCoverImage(e.target.value)}
-              placeholder="URL y'ifoto..."
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm mb-3"
-            />
-            {coverImage && (
-              <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-ink-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={coverImage}
-                  alt=""
-                  className="w-full h-full object-cover"
+
+            {coverImage ? (
+              <div className="space-y-3">
+                <div className="relative aspect-[16/9] rounded-xl overflow-hidden bg-ink-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={coverImage}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    onClick={() => setCoverImage("")}
+                    className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={coverImage}
+                    onChange={(e) => setCoverImage(e.target.value)}
+                    placeholder="URL y'ifoto..."
+                    className="flex-1 px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-xs"
+                  />
+                  <button
+                    onClick={() => setShowCoverUploader(true)}
+                    className="px-3 py-2 bg-ink-900 hover:bg-ink-800 text-white rounded-lg text-xs font-bold whitespace-nowrap"
+                  >
+                    Hindura
+                  </button>
+                </div>
+              </div>
+            ) : showCoverUploader ? (
+              <div className="space-y-3">
+                <ImageUploader
+                  onUploadComplete={(url) => {
+                    setCoverImage(url);
+                    setShowCoverUploader(false);
+                  }}
+                  onClose={() => setShowCoverUploader(false)}
+                  compact
                 />
               </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={coverImage}
+                  onChange={(e) => setCoverImage(e.target.value)}
+                  placeholder="URL y'ifoto..."
+                  className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                />
+                <button
+                  onClick={() => setShowCoverUploader(true)}
+                  className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  Kuramo
+                </button>
+              </div>
             )}
+            <p className="text-xs text-ink-400 mt-2">
+              Hitamo ifoto ku byuma cyangwa shyira URL. Ntabwo ari ngombwa.
+            </p>
           </div>
 
           {/* Featured */}

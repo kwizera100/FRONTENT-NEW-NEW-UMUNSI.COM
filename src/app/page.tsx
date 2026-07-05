@@ -4,65 +4,92 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
-import { LoadMore } from "@/components/home/LoadMore";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const [featuredPosts, latestPosts, trendingPosts, categories, entertainmentPosts, amatangazoPosts] =
-    await Promise.all([
-      api.getFeaturedPosts(5),
-      api.getLatestPosts(20),
-      api.getTrendingPosts(6),
-      api.getCategories(),
-      api.getPostsByCategory("imyidagaduro", 6),
-      api.getPostsByCategory("amatangazo", 6),
-    ]);
+  const [featuredPosts, trendingPosts, categories] = await Promise.all([
+    api.getFeaturedPosts(5),
+    api.getTrendingPosts(6),
+    api.getCategories(),
+  ]);
 
   const featured = featuredPosts.map(mapApiPost);
-  const latest = latestPosts.map(mapApiPost);
   const popular = trendingPosts.map(mapApiPost);
-  const entertainment = entertainmentPosts.map(mapApiPost);
-  const amatangazo = amatangazoPosts.map(mapApiPost);
 
-  const excludeSlugs = ["imyidagaduro", "amatangazo", "amakuru", "inkuru-nyamukuru"];
-  const otherCategories = (categories as ApiCategory[]).filter(
-    (c) => c.isActive && !excludeSlugs.includes(c.slug.toLowerCase())
+  const orderedSlugs = [
+    "inkuru-nyamukuru",
+    "imikino",
+    "imyidagaduro",
+    "ikoranabuhanga",
+    "ubuzima",
+    "amatangazo",
+    "amakuru",
+  ];
+
+  const allCats = categories as ApiCategory[];
+  const activeCats = allCats.filter((c) => c.isActive);
+
+  const orderedCategories = orderedSlugs
+    .map((slug) => activeCats.find((c) => c.slug.toLowerCase() === slug))
+    .filter((c): c is ApiCategory => c !== undefined);
+
+  const remainingCategories = activeCats.filter(
+    (c) => !orderedSlugs.includes(c.slug.toLowerCase())
   );
 
-  const otherCategoryPosts = await Promise.all(
-    otherCategories.map((cat) => api.getPostsByCategory(cat.slug, 6))
+  const allDisplayCategories = [...orderedCategories, ...remainingCategories];
+
+  const categoryPosts = await Promise.all(
+    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 6))
   );
 
   return (
     <>
-      <Header categories={categories as ApiCategory[]} />
+      <Header categories={allCats} />
 
       <main>
         <HeroFeaturedSection featured={featured} popular={popular} />
 
-        <section className="py-8 lg:py-12 bg-white">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 mb-6 lg:mb-8">
-              <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
-              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru zose</h2>
-            </div>
-            <LoadMore initialPosts={latest} />
-          </div>
-        </section>
+        {allDisplayCategories.map((cat, i) => {
+          const posts = categoryPosts[i].map(mapApiPost);
+          if (posts.length === 0) return null;
 
-        <EntertainmentSection entertainment={entertainment} amatangazo={amatangazo} />
+          if (cat.slug.toLowerCase() === "imyidagaduro") {
+            const amatangazoCat = activeCats.find(
+              (c) => c.slug.toLowerCase() === "amatangazo"
+            );
+            const amatangazoIdx = allDisplayCategories.findIndex(
+              (c) => c.slug.toLowerCase() === "amatangazo"
+            );
+            const amatangazoPosts =
+              amatangazoIdx >= 0 ? categoryPosts[amatangazoIdx].map(mapApiPost) : [];
 
-        {otherCategories.map((cat, i) => {
-          const catPosts = otherCategoryPosts[i].map(mapApiPost);
-          if (catPosts.length === 0) return null;
+            if (amatangazoCat && amatangazoPosts.length > 0) {
+              return (
+                <EntertainmentSection
+                  key={cat.id}
+                  entertainment={posts}
+                  amatangazo={amatangazoPosts}
+                />
+              );
+            }
+          }
+
+          if (cat.slug.toLowerCase() === "amatangazo") {
+            const hasEntertainment = activeCats.some(
+              (c) => c.slug.toLowerCase() === "imyidagaduro"
+            );
+            if (hasEntertainment) return null;
+          }
+
           return (
             <CategoryGridSection
               key={cat.id}
               title={cat.name}
               slug={cat.slug}
               color={cat.color}
-              posts={catPosts}
+              posts={posts}
             />
           );
         })}

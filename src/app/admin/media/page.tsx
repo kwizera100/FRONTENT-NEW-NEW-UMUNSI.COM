@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { getYouTubeThumb, getYouTubeId } from "@/lib/utils";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 import type { ApiPost } from "@/lib/api";
 
 export default function AdminMediaPage() {
@@ -21,8 +22,8 @@ export default function AdminMediaPage() {
   const [filter, setFilter] = useState<"all" | "image" | "youtube">("all");
   const [selected, setSelected] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
-  const [newUrl, setNewUrl] = useState("");
   const [newCaption, setNewCaption] = useState("");
+  const [uploadedUrl, setUploadedUrl] = useState("");
   const [loading, setLoading] = useState(true);
 
   const [allMedia, setAllMedia] = useState<
@@ -60,6 +61,22 @@ export default function AdminMediaPage() {
     const matchesFilter = filter === "all" || m.type === filter;
     return matchesSearch && matchesFilter;
   });
+
+  const handleAddMedia = () => {
+    if (!uploadedUrl.trim()) return;
+    const isYoutube = uploadedUrl.includes("youtube") || uploadedUrl.includes("youtu.be");
+    const newMediaItem = {
+      id: `media-${Date.now()}`,
+      url: uploadedUrl,
+      type: isYoutube ? "youtube" as const : "image" as const,
+      caption: newCaption || "",
+      postTitle: "Media yongerewe n'admin",
+    };
+    setAllMedia([newMediaItem, ...allMedia]);
+    setShowAdd(false);
+    setUploadedUrl("");
+    setNewCaption("");
+  };
 
   return (
     <div className="space-y-6">
@@ -278,7 +295,7 @@ export default function AdminMediaPage() {
           onClick={() => setShowAdd(false)}
         >
           <div
-            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl"
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
@@ -291,66 +308,64 @@ export default function AdminMediaPage() {
               </button>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                  URL y'ifoto cyangwa YouTube
-                </label>
-                <input
-                  type="text"
-                  value={newUrl}
-                  onChange={(e) => setNewUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                  Caption (Umwanzuro w'ifoto)
-                </label>
-                <input
-                  type="text"
-                  value={newCaption}
-                  onChange={(e) => setNewCaption(e.target.value)}
-                  placeholder="Andika caption..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
-                />
-              </div>
-              {newUrl && (
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
-                  {getYouTubeId(newUrl) ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+              <ImageUploader onUploadComplete={(url) => setUploadedUrl(url)} />
+
+              {uploadedUrl && (
+                <div className="space-y-3">
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
+                    {getYouTubeId(uploadedUrl) ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={getYouTubeThumb(uploadedUrl) || ""}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
+                          <Youtube className="w-5 h-5 text-white" fill="white" />
+                        </div>
+                      </>
+                    ) : (
+                      /* eslint-disable-next-line @next/next/no-img-element */
                       <img
-                        src={getYouTubeThumb(newUrl) || ""}
+                        src={uploadedUrl}
                         alt=""
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-red-600 flex items-center justify-center">
-                        <Youtube className="w-5 h-5 text-white" fill="white" />
-                      </div>
-                    </>
-                  ) : (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
-                      src={newUrl}
-                      alt=""
-                      className="w-full h-full object-cover"
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-ink-700 mb-1.5 block">
+                      Caption (Umwanzuro w'ifoto) — Ushobora kuyisiga
+                    </label>
+                    <input
+                      type="text"
+                      value={newCaption}
+                      onChange={(e) => setNewCaption(e.target.value)}
+                      placeholder="Andika caption y'ifoto..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
                     />
-                  )}
+                    <p className="text-xs text-ink-400 mt-1">
+                      Caption izagaragara munsi y'ifoto muri inkuru. Ni amahitamo.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={handleAddMedia}
+                    className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Ongera Media
+                  </button>
                 </div>
               )}
-              <button
-                onClick={() => {
-                  alert("Media yongerewe (demo mode)");
-                  setShowAdd(false);
-                  setNewUrl("");
-                  setNewCaption("");
-                }}
-                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
-              >
-                <Plus className="w-5 h-5" />
-                Ongera Media
-              </button>
+
+              {!uploadedUrl && (
+                <p className="text-sm text-ink-400 text-center py-4">
+                  Hitamo ifoto ku byuma cyangwa shyira URL, hanyuma wongere caption.
+                </p>
+              )}
             </div>
           </div>
         </div>
