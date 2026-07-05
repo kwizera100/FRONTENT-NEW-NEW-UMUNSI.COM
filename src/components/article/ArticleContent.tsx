@@ -65,7 +65,9 @@ export function ArticleContent({ html }: ArticleContentProps) {
         [&_h2]:text-2xl [&_h2]:font-black [&_h2]:text-gray-900 [&_h2]:mt-8 [&_h2]:mb-4
         [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-6 [&_h3]:mb-3
         [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2 [&_ul]:text-gray-800
-        [&_a]:text-[#e5b60d] [&_a]:font-semibold [&_a]:underline [&_a]:hover:text-[#c9a00c]"
+        [&_a]:text-[#e5b60d] [&_a]:font-semibold [&_a]:underline [&_a]:hover:text-[#c9a00c]
+        [&_.video-wrapper]:my-8 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
+        [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   );

@@ -9,6 +9,7 @@ import {
   Eye,
   Star,
   Image as ImageIcon,
+  Youtube,
   X,
   Plus,
   Type,
@@ -21,8 +22,11 @@ import {
   UserPlus,
   Loader2,
   Link2,
+  FolderOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { ImageUploader } from "@/components/admin/ImageUploader";
+import { getYouTubeId, getYouTubeThumb } from "@/lib/utils";
 import type { ApiCategory } from "@/lib/api";
 
 export default function NewPostPage() {
@@ -41,9 +45,12 @@ export default function NewPostPage() {
   const [showMediaInContent, setShowMediaInContent] = useState(false);
   const [mediaCaptionInput, setMediaCaptionInput] = useState("");
   const [mediaUrlInput, setMediaUrlInput] = useState("");
-  const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption">("choose");
+  const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption" | "youtube" | "library">("choose");
   const [authors, setAuthors] = useState<string[]>([]);
   const [authorInput, setAuthorInput] = useState("");
+  const [mediaLibrary, setMediaLibrary] = useState<{ url: string; caption?: string; type?: string }[]>([]);
+  const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
+  const [isYouTube, setIsYouTube] = useState(false);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -79,24 +86,54 @@ export default function NewPostPage() {
     setAuthors(authors.filter((a) => a !== name));
   };
 
-  const insertImageIntoContent = (url: string, caption: string) => {
+  const insertMediaIntoContent = (url: string, caption: string, youtube: boolean) => {
     const textarea = document.getElementById("content-textarea") as HTMLTextAreaElement;
     if (!textarea) return;
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
-    const figHtml = caption.trim()
-      ? `<figure>\n  <img src="${url}" alt="${caption}" />\n  <figcaption>${caption}</figcaption>\n</figure>`
-      : `<figure>\n  <img src="${url}" alt="" />\n</figure>`;
-    const newContent = content.substring(0, start) + figHtml + content.substring(end);
+    let html = "";
+    if (youtube) {
+      const videoId = getYouTubeId(url);
+      if (videoId) {
+        html = caption.trim()
+          ? `<figure>\n  <div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.75rem;margin:1rem 0;">\n    <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe>\n  </div>\n  <figcaption>${caption}</figcaption>\n</figure>`
+          : `<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.75rem;margin:1rem 0;">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe>\n</div>`;
+      }
+    } else {
+      html = caption.trim()
+        ? `<figure>\n  <img src="${url}" alt="${caption}" />\n  <figcaption>${caption}</figcaption>\n</figure>`
+        : `<figure>\n  <img src="${url}" alt="" />\n</figure>`;
+    }
+    if (!html) return;
+    const newContent = content.substring(0, start) + html + content.substring(end);
     setContent(newContent);
     setShowMediaInContent(false);
     setMediaCaptionInput("");
     setMediaUrlInput("");
     setMediaStep("choose");
+    setIsYouTube(false);
     setTimeout(() => {
       textarea.focus();
-      textarea.setSelectionRange(start + figHtml.length, start + figHtml.length);
+      textarea.setSelectionRange(start + html.length, start + html.length);
     }, 0);
+  };
+
+  const fetchMediaLibrary = async () => {
+    setMediaLibraryLoading(true);
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch("/api/media", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMediaLibrary(data.map((m: any) => ({ url: m.url || m.path || "", caption: m.caption || m.altText || "", type: m.type || "image" })));
+      }
+    } catch {
+      // ignore
+    } finally {
+      setMediaLibraryLoading(false);
+    }
   };
 
   const insertTag = (tag: string) => {
@@ -249,11 +286,26 @@ export default function NewPostPage() {
               </button>
               <div className="w-px h-5 bg-ink-200 mx-1" />
               <button
-                onClick={() => setShowMediaInContent(true)}
+                onClick={() => {
+                  setIsYouTube(false);
+                  setMediaStep("choose");
+                  setShowMediaInContent(true);
+                }}
                 className="p-2 rounded-lg hover:bg-white text-brand-600 transition-colors"
                 title="Add Image"
               >
                 <ImageIcon className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  setShowMediaInContent(true);
+                  setMediaStep("youtube");
+                  setIsYouTube(true);
+                }}
+                className="p-2 rounded-lg hover:bg-white text-red-600 transition-colors"
+                title="Add YouTube Video"
+              >
+                <Youtube className="w-4 h-4" />
               </button>
               <span className="ml-auto text-xs text-ink-400">HTML supported</span>
             </div>
@@ -481,7 +533,11 @@ export default function NewPostPage() {
       {showMediaInContent && (
         <div
           className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowMediaInContent(false)}
+          onClick={() => {
+            setShowMediaInContent(false);
+            setIsYouTube(false);
+            setMediaStep("choose");
+          }}
         >
           <div
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
@@ -489,11 +545,19 @@ export default function NewPostPage() {
           >
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-xl font-black text-ink-900 flex items-center gap-2">
-                <ImageIcon className="w-5 h-5 text-brand-600" />
-                Add Image to Article
+                {isYouTube ? (
+                  <Youtube className="w-5 h-5 text-red-600" />
+                ) : (
+                  <ImageIcon className="w-5 h-5 text-brand-600" />
+                )}
+                {isYouTube ? "Add YouTube Video" : "Add Image to Article"}
               </h3>
               <button
-                onClick={() => setShowMediaInContent(false)}
+                onClick={() => {
+                  setShowMediaInContent(false);
+                  setIsYouTube(false);
+                  setMediaStep("choose");
+                }}
                 className="p-2 rounded-lg hover:bg-ink-100"
               >
                 <X className="w-5 h-5" />
@@ -504,18 +568,45 @@ export default function NewPostPage() {
             {mediaStep === "choose" && (
               <div className="space-y-3">
                 <button
-                  onClick={() => setMediaStep("upload")}
+                  onClick={() => {
+                    setIsYouTube(false);
+                    setMediaStep("upload");
+                  }}
                   className="w-full p-4 border-2 border-dashed border-brand-300 hover:border-brand-500 hover:bg-brand-50 rounded-xl text-sm font-bold text-brand-600 flex items-center justify-center gap-3 transition-colors"
                 >
                   <ImageIcon className="w-6 h-6" />
                   Upload from Device
                 </button>
                 <button
-                  onClick={() => setMediaStep("url")}
+                  onClick={() => {
+                    setIsYouTube(false);
+                    setMediaStep("url");
+                  }}
                   className="w-full p-4 border-2 border-ink-200 hover:border-ink-400 hover:bg-ink-50 rounded-xl text-sm font-bold text-ink-600 flex items-center justify-center gap-3 transition-colors"
                 >
                   <Link2 className="w-6 h-6" />
                   Paste Image URL
+                </button>
+                <button
+                  onClick={() => {
+                    setIsYouTube(false);
+                    fetchMediaLibrary();
+                    setMediaStep("library");
+                  }}
+                  className="w-full p-4 border-2 border-ink-200 hover:border-ink-400 hover:bg-ink-50 rounded-xl text-sm font-bold text-ink-600 flex items-center justify-center gap-3 transition-colors"
+                >
+                  <FolderOpen className="w-6 h-6" />
+                  Pick from Media Library
+                </button>
+                <button
+                  onClick={() => {
+                    setIsYouTube(true);
+                    setMediaStep("youtube");
+                  }}
+                  className="w-full p-4 border-2 border-red-200 hover:border-red-400 hover:bg-red-50 rounded-xl text-sm font-bold text-red-600 flex items-center justify-center gap-3 transition-colors"
+                >
+                  <Youtube className="w-6 h-6" />
+                  Add YouTube Video
                 </button>
               </div>
             )}
@@ -567,28 +658,41 @@ export default function NewPostPage() {
               </div>
             )}
 
-            {/* Step: caption */}
-            {mediaStep === "caption" && mediaUrlInput && (
+            {/* Step: youtube */}
+            {mediaStep === "youtube" && (
               <div className="space-y-4">
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={mediaUrlInput} alt="Preview" className="w-full h-full object-contain" />
-                </div>
                 <div>
                   <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                    Caption (Optional)
+                    YouTube URL
                   </label>
                   <input
                     type="text"
-                    value={mediaCaptionInput}
-                    onChange={(e) => setMediaCaptionInput(e.target.value)}
-                    placeholder="Describe this image..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                    value={mediaUrlInput}
+                    onChange={(e) => setMediaUrlInput(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-red-500 outline-none text-sm"
                   />
-                  <p className="text-xs text-ink-400 mt-1">
-                    Caption will appear below the image in the article. Leave empty to skip.
-                  </p>
                 </div>
+                {mediaUrlInput && getYouTubeId(mediaUrlInput) && (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getYouTubeThumb(mediaUrlInput) || ""}
+                      alt="YouTube preview"
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center">
+                        <Youtube className="w-7 h-7 text-white" fill="white" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                {mediaUrlInput && !getYouTubeId(mediaUrlInput) && (
+                  <p className="text-xs text-red-500 font-semibold">
+                    Invalid YouTube URL. Use a link like https://www.youtube.com/watch?v=...
+                  </p>
+                )}
                 <div className="flex gap-3">
                   <button
                     onClick={() => setMediaStep("choose")}
@@ -597,8 +701,128 @@ export default function NewPostPage() {
                     Back
                   </button>
                   <button
-                    onClick={() => insertImageIntoContent(mediaUrlInput, mediaCaptionInput)}
-                    className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors"
+                    onClick={() => getYouTubeId(mediaUrlInput) && setMediaStep("caption")}
+                    disabled={!getYouTubeId(mediaUrlInput)}
+                    className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors"
+                  >
+                    Next: Add Caption
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step: library */}
+            {mediaStep === "library" && (
+              <div className="space-y-4">
+                {mediaLibraryLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                  </div>
+                ) : mediaLibrary.length === 0 ? (
+                  <div className="text-center py-12">
+                    <FolderOpen className="w-12 h-12 text-ink-300 mx-auto mb-3" />
+                    <p className="text-sm text-ink-400 font-semibold">No media in library yet.</p>
+                    <p className="text-xs text-ink-400 mt-1">Upload images first to see them here.</p>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-sm text-ink-500 font-semibold">
+                      Select an image from your media library:
+                    </p>
+                    <div className="grid grid-cols-3 gap-3 max-h-80 overflow-y-auto">
+                      {mediaLibrary
+                        .filter((m) => m.type !== "youtube" && !m.url?.includes("youtube"))
+                        .map((media, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setMediaUrlInput(media.url);
+                              setMediaCaptionInput(media.caption || "");
+                              setMediaStep("caption");
+                            }}
+                            className="relative aspect-square rounded-xl overflow-hidden border-2 border-transparent hover:border-brand-500 transition-colors group"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={media.url}
+                              alt={media.caption || ""}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                              <CheckCircle2 className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                          </button>
+                        ))}
+                    </div>
+                  </>
+                )}
+                <button
+                  onClick={() => setMediaStep("choose")}
+                  className="text-sm text-ink-400 hover:text-ink-600 font-semibold"
+                >
+                  &larr; Back
+                </button>
+              </div>
+            )}
+
+            {/* Step: caption */}
+            {mediaStep === "caption" && mediaUrlInput && (
+              <div className="space-y-4">
+                {isYouTube ? (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={getYouTubeThumb(mediaUrlInput) || ""}
+                      alt="YouTube preview"
+                      className="w-full h-full object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-14 h-14 rounded-full bg-red-600 flex items-center justify-center">
+                        <Youtube className="w-7 h-7 text-white" fill="white" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={mediaUrlInput} alt="Preview" className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">
+                    Caption (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={mediaCaptionInput}
+                    onChange={(e) => setMediaCaptionInput(e.target.value)}
+                    placeholder={isYouTube ? "Describe this video..." : "Describe this image..."}
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        insertMediaIntoContent(mediaUrlInput, mediaCaptionInput, isYouTube);
+                      }
+                    }}
+                  />
+                  <p className="text-xs text-ink-400 mt-1">
+                    {isYouTube
+                      ? "Caption will appear below the video. Leave empty to skip."
+                      : "Caption will appear below the image. Leave empty to skip."}
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setMediaStep(isYouTube ? "youtube" : "choose")}
+                    className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={() => insertMediaIntoContent(mediaUrlInput, mediaCaptionInput, isYouTube)}
+                    className={`flex-1 py-2.5 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors ${
+                      isYouTube ? "bg-red-600 hover:bg-red-700" : "bg-brand-600 hover:bg-brand-700"
+                    }`}
                   >
                     <Plus className="w-4 h-4" />
                     Insert into Article

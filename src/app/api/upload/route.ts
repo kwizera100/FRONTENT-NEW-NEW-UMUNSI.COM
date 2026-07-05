@@ -30,12 +30,13 @@ export async function POST(req: NextRequest) {
     const authHeader = req.headers.get("authorization") || "";
     const uploadHeaders: Record<string, string> = {
       "User-Agent": "UmunsiFrontend/1.0",
+      "Accept": "application/json",
     };
     if (authHeader) {
       uploadHeaders["Authorization"] = authHeader;
     }
 
-    const res = await fetch(`${API_BASE}/media/upload`, {
+    let res = await fetch(`${API_BASE}/media/upload`, {
       method: "POST",
       body: forwardFormData,
       headers: uploadHeaders,
@@ -43,9 +44,22 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "Upload failed");
-      console.error("Backend upload error:", res.status, errText);
+      console.error("Backend upload error (field=file):", res.status, errText);
+
+      const retryFormData = new FormData();
+      retryFormData.append("image", file);
+      res = await fetch(`${API_BASE}/media/upload`, {
+        method: "POST",
+        body: retryFormData,
+        headers: uploadHeaders,
+      });
+    }
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "Upload failed");
+      console.error("Backend upload error (field=image):", res.status, errText);
       return NextResponse.json(
-        { error: `Backend upload failed (${res.status})` },
+        { error: `Backend upload failed (${res.status}): ${errText.slice(0, 200)}` },
         { status: res.status }
       );
     }
