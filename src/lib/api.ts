@@ -79,6 +79,7 @@ export interface ApiPost {
     color: string | null;
   };
   shareCount?: number;
+  coAuthors?: string[];
 }
 
 export interface ApiCategory {

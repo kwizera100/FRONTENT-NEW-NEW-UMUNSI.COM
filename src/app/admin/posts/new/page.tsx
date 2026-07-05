@@ -9,7 +9,6 @@ import {
   Eye,
   Star,
   Image as ImageIcon,
-  Youtube,
   X,
   Plus,
   Type,
@@ -19,8 +18,10 @@ import {
   Heading3,
   List,
   Quote,
+  UserPlus,
+  Loader2,
+  Link2,
 } from "lucide-react";
-import { getYouTubeThumb, getYouTubeId } from "@/lib/utils";
 import { ImageUploader } from "@/components/admin/ImageUploader";
 import type { ApiCategory } from "@/lib/api";
 
@@ -36,13 +37,13 @@ export default function NewPostPage() {
   const [coverImage, setCoverImage] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [mediaItems, setMediaItems] = useState<
-    { url: string; type: "image" | "youtube"; caption: string }[]
-  >([]);
-  const [mediaUrl, setMediaUrl] = useState("");
-  const [mediaCaption, setMediaCaption] = useState("");
   const [showCoverUploader, setShowCoverUploader] = useState(false);
-  const [showMediaUploader, setShowMediaUploader] = useState(false);
+  const [showMediaInContent, setShowMediaInContent] = useState(false);
+  const [mediaCaptionInput, setMediaCaptionInput] = useState("");
+  const [mediaUrlInput, setMediaUrlInput] = useState("");
+  const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption">("choose");
+  const [authors, setAuthors] = useState<string[]>([]);
+  const [authorInput, setAuthorInput] = useState("");
 
   useEffect(() => {
     fetch("/api/categories")
@@ -67,23 +68,35 @@ export default function NewPostPage() {
     }
   };
 
-  const addMedia = () => {
-    if (!mediaUrl.trim()) return;
-    const isYoutube = mediaUrl.includes("youtube") || mediaUrl.includes("youtu.be");
-    setMediaItems([
-      ...mediaItems,
-      {
-        url: mediaUrl,
-        type: isYoutube ? "youtube" : "image",
-        caption: mediaCaption,
-      },
-    ]);
-    setMediaUrl("");
-    setMediaCaption("");
+  const addAuthor = () => {
+    if (authorInput.trim() && !authors.includes(authorInput.trim())) {
+      setAuthors([...authors, authorInput.trim()]);
+      setAuthorInput("");
+    }
   };
 
-  const removeMedia = (index: number) => {
-    setMediaItems(mediaItems.filter((_, i) => i !== index));
+  const removeAuthor = (name: string) => {
+    setAuthors(authors.filter((a) => a !== name));
+  };
+
+  const insertImageIntoContent = (url: string, caption: string) => {
+    const textarea = document.getElementById("content-textarea") as HTMLTextAreaElement;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const figHtml = caption.trim()
+      ? `<figure>\n  <img src="${url}" alt="${caption}" />\n  <figcaption>${caption}</figcaption>\n</figure>`
+      : `<figure>\n  <img src="${url}" alt="" />\n</figure>`;
+    const newContent = content.substring(0, start) + figHtml + content.substring(end);
+    setContent(newContent);
+    setShowMediaInContent(false);
+    setMediaCaptionInput("");
+    setMediaUrlInput("");
+    setMediaStep("choose");
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + figHtml.length, start + figHtml.length);
+    }, 0);
   };
 
   const insertTag = (tag: string) => {
@@ -100,6 +113,7 @@ export default function NewPostPage() {
       case "italic": replacement = `<em>${selected || "italic text"}</em>`; break;
       case "quote": replacement = `<blockquote>${selected || "quote"}</blockquote>`; break;
       case "list": replacement = `<ul>\n  <li>${selected || "Item 1"}</li>\n  <li>Item 2</li>\n</ul>`; break;
+      case "image": return; // handled by modal
       default: replacement = selected;
     }
     const newContent = content.substring(0, start) + replacement + content.substring(end);
@@ -181,161 +195,6 @@ export default function NewPostPage() {
             />
           </div>
 
-          {/* Media manager */}
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
-            <h3 className="font-bold text-ink-900 mb-1 flex items-center gap-2">
-              <ImageIcon className="w-5 h-5 text-brand-600" />
-              Media (Images & Videos)
-            </h3>
-            <p className="text-xs text-ink-400 mb-4">
-              Add images to your article. Caption is optional — it will appear below the image.
-            </p>
-
-            {/* Upload area */}
-            {showMediaUploader ? (
-              <div className="space-y-3 mb-4">
-                <ImageUploader
-                  onUploadComplete={(url) => {
-                    const isYoutube = url.includes("youtube") || url.includes("youtu.be");
-                    setMediaItems([
-                      ...mediaItems,
-                      { url, type: isYoutube ? "youtube" : "image", caption: "" },
-                    ]);
-                    setShowMediaUploader(false);
-                  }}
-                  onClose={() => setShowMediaUploader(false)}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <input
-                  type="text"
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  placeholder="Image or YouTube URL..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
-                />
-                <input
-                  type="text"
-                  value={mediaCaption}
-                  onChange={(e) => setMediaCaption(e.target.value)}
-                  placeholder="Caption (image description)..."
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
-                />
-                <button
-                  onClick={addMedia}
-                  disabled={!mediaUrl.trim()}
-                  className="px-4 py-2.5 bg-ink-900 hover:bg-ink-800 text-white font-bold rounded-xl text-sm flex items-center gap-2 transition-colors disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4" /> Add
-                </button>
-              </div>
-            )}
-
-            {/* Upload from device button */}
-            {!showMediaUploader && (
-              <button
-                onClick={() => setShowMediaUploader(true)}
-                className="w-full py-3 mb-4 border-2 border-dashed border-brand-300 hover:border-brand-500 hover:bg-brand-50 rounded-xl text-sm font-bold text-brand-600 flex items-center justify-center gap-2 transition-colors"
-              >
-                <ImageIcon className="w-5 h-5" />
-                Upload Image from Device
-              </button>
-            )}
-
-            {/* Media list */}
-            <div className="space-y-3">
-              {mediaItems.map((media, i) => (
-                <div
-                  key={i}
-                  className="flex gap-4 items-start p-3 rounded-xl bg-ink-50 border border-ink-100"
-                >
-                  {/* Preview */}
-                  <div className="w-24 h-16 rounded-lg overflow-hidden shrink-0 bg-ink-200 relative">
-                    {media.type === "youtube" && getYouTubeId(media.url) ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={getYouTubeThumb(media.url) || ""}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Youtube className="w-6 h-6 text-red-600" fill="white" />
-                        </div>
-                      </>
-                    ) : (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={media.url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span
-                      className={`text-xs font-bold px-2 py-0.5 rounded-lg ${
-                        media.type === "youtube"
-                          ? "bg-red-50 text-red-600"
-                          : "bg-blue-50 text-blue-600"
-                      }`}
-                    >
-                      {media.type === "youtube" ? "YouTube" : "Image"}
-                    </span>
-                    <p className="text-sm text-ink-600 mt-1 line-clamp-1">
-                      {media.url}
-                    </p>
-                    {media.caption ? (
-                      <p className="text-xs text-ink-400 mt-1 italic">
-                        {media.caption}
-                      </p>
-                    ) : (
-                      <input
-                        type="text"
-                        value={media.caption}
-                        onChange={(e) => {
-                          const updated = [...mediaItems];
-                          updated[i] = { ...updated[i], caption: e.target.value };
-                          setMediaItems(updated);
-                        }}
-                        placeholder="Add caption (optional)..."
-                        className="w-full mt-1 px-2 py-1 text-xs rounded-lg border border-ink-200 focus:border-brand-500 outline-none"
-                      />
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    {media.caption && (
-                      <button
-                        onClick={() => {
-                          const updated = [...mediaItems];
-                          updated[i] = { ...updated[i], caption: "" };
-                          setMediaItems(updated);
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-blue-50 text-ink-400 hover:text-blue-600 transition-colors"
-                        title="Edit caption"
-                      >
-                        <Type className="w-3 h-3" />
-                      </button>
-                    )}
-                    <button
-                      onClick={() => removeMedia(i)}
-                      className="p-1.5 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {mediaItems.length === 0 && (
-                <p className="text-sm text-ink-400 text-center py-6">
-                  No media added yet. Upload from device or paste a URL.
-                </p>
-              )}
-            </div>
-          </div>
-
           {/* Content */}
           <div className="bg-white rounded-2xl border border-ink-100 p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
@@ -387,6 +246,14 @@ export default function NewPostPage() {
                 title="List"
               >
                 <List className="w-4 h-4" />
+              </button>
+              <div className="w-px h-5 bg-ink-200 mx-1" />
+              <button
+                onClick={() => setShowMediaInContent(true)}
+                className="p-2 rounded-lg hover:bg-white text-brand-600 transition-colors"
+                title="Add Image"
+              >
+                <ImageIcon className="w-4 h-4" />
               </button>
               <span className="ml-auto text-xs text-ink-400">HTML supported</span>
             </div>
@@ -519,6 +386,56 @@ export default function NewPostPage() {
             </p>
           </div>
 
+          {/* Authors */}
+          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+            <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
+              <UserPlus className="w-4 h-4" /> Authors
+            </label>
+            <p className="text-xs text-ink-400 mb-3">
+              Add co-authors who contributed to this article. They will be shown in the article page.
+            </p>
+            <div className="flex gap-2 mb-3">
+              <input
+                type="text"
+                value={authorInput}
+                onChange={(e) => setAuthorInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAuthor())}
+                placeholder="Add author name..."
+                className="flex-1 px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm"
+              />
+              <button
+                onClick={addAuthor}
+                className="px-3 py-2 bg-ink-900 text-white rounded-lg text-sm font-bold"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="space-y-2">
+              {authors.map((name) => (
+                <div
+                  key={name}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg bg-ink-50 border border-ink-100"
+                >
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                    {name.charAt(0).toUpperCase()}
+                  </div>
+                  <span className="flex-1 text-sm font-semibold text-ink-700 truncate">{name}</span>
+                  <button
+                    onClick={() => removeAuthor(name)}
+                    className="p-1 rounded-lg hover:bg-red-50 text-ink-400 hover:text-red-600 transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+              {authors.length === 0 && (
+                <p className="text-xs text-ink-400 text-center py-2">
+                  No co-authors added.
+                </p>
+              )}
+            </div>
+          </div>
+
           {/* Tags */}
           <div className="bg-white rounded-2xl border border-ink-100 p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
@@ -559,6 +476,139 @@ export default function NewPostPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Media to Content Modal */}
+      {showMediaInContent && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowMediaInContent(false)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-black text-ink-900 flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-brand-600" />
+                Add Image to Article
+              </h3>
+              <button
+                onClick={() => setShowMediaInContent(false)}
+                className="p-2 rounded-lg hover:bg-ink-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Step: choose */}
+            {mediaStep === "choose" && (
+              <div className="space-y-3">
+                <button
+                  onClick={() => setMediaStep("upload")}
+                  className="w-full p-4 border-2 border-dashed border-brand-300 hover:border-brand-500 hover:bg-brand-50 rounded-xl text-sm font-bold text-brand-600 flex items-center justify-center gap-3 transition-colors"
+                >
+                  <ImageIcon className="w-6 h-6" />
+                  Upload from Device
+                </button>
+                <button
+                  onClick={() => setMediaStep("url")}
+                  className="w-full p-4 border-2 border-ink-200 hover:border-ink-400 hover:bg-ink-50 rounded-xl text-sm font-bold text-ink-600 flex items-center justify-center gap-3 transition-colors"
+                >
+                  <Link2 className="w-6 h-6" />
+                  Paste Image URL
+                </button>
+              </div>
+            )}
+
+            {/* Step: upload */}
+            {mediaStep === "upload" && (
+              <div className="space-y-4">
+                <ImageUploader
+                  onUploadComplete={(url) => {
+                    setMediaUrlInput(url);
+                    setMediaStep("caption");
+                  }}
+                  onClose={() => setMediaStep("choose")}
+                />
+              </div>
+            )}
+
+            {/* Step: url */}
+            {mediaStep === "url" && (
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={mediaUrlInput}
+                    onChange={(e) => setMediaUrlInput(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                  />
+                  <button
+                    onClick={() => mediaUrlInput.trim() && setMediaStep("caption")}
+                    disabled={!mediaUrlInput.trim()}
+                    className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+                {mediaUrlInput && (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={mediaUrlInput} alt="Preview" className="w-full h-full object-contain" />
+                  </div>
+                )}
+                <button
+                  onClick={() => setMediaStep("choose")}
+                  className="text-sm text-ink-400 hover:text-ink-600 font-semibold"
+                >
+                  &larr; Back
+                </button>
+              </div>
+            )}
+
+            {/* Step: caption */}
+            {mediaStep === "caption" && mediaUrlInput && (
+              <div className="space-y-4">
+                <div className="relative aspect-video rounded-xl overflow-hidden bg-ink-100">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={mediaUrlInput} alt="Preview" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">
+                    Caption (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={mediaCaptionInput}
+                    onChange={(e) => setMediaCaptionInput(e.target.value)}
+                    placeholder="Describe this image..."
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                  />
+                  <p className="text-xs text-ink-400 mt-1">
+                    Caption will appear below the image in the article. Leave empty to skip.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setMediaStep("choose")}
+                    className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors"
+                  >
+                    Back
+                  </button>
+                  <button
+                    onClick={() => insertImageIntoContent(mediaUrlInput, mediaCaptionInput)}
+                    className="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Insert into Article
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

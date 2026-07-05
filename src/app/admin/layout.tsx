@@ -34,19 +34,40 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userRole, setUserRole] = useState<string>("ADMIN");
+  const [userName, setUserName] = useState<string>("Admin");
   const pathname = usePathname();
   const router = useRouter();
 
-  // Simple auth check (demo mode)
   useEffect(() => {
     const isAuthed = localStorage.getItem("umunsi_admin_auth") === "true";
     if (!isAuthed && pathname !== "/admin/login") {
       router.push("/admin/login");
+      return;
+    }
+    try {
+      const userStr = localStorage.getItem("umunsi_admin_user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        const role = (user.role || "ADMIN").toUpperCase();
+        setUserRole(role);
+        const name = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || user.email || "Admin";
+        setUserName(name);
+      }
+    } catch {
+      // keep defaults
     }
   }, [pathname, router]);
 
   const isLoginPage = pathname === "/admin/login";
   if (isLoginPage) return <>{children}</>;
+
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.href === "/admin/users" || item.href === "/admin/settings") {
+      return userRole === "ADMIN";
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-ink-50 flex">
@@ -70,7 +91,7 @@ export default function AdminLayout({
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const active =
               item.href === "/admin"
                 ? pathname === "/admin"
@@ -139,7 +160,7 @@ export default function AdminLayout({
               {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
             <h1 className="text-lg font-bold text-ink-900">
-              {navItems.find((item) =>
+              {visibleNavItems.find((item) =>
                 item.href === "/admin"
                   ? pathname === "/admin"
                   : pathname.startsWith(item.href)
@@ -148,11 +169,16 @@ export default function AdminLayout({
           </div>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-sm">
-              A
+              {userName.charAt(0).toUpperCase()}
             </div>
-            <span className="text-sm font-semibold text-ink-700 hidden sm:inline">
-              Admin
-            </span>
+            <div className="hidden sm:block">
+              <span className="text-sm font-semibold text-ink-700 block leading-tight">
+                {userName}
+              </span>
+              <span className={`text-xs font-bold ${userRole === "ADMIN" ? "text-red-500" : "text-blue-500"}`}>
+                {userRole}
+              </span>
+            </div>
           </div>
         </header>
 

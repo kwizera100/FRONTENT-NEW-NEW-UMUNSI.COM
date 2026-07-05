@@ -61,6 +61,11 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             <p className="text-white/80 text-base sm:text-lg lg:text-xl mb-4 sm:mb-6 line-clamp-3">{post.excerpt}</p>
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/70 text-xs sm:text-sm">
               <span className="font-bold text-white text-sm sm:text-base">{authorName}</span>
+              {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.map((coAuthor: string, idx: number) => (
+                <span key={idx} className="font-bold text-white text-sm sm:text-base">
+                  &middot; {coAuthor}
+                </span>
+              ))}
               <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{formatDate(publishedDate)}</span>
               <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{post.likeCount.toLocaleString()} byayeho</span>
               <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{mappedPost.readTime} min gusoma</span>
@@ -90,9 +95,24 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                   </div>
                   <div className="min-w-0">
                     <h3 className="font-bold text-gray-900 truncate">{authorName}</h3>
-                    <p className="text-sm text-gray-400">Umwanditsi</p>
+                    <p className="text-sm text-gray-400">Author</p>
                   </div>
                 </div>
+                {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Co-Authors</p>
+                    <div className="space-y-2">
+                      {post.coAuthors.map((coAuthor: string, idx: number) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                            {coAuthor.charAt(0).toUpperCase()}
+                          </div>
+                          <span className="text-sm font-semibold text-gray-700 truncate">{coAuthor}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 lg:sticky lg:top-24">
