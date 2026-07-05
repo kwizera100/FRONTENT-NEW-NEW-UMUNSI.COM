@@ -2,7 +2,6 @@ import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
-import { BreakingNewsSection } from "@/components/home/BreakingNewsSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 import { LoadMore } from "@/components/home/LoadMore";
@@ -16,7 +15,7 @@ export default async function HomePage() {
       api.getLatestPosts(20),
       api.getTrendingPosts(6),
       api.getCategories(),
-      api.getPostsByCategory("imyidagaduro", 5),
+      api.getPostsByCategory("imyidagaduro", 6),
       api.getPostsByCategory("amatangazo", 6),
     ]);
 
@@ -26,9 +25,13 @@ export default async function HomePage() {
   const entertainment = entertainmentPosts.map(mapApiPost);
   const amatangazo = amatangazoPosts.map(mapApiPost);
 
-  const excludeSlugs = ["imyidagaduro", "amatangazo", "inkuru-nyamukuru"];
+  const excludeSlugs = ["imyidagaduro", "amatangazo", "amakuru", "inkuru-nyamukuru"];
   const otherCategories = (categories as ApiCategory[]).filter(
     (c) => c.isActive && !excludeSlugs.includes(c.slug.toLowerCase())
+  );
+
+  const otherCategoryPosts = await Promise.all(
+    otherCategories.map((cat) => api.getPostsByCategory(cat.slug, 6))
   );
 
   return (
@@ -50,10 +53,8 @@ export default async function HomePage() {
 
         <EntertainmentSection entertainment={entertainment} amatangazo={amatangazo} />
 
-        {otherCategories.map((cat) => {
-          const catPosts = latest.filter(
-            (p) => p.category.slug.toLowerCase() === cat.slug.toLowerCase()
-          ).slice(0, 5);
+        {otherCategories.map((cat, i) => {
+          const catPosts = otherCategoryPosts[i].map(mapApiPost);
           if (catPosts.length === 0) return null;
           return (
             <CategoryGridSection

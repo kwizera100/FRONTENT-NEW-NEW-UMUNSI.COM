@@ -47,6 +47,7 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
     { name: "Ikoranabuhanga", slug: "ikoranabuhanga" },
     { name: "Ubuzima", slug: "ubuzima" },
     { name: "Amatangazo", slug: "amatangazo" },
+    { name: "Amakuru", slug: "amakuru" },
   ];
 
   return (

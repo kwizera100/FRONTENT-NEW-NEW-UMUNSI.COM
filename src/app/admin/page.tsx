@@ -7,50 +7,52 @@ import {
   TrendingUp,
   PenSquare,
   Clock,
-  Users,
 } from "lucide-react";
-import { posts, categories } from "@/lib/data";
+import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { formatTimeAgo } from "@/lib/utils";
 
-export default function AdminDashboardPage() {
-  const totalViews = posts.reduce((sum, p) => sum + p.views, 0);
-  const publishedCount = posts.filter((p) => p.published).length;
-  const featuredCount = posts.filter((p) => p.featured).length;
+export const revalidate = 60;
 
-  const stats = [
+export default async function AdminDashboardPage() {
+  const [stats, recentApiPosts, categories] = await Promise.all([
+    api.getStats(),
+    api.getLatestPosts(6),
+    api.getCategories(),
+  ]);
+
+  const cats = categories as ApiCategory[];
+  const recentPosts = recentApiPosts.map(mapApiPost);
+
+  const statItems = [
     {
       label: "Inkuru zose",
-      value: posts.length.toString(),
+      value: stats.totalPosts.toLocaleString(),
       icon: FileText,
       color: "bg-blue-500",
-      change: "+12%",
+      change: `${stats.totalPosts > 0 ? "+" : ""}${Math.round(stats.totalPosts / 100)}%`,
     },
     {
       label: "Byasohotse",
-      value: publishedCount.toString(),
+      value: stats.publishedCount.toLocaleString(),
       icon: Eye,
       color: "bg-green-500",
-      change: "+8%",
+      change: "Live",
     },
     {
       label: "Amafoto (Media)",
-      value: posts.reduce((s, p) => s + p.media.length, 0).toString(),
+      value: stats.totalPosts.toLocaleString(),
       icon: Image,
       color: "bg-purple-500",
-      change: "+23%",
+      change: "DB",
     },
     {
       label: "Ibyiciro",
-      value: categories.length.toString(),
+      value: stats.categoriesCount.toString(),
       icon: FolderTree,
       color: "bg-brand-600",
-      change: "0%",
+      change: `${cats.filter((c) => c.isActive).length} active`,
     },
   ];
-
-  const recentPosts = [...posts]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 6);
 
   return (
     <div className="space-y-8">
@@ -75,7 +77,7 @@ export default function AdminDashboardPage() {
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        {stats.map((stat) => (
+        {statItems.map((stat) => (
           <div
             key={stat.label}
             className="bg-white rounded-2xl p-5 lg:p-6 border border-ink-100"
@@ -164,6 +166,11 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
+            {recentPosts.length === 0 && (
+              <div className="text-center py-12 text-ink-400 text-sm">
+                Nta nkuru zabonetse.
+              </div>
+            )}
           </div>
         </div>
 
@@ -175,7 +182,7 @@ export default function AdminDashboardPage() {
               <TrendingUp className="w-5 h-5" />
               <span className="font-bold">Amafatiro y'amaso</span>
             </div>
-            <p className="text-4xl font-black">{totalViews.toLocaleString()}</p>
+            <p className="text-4xl font-black">{stats.totalViews.toLocaleString()}</p>
             <p className="text-white/70 text-sm mt-1">Mu byiciro byose</p>
           </div>
 
@@ -185,7 +192,7 @@ export default function AdminDashboardPage() {
               <Eye className="w-5 h-5 text-purple-500" />
               <span className="font-bold text-ink-900">Inkuru z'icyamamare</span>
             </div>
-            <p className="text-4xl font-black text-ink-900">{featuredCount}</p>
+            <p className="text-4xl font-black text-ink-900">{recentPosts.filter((p) => p.featured).length}</p>
             <p className="text-ink-400 text-sm mt-1">Ziri kuri homepage slider</p>
           </div>
 
@@ -193,29 +200,24 @@ export default function AdminDashboardPage() {
           <div className="bg-white rounded-2xl border border-ink-100 p-6">
             <h3 className="font-bold text-ink-900 mb-4">Ibyiciro</h3>
             <div className="space-y-2">
-              {categories.slice(0, 5).map((cat) => {
-                const count = posts.filter(
-                  (p) => p.category.slug === cat.slug
-                ).length;
-                return (
-                  <Link
-                    key={cat.id}
-                    href={`/admin/categories`}
-                    className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-ink-50 transition-colors"
-                  >
-                    <span className="flex items-center gap-2 text-sm font-medium text-ink-700">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full"
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      {cat.name}
-                    </span>
-                    <span className="text-xs font-bold text-ink-400">
-                      {count} inkuru
-                    </span>
-                  </Link>
-                );
-              })}
+              {cats.filter((c) => c.isActive).slice(0, 6).map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/admin/categories`}
+                  className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-ink-50 transition-colors"
+                >
+                  <span className="flex items-center gap-2 text-sm font-medium text-ink-700">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full"
+                      style={{ backgroundColor: cat.color || "#e5b60d" }}
+                    />
+                    {cat.name}
+                  </span>
+                  <span className="text-xs font-bold text-ink-400">
+                    {cat._count?.news || 0} inkuru
+                  </span>
+                </Link>
+              ))}
             </div>
           </div>
         </div>

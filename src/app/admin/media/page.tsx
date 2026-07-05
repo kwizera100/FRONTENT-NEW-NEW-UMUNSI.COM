@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Image as ImageIcon,
   Youtube,
@@ -11,9 +11,10 @@ import {
   Copy,
   X,
   Plus,
+  Loader2,
 } from "lucide-react";
-import { posts } from "@/lib/data";
 import { getYouTubeThumb, getYouTubeId } from "@/lib/utils";
+import type { ApiPost } from "@/lib/api";
 
 export default function AdminMediaPage() {
   const [search, setSearch] = useState("");
@@ -22,11 +23,35 @@ export default function AdminMediaPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [newUrl, setNewUrl] = useState("");
   const [newCaption, setNewCaption] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  // Collect all media from posts
-  const allMedia = posts.flatMap((p) =>
-    p.media.map((m) => ({ ...m, postTitle: p.title }))
-  );
+  const [allMedia, setAllMedia] = useState<
+    { id: string; url: string; type: "image" | "youtube"; caption: string; postTitle: string }[]
+  >([]);
+
+  useEffect(() => {
+    fetch("/api/posts?status=PUBLISHED&limit=100&sortBy=publishedAt&sortOrder=desc")
+      .then((r) => r.json())
+      .then((data) => {
+        const posts: ApiPost[] = data.data || [];
+        const media: { id: string; url: string; type: "image" | "youtube"; caption: string; postTitle: string }[] = [];
+        posts.forEach((p) => {
+          if (p.featuredImage) {
+            const isYoutube = p.featuredImage.includes("youtube") || p.featuredImage.includes("youtu.be");
+            media.push({
+              id: `img-${p.id}`,
+              url: p.featuredImage.startsWith("http") ? p.featuredImage : `https://api.umunsi.com${p.featuredImage}`,
+              type: isYoutube ? "youtube" : "image",
+              caption: p.title,
+              postTitle: p.title,
+            });
+          }
+        });
+        setAllMedia(media);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   const filtered = allMedia.filter((m) => {
     const matchesSearch =
@@ -86,8 +111,14 @@ export default function AdminMediaPage() {
       </div>
 
       {/* Media grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {filtered.map((media) => (
+      {loading ? (
+        <div className="text-center py-16">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin mx-auto" />
+          <p className="text-sm text-ink-400 mt-3">Birimo gukuramo media...</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {filtered.map((media) => (
           <div
             key={media.id}
             onClick={() => setSelected(media.id)}
@@ -126,9 +157,10 @@ export default function AdminMediaPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
-      {filtered.length === 0 && (
+      {!loading && filtered.length === 0 && (
         <div className="text-center py-16 text-ink-400">
           Nta media yabonetse.
         </div>

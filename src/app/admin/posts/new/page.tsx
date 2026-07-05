@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -14,15 +14,16 @@ import {
   Plus,
   Type,
 } from "lucide-react";
-import { categories } from "@/lib/data";
 import { getYouTubeThumb, getYouTubeId } from "@/lib/utils";
+import type { ApiCategory } from "@/lib/api";
 
 export default function NewPostPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [content, setContent] = useState("");
-  const [categoryId, setCategoryId] = useState(categories[0].slug);
+  const [categoryId, setCategoryId] = useState("");
+  const [apiCategories, setApiCategories] = useState<ApiCategory[]>([]);
   const [featured, setFeatured] = useState(false);
   const [published, setPublished] = useState(false);
   const [coverImage, setCoverImage] = useState("");
@@ -33,6 +34,22 @@ export default function NewPostPage() {
   >([]);
   const [mediaUrl, setMediaUrl] = useState("");
   const [mediaCaption, setMediaCaption] = useState("");
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setApiCategories(data);
+          if (data.length > 0) setCategoryId(data[0].slug);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const categories = apiCategories.length > 0
+    ? apiCategories.map((c) => ({ id: c.id, slug: c.slug, name: c.name }))
+    : [{ id: "0", slug: "", name: "Loading..." }];
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {

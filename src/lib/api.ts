@@ -159,7 +159,10 @@ export const api = {
 
   getPostsByCategory: async (categorySlug: string, limit = 20, page = 1) => {
     const categories = await api.getCategories();
-    const cat = (categories as ApiCategory[]).find((c) => c.slug === categorySlug);
+    const cat = (categories as ApiCategory[]).find(
+      (c) => c.slug.toLowerCase() === categorySlug.toLowerCase() ||
+            c.name.toLowerCase() === categorySlug.toLowerCase()
+    );
     if (!cat) return [];
     return fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", category: cat.id, limit, page, sortBy: "publishedAt", sortOrder: "desc" })
       .then((r) => r.data || []);
@@ -200,4 +203,27 @@ export const api = {
   searchPosts: (q: string, limit = 20) =>
     fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", search: q, limit, sortBy: "publishedAt", sortOrder: "desc" })
       .then((r) => r.data || []),
+
+  getStats: async () => {
+    const [postsRes, categories] = await Promise.all([
+      fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: 1, sortBy: "publishedAt", sortOrder: "desc" }),
+      api.getCategories(),
+    ]);
+    const total = postsRes.pagination?.total || 0;
+    const totalViews = (postsRes.data || []).reduce((sum, p) => sum + (p.likeCount || 0), 0);
+    return {
+      totalPosts: total,
+      publishedCount: total,
+      categoriesCount: (categories as ApiCategory[]).length,
+      totalViews,
+    };
+  },
+
+  getAllPosts: async (limit = 50, page = 1) => {
+    return fetchAPI<PostsResponse>("/posts", { limit, page, sortBy: "publishedAt", sortOrder: "desc" })
+      .then((r) => ({
+        posts: r.data || [],
+        pagination: r.pagination || { page, limit, total: 0, pages: 0 },
+      }));
+  },
 };

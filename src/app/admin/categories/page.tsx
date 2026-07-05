@@ -1,16 +1,27 @@
 "use client";
 
-import { useState } from "react";
-import { categories as initialCats, posts } from "@/lib/data";
-import { Plus, Trash2, Edit3, Eye, GripVertical } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Edit3, Eye, GripVertical, Loader2 } from "lucide-react";
+import type { ApiCategory } from "@/lib/api";
 
 export default function AdminCategoriesPage() {
-  const [cats, setCats] = useState(initialCats);
+  const [cats, setCats] = useState<ApiCategory[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [newNameEn, setNewNameEn] = useState("");
   const [newColor, setNewColor] = useState("#f43f5e");
   const [newDesc, setNewDesc] = useState("");
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setCats(data);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -31,11 +42,18 @@ export default function AdminCategoriesPage() {
         </button>
       </div>
 
+      {/* Loading */}
+      {loading && (
+        <div className="text-center py-16">
+          <Loader2 className="w-8 h-8 text-brand-500 animate-spin mx-auto" />
+          <p className="text-sm text-ink-400 mt-3">Birimo gukuramo ibyiciro...</p>
+        </div>
+      )}
+
       {/* Categories grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {cats.map((cat) => {
-          const count = posts.filter((p) => p.category.slug === cat.slug).length;
-          return (
+      {!loading && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {cats.map((cat) => (
             <div
               key={cat.id}
               className="bg-white rounded-2xl border border-ink-100 p-5 group hover:shadow-lg transition-shadow"
@@ -43,7 +61,7 @@ export default function AdminCategoriesPage() {
               <div className="flex items-start justify-between mb-3">
                 <div
                   className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-md"
-                  style={{ backgroundColor: cat.color }}
+                  style={{ backgroundColor: cat.color || "#e5b60d" }}
                 >
                   {cat.name.charAt(0)}
                 </div>
@@ -57,28 +75,27 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
               <h3 className="font-bold text-lg text-ink-900">{cat.name}</h3>
-              <p className="text-xs text-ink-400 mb-2">{cat.nameEn}</p>
               <p className="text-sm text-ink-600 mb-4 line-clamp-2">
-                {cat.description}
+                {cat.description || ""}
               </p>
               <div className="flex items-center justify-between pt-3 border-t border-ink-50">
                 <span className="text-sm font-bold text-ink-700">
-                  {count} inkuru
+                  {cat._count?.news || 0} inkuru
                 </span>
                 <div className="flex items-center gap-2">
                   <span
                     className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
-                    style={{ backgroundColor: cat.color }}
+                    style={{ backgroundColor: cat.color || "#e5b60d" }}
                   />
                   <span className="text-xs text-ink-400 font-mono">
-                    {cat.color}
+                    {cat.color || "#e5b60d"}
                   </span>
                 </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Add category modal */}
       {showAdd && (
