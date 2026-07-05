@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     if (authHeader) {
       headers["Authorization"] = authHeader;
     }
-    const res = await fetch(`${API_BASE}/upload/list`, {
+    const res = await fetch(`${API_BASE}/media`, {
       headers,
       next: { revalidate: 0 },
     });

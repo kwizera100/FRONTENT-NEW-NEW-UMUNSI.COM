@@ -22,6 +22,12 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  eslint: {
+    ignoreDirs: ["umunsi-backend"],
+  },
 };
 
 export default nextConfig;

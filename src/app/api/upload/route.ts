@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       uploadHeaders["Authorization"] = authHeader;
     }
 
-    const res = await fetch(`${API_BASE}/upload`, {
+    const res = await fetch(`${API_BASE}/media/upload`, {
       method: "POST",
       body: forwardFormData,
       headers: uploadHeaders,
