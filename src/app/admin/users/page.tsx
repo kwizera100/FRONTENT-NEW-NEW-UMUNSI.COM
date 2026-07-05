@@ -63,6 +63,9 @@ export default function AdminUsersPage() {
         },
         body: JSON.stringify({
           name: newName,
+          firstName: newName.split(" ")[0] || newName,
+          lastName: newName.split(" ").slice(1).join(" ") || "",
+          username: newEmail.split("@")[0] || newName.toLowerCase().replace(/\s+/g, ""),
           email: newEmail,
           password: newPassword,
           role: newRole,

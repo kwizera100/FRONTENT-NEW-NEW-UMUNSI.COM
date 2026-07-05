@@ -92,7 +92,7 @@ export interface ApiCategory {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  _count?: { news: number };
+  _count?: { news: number; posts: number; articles: number };
 }
 
 interface PostsResponse {

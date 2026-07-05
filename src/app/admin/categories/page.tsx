@@ -80,7 +80,7 @@ export default function AdminCategoriesPage() {
               </p>
               <div className="flex items-center justify-between pt-3 border-t border-ink-50">
                 <span className="text-sm font-bold text-ink-700">
-                  {cat._count?.news || 0} inkuru
+                  {cat._count?.posts || cat._count?.articles || cat._count?.news || 0} inkuru
                 </span>
                 <div className="flex items-center gap-2">
                   <span
