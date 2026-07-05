@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const authHeader = req.headers.get("authorization") || "";
     const res = await fetch(`${API_BASE}/users`, {
       headers: {
-        "User-Agent": "UmunsiFrontend/1.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Accept: "application/json",
         ...(authHeader ? { Authorization: authHeader } : {}),
       },
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "UmunsiFrontend/1.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Accept: "application/json",
         ...(authHeader ? { Authorization: authHeader } : {}),
       },

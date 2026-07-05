@@ -23,9 +23,9 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
     setError("");
     setUploading(true);
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      setError("Allowed file types: JPEG, PNG, WebP, GIF, SVG");
+      setError("Allowed file types: JPEG, PNG, WebP, GIF");
       setUploading(false);
       return;
     }
@@ -111,7 +111,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+          accept="image/jpeg,image/png,image/webp,image/gif"
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
@@ -166,7 +166,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+              accept="image/jpeg,image/png,image/webp,image/gif"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -200,7 +200,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
                     Drag an image here or click to select
                   </p>
                   <p className="text-xs text-ink-400 mt-1">
-                    JPEG, PNG, WebP, GIF, SVG — 10MB max
+                    JPEG, PNG, WebP, GIF — 10MB max
                   </p>
                 </div>
               </div>

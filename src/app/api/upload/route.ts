@@ -16,10 +16,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 });
     }
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: `Unsupported file type: ${file.type}. Use JPEG, PNG, WebP, GIF, or SVG.` },
+        { error: `Unsupported file type: ${file.type}. Use JPEG, PNG, WebP, or GIF.` },
         { status: 415 }
       );
     }
@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
 
     const authHeader = req.headers.get("authorization") || "";
     const uploadHeaders: Record<string, string> = {
-      "User-Agent": "UmunsiFrontend/1.0",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
       "Accept": "application/json",
     };
     if (authHeader) {
       uploadHeaders["Authorization"] = authHeader;
     }
 
-    let res = await fetch(`${API_BASE}/media/upload`, {
+    const res = await fetch(`${API_BASE}/upload`, {
       method: "POST",
       body: forwardFormData,
       headers: uploadHeaders,
@@ -44,20 +44,7 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "Upload failed");
-      console.error("Backend upload error (field=file):", res.status, errText);
-
-      const retryFormData = new FormData();
-      retryFormData.append("image", file);
-      res = await fetch(`${API_BASE}/media/upload`, {
-        method: "POST",
-        body: retryFormData,
-        headers: uploadHeaders,
-      });
-    }
-
-    if (!res.ok) {
-      const errText = await res.text().catch(() => "Upload failed");
-      console.error("Backend upload error (field=image):", res.status, errText);
+      console.error("Backend upload error:", res.status, errText);
       return NextResponse.json(
         { error: `Backend upload failed (${res.status}): ${errText.slice(0, 200)}` },
         { status: res.status }

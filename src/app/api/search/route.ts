@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const res = await fetch(`${API_BASE}/posts?search=${encodeURIComponent(q)}&status=PUBLISHED&limit=20`, {
-      headers: { "User-Agent": "UmunsiFrontend/1.0", Accept: "application/json" },
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", Accept: "application/json" },
       next: { revalidate: 60 },
     });
     const data = await res.json();

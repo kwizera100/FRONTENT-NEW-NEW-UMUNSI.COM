@@ -2,7 +2,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api"
 const SERVER_BASE = "https://api.umunsi.com";
 
 const HEADERS: HeadersInit = {
-  "User-Agent": "UmunsiFrontend/1.0 (Next.js; +https://umunsi.com)",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
   "Accept": "application/json",
 };
 

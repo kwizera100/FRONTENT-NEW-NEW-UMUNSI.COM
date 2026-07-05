@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   try {
     const res = await fetch(`${API_BASE}/posts?${params.toString()}`, {
       headers: {
-        "User-Agent": "UmunsiFrontend/1.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Accept: "application/json",
       },
       next: { revalidate: 300 },
