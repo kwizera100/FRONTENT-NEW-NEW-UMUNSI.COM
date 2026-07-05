@@ -3,6 +3,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
 import { ShareBar } from "@/components/article/ShareBar";
+import { ArticleContent } from "@/components/article/ArticleContent";
 import { formatDate, formatTimeAgo } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
@@ -78,10 +79,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
               <ShareBar title={post.title} slug={post.slug} />
 
-              <div
-                className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 [&_p]:text-base sm:[&_p]:text-lg [&_p]:leading-relaxed [&_p]:mb-4 [&_img]:rounded-xl [&_img]:max-w-full [&_img]:h-auto"
-                dangerouslySetInnerHTML={{ __html: post.content || "" }}
-              />
+              <ArticleContent html={post.content || ""} />
             </div>
 
             <aside className="space-y-6">

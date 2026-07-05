@@ -85,8 +85,8 @@ export default function AdminMediaPage() {
         <div>
           <h2 className="text-2xl font-black text-ink-900">Media Library</h2>
           <p className="text-ink-400 text-sm mt-1">
-            {allMedia.length} media — {allMedia.filter((m) => m.type === "image").length} amafoto,{" "}
-            {allMedia.filter((m) => m.type === "youtube").length} YouTube videwo
+            {allMedia.length} media — {allMedia.filter((m) => m.type === "image").length} images,{" "}
+            {allMedia.filter((m) => m.type === "youtube").length} YouTube videos
           </p>
         </div>
         <button
@@ -94,7 +94,7 @@ export default function AdminMediaPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors"
         >
           <Upload className="w-5 h-5" />
-          Ongera Media
+          Add Media
         </button>
       </div>
 
@@ -121,7 +121,7 @@ export default function AdminMediaPage() {
                   : "bg-white text-ink-500 border border-ink-200 hover:bg-ink-50"
               }`}
             >
-              {f === "all" ? "Byose" : f === "image" ? "Amafoto" : "YouTube"}
+              {f === "all" ? "All" : f === "image" ? "Images" : "YouTube"}
             </button>
           ))}
         </div>
@@ -131,7 +131,7 @@ export default function AdminMediaPage() {
       {loading ? (
         <div className="text-center py-16">
           <Loader2 className="w-8 h-8 text-brand-500 animate-spin mx-auto" />
-          <p className="text-sm text-ink-400 mt-3">Birimo gukuramo media...</p>
+          <p className="text-sm text-ink-400 mt-3">Loading media...</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -169,7 +169,7 @@ export default function AdminMediaPage() {
             {/* Overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
               <p className="text-white text-xs font-semibold line-clamp-2">
-                {media.caption || "Nta caption"}
+                {media.caption || "No caption"}
               </p>
             </div>
           </div>
@@ -179,7 +179,7 @@ export default function AdminMediaPage() {
 
       {!loading && filtered.length === 0 && (
         <div className="text-center py-16 text-ink-400">
-          Nta media yabonetse.
+          No media found.
         </div>
       )}
 
@@ -197,7 +197,7 @@ export default function AdminMediaPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-4 border-b border-ink-100">
-                <h3 className="font-bold text-ink-900">Media by'umuntu</h3>
+                <h3 className="font-bold text-ink-900">Media Details</h3>
                 <button
                   onClick={() => setSelected(null)}
                   className="p-2 rounded-lg hover:bg-ink-100"
@@ -235,7 +235,7 @@ export default function AdminMediaPage() {
                 <div className="p-5 space-y-4">
                   <div>
                     <label className="text-xs font-bold text-ink-400 uppercase">
-                      Ubwoko
+                      Type
                     </label>
                     <span
                       className={`ml-2 text-xs font-bold px-2 py-1 rounded-lg ${
@@ -244,7 +244,7 @@ export default function AdminMediaPage() {
                           : "bg-blue-50 text-blue-600"
                       }`}
                     >
-                      {media.type === "youtube" ? "YouTube Videwo" : "Ifoto"}
+                      {media.type === "youtube" ? "YouTube Video" : "Image"}
                     </span>
                   </div>
                   <div>
@@ -268,18 +268,18 @@ export default function AdminMediaPage() {
                       Caption
                     </label>
                     <p className="text-sm text-ink-700 bg-ink-50 rounded-lg p-3">
-                      {media.caption || "Nta caption yanditse"}
+                      {media.caption || "No caption"}
                     </p>
                   </div>
                   <div>
                     <label className="text-xs font-bold text-ink-400 uppercase block mb-1">
-                      Igishusho kiri muri
+                      Image from
                     </label>
                     <p className="text-sm text-ink-700">{media.postTitle}</p>
                   </div>
                   <button className="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl flex items-center justify-center gap-2 transition-colors">
                     <Trash2 className="w-4 h-4" />
-                    Siba iyi media
+                    Delete Media
                   </button>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function AdminMediaPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-xl font-black text-ink-900">Ongera Media</h3>
+              <h3 className="text-xl font-black text-ink-900">Add Media</h3>
               <button
                 onClick={() => setShowAdd(false)}
                 className="p-2 rounded-lg hover:bg-ink-100"
@@ -337,17 +337,17 @@ export default function AdminMediaPage() {
 
                   <div>
                     <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                      Caption (Umwanzuro w'ifoto) — Ushobora kuyisiga
+                      Caption (Image description) — Optional
                     </label>
                     <input
                       type="text"
                       value={newCaption}
                       onChange={(e) => setNewCaption(e.target.value)}
-                      placeholder="Andika caption y'ifoto..."
+                      placeholder="Enter image caption..."
                       className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
                     />
                     <p className="text-xs text-ink-400 mt-1">
-                      Caption izagaragara munsi y'ifoto muri inkuru. Ni amahitamo.
+                      Caption will appear below the image in the article. It's optional.
                     </p>
                   </div>
 
@@ -356,14 +356,14 @@ export default function AdminMediaPage() {
                     className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
                   >
                     <Plus className="w-5 h-5" />
-                    Ongera Media
+                    Add Media
                   </button>
                 </div>
               )}
 
               {!uploadedUrl && (
                 <p className="text-sm text-ink-400 text-center py-4">
-                  Hitamo ifoto ku byuma cyangwa shyira URL, hanyuma wongere caption.
+                  Select an image from device or paste a URL, then add a caption.
                 </p>
               )}
             </div>

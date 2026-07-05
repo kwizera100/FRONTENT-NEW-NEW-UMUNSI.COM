@@ -27,12 +27,18 @@ export async function POST(req: NextRequest) {
     const forwardFormData = new FormData();
     forwardFormData.append("file", file);
 
-    const res = await fetch(`${API_BASE}/upload`, {
+    const authHeader = req.headers.get("authorization") || "";
+    const uploadHeaders: Record<string, string> = {
+      "User-Agent": "UmunsiFrontend/1.0",
+    };
+    if (authHeader) {
+      uploadHeaders["Authorization"] = authHeader;
+    }
+
+    const res = await fetch(`${API_BASE}/media/upload`, {
       method: "POST",
       body: forwardFormData,
-      headers: {
-        "User-Agent": "UmunsiFrontend/1.0",
-      },
+      headers: uploadHeaders,
     });
 
     if (!res.ok) {

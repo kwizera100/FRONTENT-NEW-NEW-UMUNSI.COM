@@ -14,6 +14,7 @@ import {
   X,
   PenSquare,
   Eye,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/admin/posts/new", label: "New Article", icon: PenSquare },
   { href: "/admin/media", label: "Media", icon: Image },
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

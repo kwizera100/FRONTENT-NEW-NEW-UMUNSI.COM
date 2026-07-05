@@ -25,13 +25,13 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/svg+xml"];
     if (!allowedTypes.includes(file.type)) {
-      setError("Ubwoko bwa file bwemewe: JPEG, PNG, WebP, GIF, SVG");
+      setError("Allowed file types: JPEG, PNG, WebP, GIF, SVG");
       setUploading(false);
       return;
     }
 
     if (file.size > 10 * 1024 * 1024) {
-      setError("File nini cyane. Irebe 10MB cyangwa munsi.");
+      setError("File is too large. Maximum 10MB.");
       setUploading(false);
       return;
     }
@@ -44,15 +44,22 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
       const formData = new FormData();
       formData.append("file", file);
 
+      const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : "";
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
+        headers,
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Byanze gukuramo ifoto. Ongera ugerageze.");
+        setError(data.error || "Upload failed. Please try again.");
         setUploading(false);
         return;
       }
@@ -60,7 +67,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
       onUploadComplete(data.url);
       setUploading(false);
     } catch {
-      setError("Habayeho ikibazo. Ongera ugerageze.");
+      setError("Something went wrong. Please try again.");
       setUploading(false);
     }
   };
@@ -89,7 +96,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
             className="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? "Birimo gukuramo..." : "Kuramo ifoto"}
+            {uploading ? "Uploading..." : "Upload Image"}
           </button>
           {onClose && (
             <button
@@ -126,7 +133,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
               mode === "upload" ? "bg-white text-brand-600 shadow-sm" : "text-ink-400"
             }`}
           >
-            <Upload className="w-4 h-4" /> Kuramo ku byuma
+            <Upload className="w-4 h-4" /> Upload from Device
           </button>
           <button
             onClick={() => setMode("url")}
@@ -134,7 +141,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
               mode === "url" ? "bg-white text-brand-600 shadow-sm" : "text-ink-400"
             }`}
           >
-            <Link2 className="w-4 h-4" /> URL y'ifoto
+            <Link2 className="w-4 h-4" /> Image URL
           </button>
         </div>
       )}
@@ -170,7 +177,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
             {uploading ? (
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
-                <p className="text-sm font-semibold text-ink-600">Birimo gukuramo ifoto...</p>
+                <p className="text-sm font-semibold text-ink-600">Uploading image...</p>
               </div>
             ) : preview ? (
               <div className="flex flex-col items-center gap-3">
@@ -181,7 +188,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
                     <CheckCircle2 className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                 </div>
-                <p className="text-sm font-semibold text-green-600">Ifoto yongerewe neza!</p>
+                <p className="text-sm font-semibold text-green-600">Image uploaded successfully!</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
@@ -190,7 +197,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
                 </div>
                 <div>
                   <p className="font-bold text-ink-700 text-sm">
-                    Sura ifoto hano cyangwa kanda guhitamo
+                    Drag an image here or click to select
                   </p>
                   <p className="text-xs text-ink-400 mt-1">
                     JPEG, PNG, WebP, GIF, SVG — 10MB max
@@ -224,7 +231,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
               disabled={!urlInput.trim()}
               className="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors"
             >
-              Emeza
+              Confirm
             </button>
           </div>
           {urlInput && (
