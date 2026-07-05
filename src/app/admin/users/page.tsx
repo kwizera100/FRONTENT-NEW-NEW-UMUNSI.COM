@@ -298,7 +298,8 @@ export default function AdminUsersPage() {
                   type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Set a password"
+                  placeholder="Min 8 characters"
+                  minLength={8}
                   className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
                 />
               </div>
@@ -317,7 +318,7 @@ export default function AdminUsersPage() {
 
               <button
                 onClick={handleCreateUser}
-                disabled={creating || !newEmail.trim() || !newPassword.trim()}
+                disabled={creating || !newEmail.trim() || !newPassword.trim() || newPassword.length < 8}
                 className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {creating ? (

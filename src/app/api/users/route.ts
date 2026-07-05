@@ -40,7 +40,8 @@ export async function POST(req: NextRequest) {
     });
     const data = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: data.message || data.error || "Failed to create user" }, { status: res.status });
+      const errMsg = data.errors?.map((e: any) => e.msg).join(", ") || data.error || data.message || "Failed to create user";
+      return NextResponse.json({ error: errMsg }, { status: res.status });
     }
     return NextResponse.json(data);
   } catch (error) {
