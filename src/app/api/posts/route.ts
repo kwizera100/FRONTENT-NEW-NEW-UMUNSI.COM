@@ -16,7 +16,8 @@ export async function GET(req: NextRequest) {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Accept: "application/json",
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 0 },
+      cache: "no-store",
     });
     const data = await res.json();
     return NextResponse.json(data);

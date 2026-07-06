@@ -165,7 +165,7 @@ export default function NewPostPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
-  const handleSave = async () => {
+  const handleSave = async (publish: boolean) => {
     if (!title.trim() || !content.trim()) {
       setSaveError("Title and content are required.");
       return;
@@ -192,7 +192,7 @@ export default function NewPostPage() {
           content: content.trim(),
           categoryId: selectedCat ? selectedCat.id : categoryId,
           featuredImage: coverImage || undefined,
-          status: published ? "PUBLISHED" : "DRAFT",
+          status: publish ? "PUBLISHED" : "DRAFT",
           isFeatured: featured,
           tags: tags.length > 0 ? tags : undefined,
         }),
@@ -225,23 +225,20 @@ export default function NewPostPage() {
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setPublished(!published)}
-            className={`px-4 py-2 rounded-xl font-bold text-sm transition-colors flex items-center gap-2 ${
-              published
-                ? "bg-green-50 text-green-600"
-                : "bg-ink-50 text-ink-500"
-            }`}
-          >
-            <Eye className="w-4 h-4" />
-            {published ? "Will Publish" : "Draft Mode"}
-          </button>
-          <button
-            onClick={handleSave}
+            onClick={() => handleSave(false)}
             disabled={saving}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="px-4 py-2 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Saving..." : published ? "Publish Now" : "Save Draft"}
+            Save Draft
+          </button>
+          <button
+            onClick={() => handleSave(true)}
+            disabled={saving}
+            className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+            Publish Now
           </button>
         </div>
       </div>

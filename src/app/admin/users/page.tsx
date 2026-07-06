@@ -6,9 +6,14 @@ import { Users, Plus, X, Mail, Shield, Loader2, Trash2, Copy, CheckCircle2 } fro
 interface User {
   id: string;
   name?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
   email: string;
   role?: string;
   createdAt?: string;
+  isPremium?: boolean;
+  isActive?: boolean;
 }
 
 export default function AdminUsersPage() {
@@ -41,7 +46,7 @@ export default function AdminUsersPage() {
       if (!res.ok) {
         setError(data.error || "Failed to load users");
       } else {
-        setUsers(Array.isArray(data) ? data : []);
+        setUsers(Array.isArray(data) ? data : data.users || data.data || []);
       }
     } catch {
       setError("Failed to load users");
@@ -76,8 +81,9 @@ export default function AdminUsersPage() {
       if (!res.ok) {
         setCreateError(data.error || "Failed to create user");
       } else {
-        setCreatedUser(data);
-        setUsers([...users, data]);
+        const newUser = data.user || data.data || data;
+        setCreatedUser(newUser);
+        setUsers([...users, newUser]);
         setShowAdd(false);
         setNewName("");
         setNewEmail("");
@@ -154,9 +160,9 @@ export default function AdminUsersPage() {
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-sm">
-                        {(user.name || user.email).charAt(0).toUpperCase()}
+                        {(user.name || user.firstName || user.email || "U").charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-semibold text-ink-800 text-sm">{user.name || "—"}</span>
+                      <span className="font-semibold text-ink-800 text-sm">{user.name || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.username || "—"}</span>
                     </div>
                   </td>
                   <td className="px-5 py-4 text-sm text-ink-600">{user.email}</td>
@@ -210,11 +216,11 @@ export default function AdminUsersPage() {
             <div className="space-y-3 bg-ink-50 rounded-xl p-4">
               <div>
                 <label className="text-xs font-bold text-ink-400 uppercase block mb-1">Name</label>
-                <p className="text-sm text-ink-800 font-semibold">{createdUser.name || "—"}</p>
+                <p className="text-sm text-ink-800 font-semibold">{createdUser.name || [createdUser.firstName, createdUser.lastName].filter(Boolean).join(" ") || createdUser.username || "—"}</p>
               </div>
               <div>
                 <label className="text-xs font-bold text-ink-400 uppercase block mb-1">Email</label>
-                <p className="text-sm text-ink-800 font-semibold">{createdUser.email}</p>
+                <p className="text-sm text-ink-800 font-semibold">{createdUser.email || newEmail}</p>
               </div>
               <div>
                 <label className="text-xs font-bold text-ink-400 uppercase block mb-1">Password</label>
