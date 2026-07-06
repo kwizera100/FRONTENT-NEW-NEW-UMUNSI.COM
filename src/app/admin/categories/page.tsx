@@ -12,6 +12,8 @@ export default function AdminCategoriesPage() {
   const [newNameEn, setNewNameEn] = useState("");
   const [newColor, setNewColor] = useState("#f43f5e");
   const [newDesc, setNewDesc] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addError, setAddError] = useState("");
 
   useEffect(() => {
     fetch("/api/categories")
@@ -169,18 +171,55 @@ export default function AdminCategoriesPage() {
                 </div>
               </div>
               <button
-                onClick={() => {
-                  alert("Icyiciro cyongerewe (demo mode)");
-                  setShowAdd(false);
-                  setNewName("");
-                  setNewNameEn("");
-                  setNewDesc("");
+                onClick={async () => {
+                  if (!newName.trim()) {
+                    setAddError("Izina ry'icyiciro kirakenewe.");
+                    return;
+                  }
+                  setAdding(true);
+                  setAddError("");
+                  try {
+                    const token = localStorage.getItem("umunsi_admin_token");
+                    const slug = newName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                    const res = await fetch("/api/categories", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                      },
+                      body: JSON.stringify({
+                        name: newName.trim(),
+                        slug,
+                        description: newDesc.trim() || undefined,
+                        color: newColor,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok) {
+                      setAddError(data.error || "Failed to create category.");
+                      setAdding(false);
+                      return;
+                    }
+                    setShowAdd(false);
+                    setNewName("");
+                    setNewNameEn("");
+                    setNewDesc("");
+                    setAdding(false);
+                    window.location.reload();
+                  } catch {
+                    setAddError("Network error. Please try again.");
+                    setAdding(false);
+                  }
                 }}
-                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+                disabled={adding}
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
-                <Plus className="w-5 h-5" />
-                Ongera icyiciro
+                {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                {adding ? "Birimo..." : "Ongera icyiciro"}
               </button>
+              {addError && (
+                <p className="text-sm text-red-600 font-semibold">{addError}</p>
+              )}
             </div>
           </div>
         </div>

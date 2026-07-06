@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Save, Globe, Mail, Bell, Shield, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Globe, Mail, Bell, Shield, Image as ImageIcon, Loader2 } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState("Umunsi.com");
@@ -17,6 +17,27 @@ export default function AdminSettingsPage() {
   const [socialTwitter, setSocialTwitter] = useState("https://twitter.com/umunsi");
   const [socialInstagram, setSocialInstagram] = useState("https://instagram.com/umunsi");
   const [socialYoutube, setSocialYoutube] = useState("https://youtube.com/umunsi");
+  const [saving, setSaving] = useState(false);
+  const [saveMsg, setSaveMsg] = useState("");
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.siteName) setSiteName(data.siteName);
+        if (data.siteDescription) setSiteDesc(data.siteDescription);
+        if (data.siteUrl) setSiteUrl(data.siteUrl);
+        if (data.logoUrl) setLogoUrl(data.logoUrl);
+        if (data.email) setEmail(data.email);
+        if (data.phone) setPhone(data.phone);
+        if (data.address) setAddress(data.address);
+        if (data.socialFacebook) setSocialFacebook(data.socialFacebook);
+        if (data.socialTwitter) setSocialTwitter(data.socialTwitter);
+        if (data.socialInstagram) setSocialInstagram(data.socialInstagram);
+        if (data.socialYoutube) setSocialYoutube(data.socialYoutube);
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -155,12 +176,54 @@ export default function AdminSettingsPage() {
 
       {/* Save button */}
       <button
-        onClick={() => alert("Igenamiterere cyabitswe (demo mode)")}
-        className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors"
+        onClick={async () => {
+          setSaving(true);
+          setSaveMsg("");
+          try {
+            const token = localStorage.getItem("umunsi_admin_token");
+            const res = await fetch("/api/settings", {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body: JSON.stringify({
+                siteName,
+                siteDescription: siteDesc,
+                siteUrl,
+                logoUrl,
+                email,
+                phone,
+                address,
+                socialFacebook,
+                socialTwitter,
+                socialInstagram,
+                socialYoutube,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              setSaveMsg(data.error || "Failed to save settings.");
+            } else {
+              setSaveMsg("Igenamiterere cyabitswe neza!");
+            }
+          } catch {
+            setSaveMsg("Network error. Please try again.");
+          } finally {
+            setSaving(false);
+          }
+        }}
+        disabled={saving}
+        className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
       >
-        <Save className="w-5 h-5" />
-        Bika igenamiterere
+        {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+        {saving ? "Birimo..." : "Bika igenamiterere"}
       </button>
+      {saveMsg && (
+        <p className={`text-sm font-semibold text-center ${saveMsg.includes("error") || saveMsg.includes("Failed") ? "text-red-600" : "text-green-600"}`}>
+          {saveMsg}
+        </p>
+      )}
     </div>
   );
 }

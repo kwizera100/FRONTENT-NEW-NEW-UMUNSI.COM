@@ -11,3 +11,5 @@ coverage
 .vercel
 .env*
 umunsi-backend
+umunsi-backend-verify
+umunsi-backend-temp

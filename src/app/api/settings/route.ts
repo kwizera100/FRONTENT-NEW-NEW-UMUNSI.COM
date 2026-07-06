@@ -2,36 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const params = new URLSearchParams();
-  ["category", "featured", "breaking", "trending", "limit", "page", "search", "status", "sortBy", "sortOrder"].forEach((key) => {
-    const val = searchParams.get(key);
-    if (val) params.set(key, val);
-  });
-
+export async function GET() {
   try {
-    const res = await fetch(`${API_BASE}/posts?${params.toString()}`, {
+    const res = await fetch(`${API_BASE}/settings`, {
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Accept: "application/json",
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
     const data = await res.json();
+    if (!res.ok) {
+      return NextResponse.json({ error: data.error || data.message || "Failed to fetch settings" }, { status: res.status });
+    }
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Failed to fetch posts:", error);
-    return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
+    console.error("Failed to fetch settings:", error);
+    return NextResponse.json({ error: "Failed to fetch settings" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
+export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const authHeader = req.headers.get("authorization") || "";
-    const res = await fetch(`${API_BASE}/posts`, {
-      method: "POST",
+    const res = await fetch(`${API_BASE}/settings`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -42,12 +38,12 @@ export async function POST(req: NextRequest) {
     });
     const data = await res.json();
     if (!res.ok) {
-      const errMsg = data.errors?.map((e: any) => e.msg).join(", ") || data.error || data.message || "Failed to create post";
+      const errMsg = data.errors?.map((e: any) => e.msg).join(", ") || data.error || data.message || "Failed to save settings";
       return NextResponse.json({ error: errMsg }, { status: res.status });
     }
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Failed to create post:", error);
-    return NextResponse.json({ error: "Failed to create post" }, { status: 500 });
+    console.error("Failed to save settings:", error);
+    return NextResponse.json({ error: "Failed to save settings" }, { status: 500 });
   }
 }

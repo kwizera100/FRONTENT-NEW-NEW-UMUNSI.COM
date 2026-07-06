@@ -161,9 +161,52 @@ export default function NewPostPage() {
     }, 0);
   };
 
-  const handleSave = () => {
-    alert("Post saved (demo mode). This will be connected to the backend API.");
-    router.push("/admin/posts");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const handleSave = async () => {
+    if (!title.trim() || !content.trim()) {
+      setSaveError("Title and content are required.");
+      return;
+    }
+    if (!categoryId) {
+      setSaveError("Please select a category.");
+      return;
+    }
+
+    setSaving(true);
+    setSaveError("");
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const selectedCat = apiCategories.find((c) => c.slug === categoryId || c.id === categoryId);
+      const res = await fetch("/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          excerpt: excerpt.trim(),
+          content: content.trim(),
+          categoryId: selectedCat ? Number(selectedCat.id) : Number(categoryId),
+          featuredImage: coverImage || undefined,
+          status: published ? "PUBLISHED" : "DRAFT",
+          isFeatured: featured,
+          tags: tags.length > 0 ? tags : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSaveError(data.error || "Failed to save article.");
+      } else {
+        router.push("/admin/posts");
+      }
+    } catch {
+      setSaveError("Network error. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -193,13 +236,20 @@ export default function NewPostPage() {
           </button>
           <button
             onClick={handleSave}
-            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2"
+            disabled={saving}
+            className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            <Save className="w-4 h-4" />
-            Save
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? "Saving..." : "Save"}
           </button>
         </div>
       </div>
+
+      {saveError && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-semibold">
+          {saveError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main editor */}
