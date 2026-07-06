@@ -189,7 +189,7 @@ export default function NewPostPage() {
           title: title.trim(),
           excerpt: excerpt.trim(),
           content: content.trim(),
-          categoryId: selectedCat ? Number(selectedCat.id) : Number(categoryId),
+          categoryId: selectedCat ? selectedCat.id : categoryId,
           featuredImage: coverImage || undefined,
           status: published ? "PUBLISHED" : "DRAFT",
           isFeatured: featured,

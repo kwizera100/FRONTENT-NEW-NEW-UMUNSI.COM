@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       console.error("Backend upload error (field=file, /media/upload):", res.status, errText);
 
       const retryFormData = new FormData();
-      retryFormData.append("image", file);
+      retryFormData.append("files", file);
       res = await fetch(`${API_BASE}/media/upload`, {
         method: "POST",
         body: retryFormData,
@@ -57,11 +57,11 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const errText2 = await res.text().catch(() => "Upload failed");
-      console.error("Backend upload error (field=image, /media/upload):", res.status, errText2);
+      console.error("Backend upload error (field=files, /media/upload):", res.status, errText2);
 
       const retryFormData2 = new FormData();
-      retryFormData2.append("file", file);
-      res = await fetch(`${API_BASE}/upload`, {
+      retryFormData2.append("image", file);
+      res = await fetch(`${API_BASE}/media/upload`, {
         method: "POST",
         body: retryFormData2,
         headers: uploadHeaders,
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
 
     if (!res.ok) {
       const errText3 = await res.text().catch(() => "Upload failed");
-      console.error("Backend upload error (field=file, /upload):", res.status, errText3);
+      console.error("Backend upload error (field=image, /media/upload):", res.status, errText3);
       return NextResponse.json(
         { error: `Backend upload failed (${res.status}): ${errText3.slice(0, 200)}` },
         { status: res.status }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await res.json();
-    const imageUrl = data.url || data.data?.url || data.path || data.data?.path || "";
+    const imageUrl = data.url || data.data?.url || data.path || data.data?.path || (Array.isArray(data.media) && data.media[0]?.url) || "";
 
     let fullUrl = imageUrl;
     if (imageUrl && !imageUrl.startsWith("http")) {
