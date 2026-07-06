@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
     const withFullUrls = media.map((m: any) => ({
       ...m,
       url: m.url && !m.url.startsWith("http") ? `${SERVER_BASE}${m.url}` : m.url,
+      thumbnailUrl: m.thumbnailUrl && !m.thumbnailUrl.startsWith("http") ? `${SERVER_BASE}${m.thumbnailUrl}` : m.thumbnailUrl,
     }));
     return NextResponse.json(withFullUrls);
   } catch (error) {

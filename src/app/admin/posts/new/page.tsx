@@ -51,6 +51,7 @@ export default function NewPostPage() {
   const [mediaLibrary, setMediaLibrary] = useState<{ url: string; caption?: string; type?: string }[]>([]);
   const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
   const [isYouTube, setIsYouTube] = useState(false);
+  const [editorMode, setEditorMode] = useState<"write" | "preview">("write");
 
   useEffect(() => {
     fetch("/api/categories")
@@ -232,7 +233,7 @@ export default function NewPostPage() {
             }`}
           >
             <Eye className="w-4 h-4" />
-            {published ? "Published" : "Draft"}
+            {published ? "Will Publish" : "Draft Mode"}
           </button>
           <button
             onClick={handleSave}
@@ -240,7 +241,7 @@ export default function NewPostPage() {
             className="px-5 py-2 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {saving ? "Saving..." : "Save"}
+            {saving ? "Saving..." : published ? "Publish Now" : "Save Draft"}
           </button>
         </div>
       </div>
@@ -360,14 +361,41 @@ export default function NewPostPage() {
               <span className="ml-auto text-xs text-ink-400">HTML supported</span>
             </div>
 
-            <textarea
-              id="content-textarea"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your article content here... Use the toolbar above for formatting."
-              rows={15}
-              className="w-full text-ink-800 border-0 outline-none resize-y text-base leading-relaxed placeholder:text-ink-300"
-            />
+            <div className="flex items-center gap-2 mb-3">
+              <button
+                onClick={() => setEditorMode("write")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "write" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
+              >Write</button>
+              <button
+                onClick={() => setEditorMode("preview")}
+                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "preview" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
+              >Preview</button>
+            </div>
+            {editorMode === "write" ? (
+              <textarea
+                id="content-textarea"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                placeholder="Write your article content here... Use the toolbar above for formatting."
+                rows={15}
+                className="w-full text-ink-800 border-0 outline-none resize-y text-base leading-relaxed placeholder:text-ink-300"
+              />
+            ) : (
+              <div
+                className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 min-h-[300px] p-2
+                  [&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-4
+                  [&_img]:rounded-xl [&_img]:max-w-full [&_img]:h-auto [&_img]:my-4
+                  [&_figure]:my-6 [&_figure]:mx-auto
+                  [&_figcaption]:text-sm [&_figcaption]:text-gray-500 [&_figcaption]:italic [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:px-4 [&_figcaption]:py-2 [&_figcaption]:bg-gray-50 [&_figcaption]:rounded-lg
+                  [&_blockquote]:border-l-4 [&_blockquote]:border-[#e5b60d] [&_blockquote]:pl-6 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:bg-gray-50/50 [&_blockquote]:rounded-r-lg
+                  [&_h2]:text-2xl [&_h2]:font-black [&_h2]:text-gray-900 [&_h2]:mt-6 [&_h2]:mb-4
+                  [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-4 [&_h3]:mb-3
+                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2
+                  [&_.video-wrapper]:my-6 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
+                  [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
+                dangerouslySetInnerHTML={{ __html: content || '<p class="text-gray-400">Nothing to preview yet.</p>' }}
+              />
+            )}
           </div>
         </div>
 
