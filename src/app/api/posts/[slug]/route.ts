@@ -43,3 +43,26 @@ export async function PUT(req: NextRequest, { params }: { params: { slug: string
     return NextResponse.json({ error: "Failed to update post" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { slug: string } }) {
+  try {
+    const authHeader = req.headers.get("authorization") || "";
+    const res = await fetch(`${API_BASE}/posts/${params.slug}`, {
+      method: "DELETE",
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Accept: "application/json",
+        ...(authHeader ? { Authorization: authHeader } : {}),
+      },
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      const errMsg = data.error || data.message || "Failed to delete post";
+      return NextResponse.json({ error: errMsg }, { status: res.status });
+    }
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Failed to delete post:", error);
+    return NextResponse.json({ error: "Failed to delete post" }, { status: 500 });
+  }
+}

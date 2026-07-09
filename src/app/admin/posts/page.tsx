@@ -25,6 +25,7 @@ export default function AdminPostsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -34,6 +35,28 @@ export default function AdminPostsPage() {
       })
       .catch(() => {});
   }, []);
+
+  const handleDelete = async (post: ApiPost) => {
+    if (!window.confirm(`Are you sure you want to delete "${post.title}"?`)) return;
+    setDeleting(post.id);
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/posts/${post.id}`, {
+        method: "DELETE",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete article.");
+      } else {
+        setPosts((prev) => prev.filter((p) => p.id !== post.id));
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const fetchPosts = useCallback(async () => {
     setLoading(true);
@@ -239,10 +262,16 @@ export default function AdminPostsPage() {
                           <PenSquare className="w-4 h-4" />
                         </Link>
                         <button
-                          className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors"
+                          onClick={() => handleDelete(post)}
+                          disabled={deleting === post.id}
+                          className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors disabled:opacity-50"
                           title="Siba"
                         >
-                          <Trash2 className="w-4 h-4" />
+                          {deleting === post.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
                         </button>
                       </div>
                     </td>
