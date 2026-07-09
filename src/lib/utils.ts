@@ -57,6 +57,36 @@ export function getYouTubeThumb(url: string) {
 
 const BLOCK_TAG_RE =/<\s*(?:p|div|h[1-6]|ul|ol|li|blockquote|figure|figcaption|pre|table|thead|tbody|tr|td|th|section|article|header|footer|hr|br|img|iframe|video|audio|source|embed|object|canvas|svg|form|input|button|label|select|textarea|address|fieldset|legend|dl|dt|dd|details|summary|main|nav|aside|picture|noscript)[\s\/>]/i;
 
+const MAX_PLAIN_TEXT_BLOCK = 600;
+const SENTENCE_RE = /[^.!?]+[.!?]+/g;
+
+function splitLongBlockIntoParagraphs(text: string): string[] {
+  const sentences = text.match(SENTENCE_RE);
+  if (!sentences || sentences.length <= 1) return [text];
+
+  const paragraphs: string[] = [];
+  const groupSize = 3;
+  for (let i = 0; i < sentences.length; i += groupSize) {
+    const group = sentences.slice(i, i + groupSize).map((s) => s.trim()).join(" ");
+    if (group) paragraphs.push(group);
+  }
+
+  // If regex grouping left trailing text, append it to the last paragraph.
+  const consumed = paragraphs.join(" ").length;
+  if (consumed < text.trim().length) {
+    const tail = text.trim().slice(consumed).trim();
+    if (tail) {
+      if (paragraphs.length > 0) {
+        paragraphs[paragraphs.length - 1] += " " + tail;
+      } else {
+        paragraphs.push(tail);
+      }
+    }
+  }
+
+  return paragraphs.length > 0 ? paragraphs : [text];
+}
+
 export function formatArticleHtml(content: string): string {
   const trimmed = content.trim();
   if (!trimmed) return "";
@@ -70,11 +100,14 @@ export function formatArticleHtml(content: string): string {
   // Otherwise treat the content as plain text and auto-wrap paragraphs.
   return trimmed
     .split(/\n\s*\n/)
-    .map((block) => {
+    .flatMap((block) => {
       const text = block.trim();
-      if (!text) return "";
-      const withBreaks = text.replace(/\n/g, "<br>");
-      return `<p>${withBreaks}</p>`;
+      if (!text) return [];
+      const chunks = text.length > MAX_PLAIN_TEXT_BLOCK ? splitLongBlockIntoParagraphs(text) : [text];
+      return chunks.map((chunk) => {
+        const withBreaks = chunk.replace(/\n/g, "<br>");
+        return `<p>${withBreaks}</p>`;
+      });
     })
     .filter(Boolean)
     .join("\n\n");
