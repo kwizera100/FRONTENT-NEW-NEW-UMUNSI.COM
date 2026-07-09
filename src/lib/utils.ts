@@ -91,18 +91,23 @@ export function formatArticleHtml(content: string): string {
   const trimmed = content.trim();
   if (!trimmed) return "";
 
-  // If the content already contains block-level HTML, leave it as-is so
-  // existing formatting (headings, figures, lists, etc.) is preserved.
-  if (BLOCK_TAG_RE.test(trimmed)) {
+  // If the content already contains <p> tags, leave it as-is so
+  // existing paragraph formatting is preserved.
+  if (/^\s*<\s*p[\s\/>]/i.test(trimmed) || /<\s*p[\s\/>]/i.test(trimmed)) {
     return trimmed;
   }
 
-  // Otherwise treat the content as plain text and auto-wrap paragraphs.
+  // Split by double newlines and wrap each text block in <p> tags.
+  // Blocks that are purely embedded HTML (e.g. <figure>...</figure>) are left as-is.
   return trimmed
     .split(/\n\s*\n/)
     .flatMap((block) => {
       const text = block.trim();
       if (!text) return [];
+      // Leave standalone HTML blocks (like <figure>, <div>, <iframe>) untouched.
+      if (/^\s*</.test(text) && />\s*$/.test(text) && /<\/\w+>/.test(text)) {
+        return [text];
+      }
       const chunks = text.length > MAX_PLAIN_TEXT_BLOCK ? splitLongBlockIntoParagraphs(text) : [text];
       return chunks.map((chunk) => {
         const withBreaks = chunk.replace(/\n/g, "<br>");
