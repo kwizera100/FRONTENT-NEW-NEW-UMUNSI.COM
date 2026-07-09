@@ -54,3 +54,28 @@ export function getYouTubeThumb(url: string) {
   const id = getYouTubeId(url);
   return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : null;
 }
+
+const BLOCK_TAG_RE =/<\s*(?:p|div|h[1-6]|ul|ol|li|blockquote|figure|figcaption|pre|table|thead|tbody|tr|td|th|section|article|header|footer|hr|br|img|iframe|video|audio|source|embed|object|canvas|svg|form|input|button|label|select|textarea|address|fieldset|legend|dl|dt|dd|details|summary|main|nav|aside|picture|noscript)[\s\/>]/i;
+
+export function formatArticleHtml(content: string): string {
+  const trimmed = content.trim();
+  if (!trimmed) return "";
+
+  // If the content already contains block-level HTML, leave it as-is so
+  // existing formatting (headings, figures, lists, etc.) is preserved.
+  if (BLOCK_TAG_RE.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Otherwise treat the content as plain text and auto-wrap paragraphs.
+  return trimmed
+    .split(/\n\s*\n/)
+    .map((block) => {
+      const text = block.trim();
+      if (!text) return "";
+      const withBreaks = text.replace(/\n/g, "<br>");
+      return `<p>${withBreaks}</p>`;
+    })
+    .filter(Boolean)
+    .join("\n\n");
+}

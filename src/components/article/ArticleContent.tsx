@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { formatArticleHtml } from "@/lib/utils";
 
 declare global {
   interface Window {
@@ -13,6 +14,7 @@ interface ArticleContentProps {
 }
 
 export function ArticleContent({ html }: ArticleContentProps) {
+  const normalizedHtml = formatArticleHtml(html);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export function ArticleContent({ html }: ArticleContentProps) {
         [&_a]:text-[#e5b60d] [&_a]:font-semibold [&_a]:underline [&_a]:hover:text-[#c9a00c]
         [&_.video-wrapper]:my-8 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
         [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
-      dangerouslySetInnerHTML={{ __html: html }}
+      dangerouslySetInnerHTML={{ __html: normalizedHtml }}
     />
   );
 }

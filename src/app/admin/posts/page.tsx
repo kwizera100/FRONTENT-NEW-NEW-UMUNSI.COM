@@ -11,6 +11,7 @@ import {
   Filter,
   Clock,
   Loader2,
+  Globe,
 } from "lucide-react";
 import { formatTimeAgo } from "@/lib/utils";
 import type { ApiPost, ApiCategory } from "@/lib/api";
@@ -40,7 +41,7 @@ export default function AdminPostsPage() {
       const params = new URLSearchParams({
         limit: "50",
         page: String(page),
-        sortBy: "publishedAt",
+        sortBy: "updatedAt",
         sortOrder: "desc",
       });
       if (filterCat !== "all") {
@@ -49,7 +50,7 @@ export default function AdminPostsPage() {
       }
       if (search) params.set("search", search);
 
-      const res = await fetch(`/api/posts?${params.toString()}`);
+      const res = await fetch(`/api/posts?${params.toString()}`, { cache: "no-store" });
       const data = await res.json();
       setPosts(data.data || []);
       if (data.pagination) {

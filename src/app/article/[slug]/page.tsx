@@ -58,7 +58,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-white text-balance leading-tight mb-4 sm:mb-6 font-display">
               {post.title}
             </h1>
-            <p className="text-white/80 text-base sm:text-lg lg:text-xl mb-4 sm:mb-6 line-clamp-3">{post.excerpt}</p>
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/70 text-xs sm:text-sm">
               <span className="font-bold text-white text-sm sm:text-base">{authorName}</span>
               {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.map((coAuthor: string, idx: number) => (
