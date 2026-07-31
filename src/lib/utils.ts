@@ -1,6 +1,44 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+const MEDIA_ASSET_BASE = "https://api.umunsi.com";
+const DEFAULT_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
+
+export function normalizeMediaUrl(url: string | null | undefined) {
+  if (!url) return DEFAULT_IMAGE_FALLBACK;
+
+  const trimmed = url.trim();
+  if (!trimmed) return DEFAULT_IMAGE_FALLBACK;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+
+  const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return `${MEDIA_ASSET_BASE}${normalizedPath}`;
+}
+
+export function normalizeArticleMediaUrls(html: string): string {
+  if (!html || !html.trim()) return "";
+
+  return html
+    .replace(/(src|data-src)=(["'])([^"']+)\2/gi, (_match, attr, quote, value) => {
+      return `${attr}=${quote}${normalizeMediaUrl(value)}${quote}`;
+    })
+    .replace(/(srcset)=(["'])([^"']+)\2/gi, (_match, attr, quote, value) => {
+      const normalized = value
+        .split(",")
+        .map((entry: string) => entry.trim())
+        .filter(Boolean)
+        .map((entry: string) => {
+          const [url, ...rest] = entry.split(/\s+/);
+          return `${normalizeMediaUrl(url)}${rest.length ? ` ${rest.join(" ")}` : ""}`;
+        })
+        .join(", ");
+
+      return `${attr}=${quote}${normalized}${quote}`;
+    })
+    .replace(/<figure>\s*<figure>/gi, "<figure>")
+    .replace(/<\/figure>\s*<\/figure>/gi, "</figure>");
+}
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

@@ -29,7 +29,16 @@ export interface Post {
   publishedAt: string;
   createdAt: string;
   category: Category;
-  author: { name: string; avatar?: string };
+  author: {
+    id: string;
+    username: string;
+    name: string;
+    avatar?: string;
+    bio?: string | null;
+    socialLinks?: { facebook?: string; twitter?: string; linkedin?: string; instagram?: string; website?: string } | null;
+    profileColor?: string;
+    coverImage?: string;
+  };
   media: PostMedia[];
   tags: string[];
   readTime: number;
@@ -158,7 +167,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 3 * 3600000).toISOString(),
     category: categories[4],
-    author: { name: "Mugisha Eric" },
+    author: { id: "u1", username: "mugisha", name: "Mugisha Eric" },
     media: [
       {
         id: "m1",
@@ -191,7 +200,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 6 * 3600000).toISOString(),
     category: categories[3],
-    author: { name: "Uwase Diane" },
+    author: { id: "u2", username: "uwase", name: "Uwase Diane" },
     media: [
       {
         id: "m3",
@@ -218,7 +227,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 8 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 9 * 3600000).toISOString(),
     category: categories[5],
-    author: { name: "Habimana Jean" },
+    author: { id: "u3", username: "habimana", name: "Habimana Jean" },
     media: [
       {
         id: "m4",
@@ -245,7 +254,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 12 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 13 * 3600000).toISOString(),
     category: categories[6],
-    author: { name: "Mukamana Alice" },
+    author: { id: "u4", username: "mukamana", name: "Mukamana Alice" },
     media: [
       {
         id: "m5",
@@ -272,7 +281,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 18 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 19 * 3600000).toISOString(),
     category: categories[0],
-    author: { name: "Nshimiyimana Paul" },
+    author: { id: "u5", username: "nshimiyimana", name: "Nshimiyimana Paul" },
     media: [
       {
         id: "m6",
@@ -299,7 +308,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 24 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 25 * 3600000).toISOString(),
     category: categories[2],
-    author: { name: "Iradukunda Linda" },
+    author: { id: "u6", username: "iradukunda", name: "Iradukunda Linda" },
     media: [
       {
         id: "m7",
@@ -326,7 +335,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 30 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 31 * 3600000).toISOString(),
     category: categories[7],
-    author: { name: "Bizimana Eric" },
+    author: { id: "u7", username: "bizimana", name: "Bizimana Eric" },
     media: [
       {
         id: "m8",
@@ -353,7 +362,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 36 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 37 * 3600000).toISOString(),
     category: categories[8],
-    author: { name: "Kalisa Patrick" },
+    author: { id: "u8", username: "kalisa", name: "Kalisa Patrick" },
     media: [
       {
         id: "m9",
@@ -380,7 +389,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 48 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 49 * 3600000).toISOString(),
     category: categories[9],
-    author: { name: "Mutesi Grace" },
+    author: { id: "u9", username: "mutesi", name: "Mutesi Grace" },
     media: [
       {
         id: "m10",
@@ -407,7 +416,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 60 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 61 * 3600000).toISOString(),
     category: categories[4],
-    author: { name: "Mugisha Eric" },
+    author: { id: "u1", username: "mugisha", name: "Mugisha Eric" },
     media: [
       {
         id: "m11",
@@ -434,7 +443,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 72 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 73 * 3600000).toISOString(),
     category: categories[3],
-    author: { name: "Uwase Diane" },
+    author: { id: "u2", username: "uwase", name: "Uwase Diane" },
     media: [
       {
         id: "m12",
@@ -461,7 +470,7 @@ export const posts: Post[] = [
     publishedAt: new Date(Date.now() - 84 * 3600000).toISOString(),
     createdAt: new Date(Date.now() - 85 * 3600000).toISOString(),
     category: categories[6],
-    author: { name: "Mukamana Alice" },
+    author: { id: "u4", username: "mukamana", name: "Mukamana Alice" },
     media: [
       {
         id: "m13",

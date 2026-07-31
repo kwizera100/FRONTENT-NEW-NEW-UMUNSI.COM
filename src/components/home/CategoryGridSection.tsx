@@ -16,7 +16,7 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
 
   const accent = color || "#e5b60d";
   const main = posts[0];
-  const grid = posts.slice(1, 5);
+  const grid = posts.slice(1, 7);
 
   return (
     <section className="py-8 lg:py-10 bg-white border-t border-gray-100">
@@ -39,7 +39,7 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
           {/* Main */}
           <div className="lg:col-span-5">
             <Link href={`/article/${main.slug}`} className="group block">
-              <div className="relative aspect-[16/10] overflow-hidden rounded-xl mb-4">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-xl mb-4">
                 <Image
                   src={main.coverImage}
                   alt={main.title}
@@ -73,26 +73,32 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
               <Link
                 key={post.id}
                 href={`/article/${post.slug}`}
-                className="group flex gap-4 items-start"
+                className="group block"
               >
-                <div className="relative w-24 h-20 sm:w-28 sm:h-22 shrink-0 overflow-hidden rounded-lg">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-3">
                   <Image
                     src={post.coverImage}
                     alt={post.title}
                     fill
-                    sizes="120px"
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    sizes="(max-width: 768px) 100vw, 30vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
+                  <div className="absolute top-3 left-3">
+                    <span
+                      className="px-2.5 py-1 rounded-md text-xs font-bold text-white"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {title}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
-                    {post.title}
-                  </h4>
-                  <span className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatTimeAgo(post.publishedAt)}
-                  </span>
-                </div>
+                <h4 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
+                  {post.title}
+                </h4>
+                <span className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatTimeAgo(post.publishedAt)}
+                </span>
               </Link>
             ))}
           </div>

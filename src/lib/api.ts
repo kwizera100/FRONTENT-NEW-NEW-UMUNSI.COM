@@ -1,5 +1,6 @@
+import { normalizeArticleMediaUrls, normalizeMediaUrl } from "@/lib/utils";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
-const SERVER_BASE = "https://api.umunsi.com";
 
 const HEADERS: HeadersInit = {
   "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
@@ -35,9 +36,7 @@ async function fetchAPI<T = any>(endpoint: string, params?: Record<string, strin
 }
 
 function fixImageUrl(url: string | null | undefined): string {
-  if (!url) return "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
-  if (url.startsWith("http://") || url.startsWith("https://")) return url;
-  return `${SERVER_BASE}${url}`;
+  return normalizeMediaUrl(url);
 }
 
 export interface ApiPost {
@@ -52,6 +51,7 @@ export interface ApiPost {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  viewCount: number;
   likeCount: number;
   commentCount: number;
   isFeatured: boolean;
@@ -69,6 +69,10 @@ export interface ApiPost {
     username: string;
     avatar: string | null;
     profileUrl: string | null;
+    bio: string | null;
+    socialLinks: string | null;
+    profileColor: string | null;
+    coverImage: string | null;
     role: string;
     isVerified: boolean;
   };
@@ -122,10 +126,10 @@ export function mapApiPost(post: ApiPost) {
     slug: post.slug,
     title: post.title,
     excerpt: post.excerpt || post.title,
-    content: post.content || "",
+    content: normalizeArticleMediaUrls(post.content || ""),
     featured: post.isFeatured,
     published: post.status === "PUBLISHED",
-    views: post.likeCount || 0,
+    views: post.viewCount || post.likeCount || 0,
     publishedAt: post.publishedAt || post.createdAt,
     createdAt: post.createdAt,
     category: {
@@ -139,8 +143,14 @@ export function mapApiPost(post: ApiPost) {
       order: 0,
     },
     author: {
+      id: post.author?.id || "",
+      username: post.author?.username || "",
       name: mapAuthorName(post.author),
       avatar: fixImageUrl(post.author?.avatar),
+      bio: post.author?.bio || null,
+      socialLinks: post.author?.socialLinks ? (typeof post.author.socialLinks === "string" ? JSON.parse(post.author.socialLinks) : post.author.socialLinks) : null,
+      profileColor: post.author?.profileColor || "#e5b60d",
+      coverImage: fixImageUrl(post.author?.coverImage),
     },
     media: [],
     tags: Array.isArray(post.tags) ? post.tags : [],
@@ -184,7 +194,7 @@ export const api = {
   },
 
   getTrendingPosts: (limit = 10) =>
-    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: Math.max(limit * 5, 50), sortBy: "likeCount", sortOrder: "desc" })
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: Math.max(limit * 5, 50), sortBy: "viewCount", sortOrder: "desc" })
       .then((r) => (r.data || []).slice(0, limit)),
 
   getCategories: async () => {
@@ -211,7 +221,7 @@ export const api = {
       api.getCategories(),
     ]);
     const total = postsRes.pagination?.total || 0;
-    const totalViews = (postsRes.data || []).reduce((sum, p) => sum + (p.likeCount || 0), 0);
+    const totalViews = (postsRes.data || []).reduce((sum, p) => sum + (p.viewCount || p.likeCount || 0), 0);
     return {
       totalPosts: total,
       publishedCount: total,
@@ -226,5 +236,76 @@ export const api = {
         posts: r.data || [],
         pagination: r.pagination || { page, limit, total: 0, pages: 0 },
       }));
+  },
+
+  getAdminViewStats: async (range: "daily" | "monthly" | "yearly" | "2y" | "3y" | "5y" = "daily") => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : null;
+      const res = await fetch(`/api/analytics/admin/views?range=${encodeURIComponent(range)}`, {
+        headers: {
+          ...HEADERS,
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        cache: "no-store",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.data || null;
+    } catch {
+      return null;
+    }
+  },
+
+  getAuthorByUsername: async (username: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/users`, {
+        headers: HEADERS,
+        next: { revalidate: 60 },
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      const users = Array.isArray(data) ? data : data.data || data.users || [];
+      const user = users.find((u: any) => u.username === username || u.id === username);
+      return user || null;
+    } catch {
+      return null;
+    }
+  },
+
+  getPostsByAuthor: async (authorId: string, limit = 20): Promise<ApiPost[]> => {
+    try {
+      const res = await fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", authorId, limit, sortBy: "publishedAt", sortOrder: "desc" });
+      return (res as PostsResponse).data || [];
+    } catch {
+      return [];
+    }
+  },
+
+  updateProfile: async (profileData: Record<string, any>) => {
+    try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : null;
+      if (!token) throw new Error("Not authenticated");
+      const userStr = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_user") : null;
+      const userId = userStr ? JSON.parse(userStr).id : null;
+      if (!userId) throw new Error("No user ID");
+
+      const res = await fetch(`${API_BASE}/users/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...HEADERS,
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileData),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || err.error || "Failed to update profile");
+      }
+      const data = await res.json();
+      return data.data || data.user || data;
+    } catch (error: any) {
+      throw new Error(error.message || "Failed to update profile");
+    }
   },
 };

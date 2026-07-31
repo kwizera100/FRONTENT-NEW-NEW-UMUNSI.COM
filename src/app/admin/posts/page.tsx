@@ -26,14 +26,18 @@ export default function AdminPostsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("ADMIN");
+  const [userId, setUserId] = useState<string>("");
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data)) setCategories(data);
-      })
-      .catch(() => {});
+    try {
+      const userStr = localStorage.getItem("umunsi_admin_user");
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setUserRole((user.role || "ADMIN").toUpperCase());
+        setUserId(user.id || "");
+      }
+    } catch {}
   }, []);
 
   const handleDelete = async (post: ApiPost) => {
@@ -67,6 +71,9 @@ export default function AdminPostsPage() {
         sortBy: "updatedAt",
         sortOrder: "desc",
       });
+      if (userRole === "AUTHOR" && userId) {
+        params.set("authorId", userId);
+      }
       if (filterCat !== "all") {
         const cat = categories.find((c) => c.slug === filterCat);
         if (cat) params.set("category", cat.id);
@@ -85,7 +92,7 @@ export default function AdminPostsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterCat, search, categories]);
+  }, [page, filterCat, search, categories, userRole, userId]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -261,18 +268,20 @@ export default function AdminPostsPage() {
                         >
                           <PenSquare className="w-4 h-4" />
                         </Link>
-                        <button
-                          onClick={() => handleDelete(post)}
-                          disabled={deleting === post.id}
-                          className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors disabled:opacity-50"
-                          title="Siba"
-                        >
-                          {deleting === post.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
+                        {userRole === "ADMIN" && (
+                          <button
+                            onClick={() => handleDelete(post)}
+                            disabled={deleting === post.id}
+                            className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                            title="Siba"
+                          >
+                            {deleting === post.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

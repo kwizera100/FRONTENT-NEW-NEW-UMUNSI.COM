@@ -54,28 +54,28 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
               <Link
                 key={post.id}
                 href={`/article/${post.slug}`}
-                className="group flex gap-4 items-start"
+                className="group block"
               >
-                <div className="relative w-24 h-20 lg:w-28 lg:h-22 shrink-0 overflow-hidden rounded-lg">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg mb-2">
                   <Image
                     src={post.coverImage}
                     alt={post.title}
                     fill
-                    sizes="120px"
+                    sizes="200px"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
+                  <div className="absolute top-2 left-2">
+                    <span
+                      className="px-2 py-1 rounded text-xs font-bold text-white"
+                      style={{ backgroundColor: post.category.color || "#e5b60d" }}
+                    >
+                      {post.category.name}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <span
-                    className="text-xs font-bold uppercase tracking-wide"
-                    style={{ color: post.category.color || "#e5b60d" }}
-                  >
-                    {post.category.name}
-                  </span>
-                  <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-3 mt-1 font-display">
-                    {post.title}
-                  </h3>
-                </div>
+                <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
+                  {post.title}
+                </h3>
               </Link>
             ))}
           </div>

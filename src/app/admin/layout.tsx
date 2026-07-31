@@ -15,6 +15,7 @@ import {
   PenSquare,
   Eye,
   Users,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },
+  { href: "/admin/profile", label: "My Profile", icon: UserCircle },
 ];
 
 export default function AdminLayout({
@@ -63,6 +65,9 @@ export default function AdminLayout({
   if (isLoginPage) return <>{children}</>;
 
   const visibleNavItems = navItems.filter((item) => {
+    if (userRole === "AUTHOR") {
+      return ["/admin", "/admin/posts", "/admin/posts/new", "/admin/profile"].includes(item.href);
+    }
     if (item.href === "/admin/users" || item.href === "/admin/settings") {
       return userRole === "ADMIN";
     }

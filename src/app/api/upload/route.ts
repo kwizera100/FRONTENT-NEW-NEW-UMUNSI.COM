@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 413 });
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "File too large (max 5MB)." }, { status: 413 });
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -77,7 +77,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const data = await res.json();
+    const contentType = res.headers.get("content-type") || "";
+    let data: any;
+    if (contentType.includes("application/json")) {
+      data = await res.json();
+    } else {
+      const text = await res.text();
+      try { data = JSON.parse(text); } catch { data = { url: text.trim() }; }
+    }
+
     const imageUrl = data.url || data.data?.url || data.path || data.data?.path || (Array.isArray(data.media) && data.media[0]?.url) || "";
 
     let fullUrl = imageUrl;

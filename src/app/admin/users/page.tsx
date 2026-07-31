@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, X, Mail, Shield, Loader2, Trash2, Copy, CheckCircle2 } from "lucide-react";
+import { Users, Plus, X, Mail, Shield, Loader2, Trash2, Copy, CheckCircle2, Save } from "lucide-react";
 
 interface User {
   id: string;
@@ -29,6 +29,9 @@ export default function AdminUsersPage() {
   const [createError, setCreateError] = useState("");
   const [createdUser, setCreatedUser] = useState<User | null>(null);
   const [copied, setCopied] = useState(false);
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
+  const [editingRoleValue, setEditingRoleValue] = useState("");
+  const [updatingRole, setUpdatingRole] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -105,6 +108,48 @@ export default function AdminUsersPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const startEditRole = (user: User) => {
+    setEditingRoleId(user.id);
+    setEditingRoleValue(user.role || "AUTHOR");
+  };
+
+  const cancelEditRole = () => {
+    setEditingRoleId(null);
+    setEditingRoleValue("");
+  };
+
+  const saveRole = async (user: User) => {
+    setUpdatingRole(true);
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/users/${user.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: user.email,
+          username: user.username || user.email.split("@")[0],
+          firstName: user.firstName || user.name?.split(" ")[0] || "User",
+          lastName: user.lastName || user.name?.split(" ").slice(1).join(" ") || "User",
+          role: editingRoleValue,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to update role");
+      } else {
+        setUsers(users.map((u) => (u.id === user.id ? { ...u, role: editingRoleValue } : u)));
+        setEditingRoleId(null);
+      }
+    } catch {
+      setError("Failed to update role");
+    } finally {
+      setUpdatingRole(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -167,15 +212,51 @@ export default function AdminUsersPage() {
                   </td>
                   <td className="px-5 py-4 text-sm text-ink-600">{user.email}</td>
                   <td className="px-5 py-4">
-                    <span
-                      className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                        user.role?.toUpperCase() === "ADMIN"
-                          ? "bg-red-50 text-red-600"
-                          : "bg-blue-50 text-blue-600"
-                      }`}
-                    >
-                      {user.role || "AUTHOR"}
-                    </span>
+                    {editingRoleId === user.id ? (
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={editingRoleValue}
+                          onChange={(e) => setEditingRoleValue(e.target.value)}
+                          disabled={updatingRole}
+                          className="text-xs font-semibold border border-ink-200 rounded-lg px-2 py-1 outline-none focus:border-brand-500"
+                        >
+                          <option value="USER">USER</option>
+                          <option value="AUTHOR">AUTHOR</option>
+                          <option value="EDITOR">EDITOR</option>
+                          <option value="ADMIN">ADMIN</option>
+                        </select>
+                        <button
+                          onClick={() => saveRole(user)}
+                          disabled={updatingRole}
+                          className="p-1 rounded-md bg-green-100 text-green-700 hover:bg-green-200 disabled:opacity-50"
+                          title="Save"
+                        >
+                          {updatingRole ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                          onClick={cancelEditRole}
+                          disabled={updatingRole}
+                          className="p-1 rounded-md bg-ink-100 text-ink-600 hover:bg-ink-200 disabled:opacity-50"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startEditRole(user)}
+                        className={`text-xs font-bold px-2.5 py-1 rounded-lg transition-colors ${
+                          user.role?.toUpperCase() === "ADMIN"
+                            ? "bg-red-50 text-red-600 hover:bg-red-100"
+                            : user.role?.toUpperCase() === "EDITOR"
+                            ? "bg-purple-50 text-purple-600 hover:bg-purple-100"
+                            : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                        }`}
+                        title="Click to change role"
+                      >
+                        {user.role || "AUTHOR"}
+                      </button>
+                    )}
                   </td>
                   <td className="px-5 py-4 text-sm text-ink-400">
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}

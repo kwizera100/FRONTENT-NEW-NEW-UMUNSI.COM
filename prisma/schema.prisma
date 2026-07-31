@@ -22,6 +22,9 @@ model User {
   bio           String?
   phone         String?
   profileUrl    String?
+  socialLinks   String?
+  profileColor  String?
+  coverImage    String?
   isActive      Boolean  @default(true)
   isVerified    Boolean  @default(false)
   lastLogin     DateTime?

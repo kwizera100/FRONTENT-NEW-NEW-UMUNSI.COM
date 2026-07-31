@@ -4,26 +4,81 @@ import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
 import { ShareBar } from "@/components/article/ShareBar";
 import { ArticleContent } from "@/components/article/ArticleContent";
-import { formatDate, formatTimeAgo } from "@/lib/utils";
+import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
+import { AuthorCard } from "@/components/article/AuthorCard";
+import { formatDate, formatTimeAgo, normalizeMediaUrl } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Clock, Eye } from "lucide-react";
+import { Clock } from "lucide-react";
+import type { Metadata } from "next";
 
 export const revalidate = 300;
 
+const SITE_URL = "https://www.umunsi.com";
+
+type Props = { params: { slug: string } };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const post = await api.getPostBySlug(params.slug);
+  if (!post) {
+    return {
+      title: "Article not found | Umunsi.com",
+    };
+  }
+
+  const mapped = mapApiPost(post);
+  const ogImage = normalizeMediaUrl(post.featuredImage);
+  const description = mapped.excerpt || post.title;
+  const url = `${SITE_URL}/article/${post.slug}`;
+
+  return {
+    title: post.title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      type: "article",
+      locale: "rw_RW",
+      url,
+      title: post.title,
+      description,
+      siteName: "Umunsi.com",
+      publishedTime: mapped.publishedAt,
+      authors: [mapped.author.name],
+      images: [
+        {
+          url: ogImage,
+          width: 1200,
+          height: 630,
+          alt: post.title,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      site: "@umunsi",
+      title: post.title,
+      description,
+      images: [ogImage],
+    },
+  };
+}
+
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const [allCategories, post, trendingPosts] = await Promise.all([
+  const [allCategories, post, trendingPosts, latestAll] = await Promise.all([
     api.getCategories(),
     api.getPostBySlug(params.slug),
-    api.getTrendingPosts(5),
+    api.getTrendingPosts(8),
+    api.getLatestPosts(12),
   ]);
 
   const categories = allCategories as ApiCategory[];
 
   if (!post) notFound();
 
-  const latestPosts = await api.getPostsByCategory(post.category?.slug || "", 4);
+  const latestPosts = await api.getPostsByCategory(post.category?.slug || "", 8);
 
   const mappedPost = mapApiPost(post);
   const coverImage = mappedPost.coverImage;
@@ -32,13 +87,19 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
   const related = latestPosts
     .filter((p) => p.id !== post.id)
-    .slice(0, 3)
+    .slice(0, 6)
     .map(mapApiPost);
 
   const popular = trendingPosts.map(mapApiPost);
 
+  const moreArticles = latestAll
+    .filter((p) => p.id !== post.id && !related.some((r) => r.id === p.id))
+    .slice(0, 6)
+    .map(mapApiPost);
+
   return (
     <>
+      <ArticleViewTracker articleId={post.id} />
       <Header categories={categories} />
 
       <div className="relative bg-gray-900">
@@ -66,7 +127,6 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 </span>
               ))}
               <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{formatDate(publishedDate)}</span>
-              <span className="flex items-center gap-1"><Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{post.likeCount.toLocaleString()} byayeho</span>
               <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{mappedPost.readTime} min gusoma</span>
             </div>
           </div>
@@ -83,18 +143,39 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
               <ShareBar title={post.title} slug={post.slug} />
 
-              <ArticleContent html={post.content || ""} />
+              {mappedPost.excerpt && mappedPost.excerpt !== post.title && (
+                <p className="text-lg sm:text-xl text-gray-800 leading-8 mb-6 sm:mb-8 font-bold italic">
+                  {mappedPost.excerpt}
+                </p>
+              )}
+
+              <ArticleContent html={mappedPost.content || ""} />
+
+              <AuthorCard author={mappedPost.author} />
             </div>
 
             <aside className="space-y-6">
               <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-lg sm:text-xl shrink-0">
-                    {authorName.charAt(0)}
-                  </div>
+                  <Link href={`/author/${mappedPost.author.username || mappedPost.author.id}`} className="shrink-0">
+                    {mappedPost.author.avatar && mappedPost.author.avatar !== normalizeMediaUrl(null) ? (
+                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0">
+                        <Image src={mappedPost.author.avatar} alt={authorName} fill sizes="56px" className="object-cover" />
+                      </div>
+                    ) : (
+                      <div
+                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-white font-black text-lg sm:text-xl shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${mappedPost.author.profileColor || "#e5b60d"}, ${mappedPost.author.profileColor || "#c9a00c"}dd)` }}
+                      >
+                        {authorName.charAt(0)}
+                      </div>
+                    )}
+                  </Link>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-gray-900 truncate">{authorName}</h3>
-                    <p className="text-sm text-gray-400">Author</p>
+                    <Link href={`/author/${mappedPost.author.username || mappedPost.author.id}`}>
+                      <h3 className="font-bold text-gray-900 truncate transition-colors" style={{ color: undefined }}>{authorName}</h3>
+                    </Link>
+                    <p className="text-sm" style={{ color: mappedPost.author.profileColor || "#9ca3af" }}>Author</p>
                   </div>
                 </div>
                 {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.length > 0 && (
@@ -142,6 +223,22 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {related.map((p) => (
+                <ArticleCard key={p.id} post={p} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {moreArticles.length > 0 && (
+        <section className="py-10 lg:py-14">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center gap-3 mb-8">
+              <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
+              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru zishyashya</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+              {moreArticles.map((p) => (
                 <ArticleCard key={p.id} post={p} />
               ))}
             </div>

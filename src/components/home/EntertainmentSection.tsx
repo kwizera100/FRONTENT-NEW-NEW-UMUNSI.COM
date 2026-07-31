@@ -13,7 +13,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
   if (entertainment.length === 0) return null;
 
   const main = entertainment[0];
-  const grid = entertainment.slice(1, 4);
+  const grid = entertainment.slice(1, 5);
 
   return (
     <section className="py-8 lg:py-12 bg-gray-50">
@@ -60,7 +60,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
                   href={`/article/${post.slug}`}
                   className="group block"
                 >
-                  <div className="relative aspect-[16/10] overflow-hidden rounded-xl mb-3">
+                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-3">
                     <Image
                       src={post.coverImage}
                       alt={post.title}
@@ -93,18 +93,18 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
                 <h3 className="font-black text-xl text-gray-900 font-display">Amatangazo</h3>
               </div>
               <div className="space-y-4">
-                {amatangazo.slice(0, 6).map((post, i) => (
+                {amatangazo.slice(0, 5).map((post, i) => (
                   <Link
                     key={post.id}
                     href={`/article/${post.slug}`}
                     className="group flex gap-4 items-start"
                   >
-                    <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-lg">
+                    <div className="relative w-24 h-20 shrink-0 overflow-hidden rounded-lg">
                       <Image
                         src={post.coverImage}
                         alt={post.title}
                         fill
-                        sizes="80px"
+                        sizes="100px"
                         className="object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                     </div>

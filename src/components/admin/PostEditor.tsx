@@ -29,6 +29,18 @@ import { ImageUploader } from "./ImageUploader";
 import { getYouTubeId, getYouTubeThumb, formatArticleHtml } from "@/lib/utils";
 import type { ApiCategory } from "@/lib/api";
 
+function getAdminUserRole(): string {
+  if (typeof window === "undefined") return "ADMIN";
+  try {
+    const userStr = localStorage.getItem("umunsi_admin_user");
+    if (!userStr) return "ADMIN";
+    const user = JSON.parse(userStr);
+    return String(user?.role || "ADMIN").toUpperCase();
+  } catch {
+    return "ADMIN";
+  }
+}
+
 interface PostEditorProps {
   mode: "create" | "edit";
   postId?: string;
@@ -49,6 +61,8 @@ interface PostEditorProps {
 
 export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProps) {
   const router = useRouter();
+  const [userRole, setUserRole] = useState<string>("ADMIN");
+  const isAuthorOnly = userRole === "AUTHOR";
   const [title, setTitle] = useState(initialPost?.title || "");
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || "");
   const [content, setContent] = useState(initialPost?.content || "");
@@ -71,6 +85,10 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [editorMode, setEditorMode] = useState<"write" | "preview">("write");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    setUserRole(getAdminUserRole());
+  }, []);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -277,24 +295,34 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => handleSave(false)}
-            disabled={saving}
-            className="px-4 py-2 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Draft
-          </button>
-          <button
-            onClick={() => handleSave(true)}
-            disabled={saving}
-            className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
-            Publish Now
-          </button>
+          {isAuthorOnly && mode === "edit" ? null : (
+            <button
+              onClick={() => handleSave(false)}
+              disabled={saving || (isAuthorOnly && mode === "edit")}
+              className="px-4 py-2 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Draft
+            </button>
+          )}
+          {!isAuthorOnly && (
+            <button
+              onClick={() => handleSave(true)}
+              disabled={saving}
+              className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+            >
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
+              Publish Now
+            </button>
+          )}
         </div>
       </div>
+
+      {isAuthorOnly && mode === "edit" && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm font-semibold">
+          Ntabwo wandika cyangwa wahindura iyi nkuru. Igihe gisigaye iri mu draft, ikeneye kurebwa no kwemejwa n'umukuru.
+        </div>
+      )}
 
       {saveError && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-semibold">
@@ -302,7 +330,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isAuthorOnly && mode === "edit" ? "pointer-events-none opacity-60 select-none" : ""}`}>
         <div className="lg:col-span-2 space-y-5">
           <div className="bg-white rounded-2xl border border-ink-100 p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block flex items-center gap-2">

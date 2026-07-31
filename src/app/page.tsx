@@ -9,8 +9,8 @@ export const revalidate = 300;
 
 export default async function HomePage() {
   const [featuredPosts, trendingPosts, categories] = await Promise.all([
-    api.getFeaturedPosts(5),
-    api.getTrendingPosts(6),
+    api.getFeaturedPosts(7),
+    api.getTrendingPosts(8),
     api.getCategories(),
   ]);
 
@@ -41,7 +41,7 @@ export default async function HomePage() {
   const allDisplayCategories = [...orderedCategories, ...remainingCategories];
 
   const categoryPosts = await Promise.all(
-    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 6))
+    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 8))
   );
 
   return (

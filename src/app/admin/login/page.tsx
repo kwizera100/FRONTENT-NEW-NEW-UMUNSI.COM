@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Lock, User, ArrowRight } from "lucide-react";
 
 export default function AdminLoginPage() {
@@ -94,6 +95,14 @@ export default function AdminLoginPage() {
                   placeholder="••••••••"
                   required
                 />
+              </div>
+              <div className="flex justify-end mt-1.5">
+                <Link
+                  href="/admin/forgot-password"
+                  className="text-xs font-semibold text-brand-600 hover:text-brand-700"
+                >
+                  Wibagiwe ijambo ry&apos;ibanga?
+                </Link>
               </div>
             </div>
 

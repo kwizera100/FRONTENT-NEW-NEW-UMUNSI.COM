@@ -30,8 +30,8 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      setError("File is too large. Maximum 10MB.");
+    if (file.size > 2 * 1024 * 1024) {
+      setError("File is too large. Maximum 2MB.");
       setUploading(false);
       return;
     }

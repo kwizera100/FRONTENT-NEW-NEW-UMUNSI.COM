@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, Eye } from "lucide-react";
+import { Clock } from "lucide-react";
 import type { Post } from "@/lib/data";
 import { formatTimeAgo } from "@/lib/utils";
 
@@ -103,10 +103,6 @@ export function ArticleCard({ post, variant = "default", priority = false }: Art
           <span className="flex items-center gap-1">
             <Clock className="w-4 h-4" />
             {formatTimeAgo(post.publishedAt)}
-          </span>
-          <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4" />
-            {post.views.toLocaleString()}
           </span>
         </div>
       </Link>
