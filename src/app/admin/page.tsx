@@ -252,16 +252,21 @@ export default function AdminDashboardPage() {
         </div>
         <Link
           href="/admin/posts/new"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >
           <PenSquare className="w-5 h-5" />
           Andika inkuru nshya
         </Link>
       </div>
 
+      <AdminViewStats />
+
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         {statItems.map((stat) => (
-          <div key={stat.label} className="bg-white rounded-2xl p-5 lg:p-6 border border-ink-100">
+          <div
+            key={stat.label}
+            className="bg-white rounded-2xl p-5 lg:p-6 border border-ink-100 shadow-sm hover:shadow-md transition-shadow"
+          >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-11 h-11 rounded-xl ${stat.color} flex items-center justify-center text-white`}>
                 <stat.icon className="w-6 h-6" />
@@ -271,7 +276,7 @@ export default function AdminDashboardPage() {
               </span>
             </div>
             <p className="text-2xl lg:text-3xl font-black text-ink-900">{stat.value}</p>
-            <p className="text-sm text-ink-400 mt-1">{stat.label}</p>
+            <p className="text-sm text-ink-400 mt-1 font-semibold">{stat.label}</p>
           </div>
         ))}
       </div>
@@ -325,9 +330,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <AdminViewStats />
-
-          <div className="bg-white rounded-2xl border border-ink-100 p-6">
+          <div className="bg-white rounded-2xl border border-ink-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <Eye className="w-5 h-5 text-purple-500" />
               <span className="font-bold text-ink-900">Inkuru z&apos;icyamamare</span>
