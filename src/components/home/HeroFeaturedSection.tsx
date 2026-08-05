@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { TrendingUp } from "lucide-react";
 import type { Post } from "@/lib/data";
+import { SmartImage } from "@/components/home/SmartImage";
 
 interface HeroFeaturedSectionProps {
   featured: Post[];
@@ -22,7 +22,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
           <div className="lg:col-span-7">
             <Link href={`/article/${main.slug}`} className="group block relative">
               <div className="relative aspect-[16/10] lg:aspect-[16/9] overflow-hidden rounded-xl">
-                <Image
+                <SmartImage
                   src={main.coverImage}
                   alt={main.title}
                   fill
@@ -57,7 +57,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
                 className="group block"
               >
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg mb-2">
-                  <Image
+                  <SmartImage
                     src={post.coverImage}
                     alt={post.title}
                     fill

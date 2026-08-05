@@ -182,6 +182,7 @@ export const api = {
 
   getPostBySlug: async (slug: string) => {
     try {
+      // Try direct fetch first
       const res = await fetch(`${API_BASE}/posts/${slug}`, {
         headers: HEADERS,
         next: { revalidate: 300 },
@@ -191,11 +192,31 @@ export const api = {
         if (data.data) return data.data;
       }
 
-      // Fallback: search all posts and find by slug
-      const allRes = await fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: 100, sortBy: "publishedAt", sortOrder: "desc" });
-      const posts = (allRes as PostsResponse).data || [];
-      const found = posts.find((p) => p.slug === slug || p.id === slug);
-      return found || null;
+      // Fallback: search through all posts (paginated) to find by slug
+      // This handles old articles that may not be directly accessible
+      let page = 1;
+      const maxPages = 20; // Search up to 20 pages × 50 = 1000 posts
+      while (page <= maxPages) {
+        const allRes = await fetchAPI<PostsResponse>("/posts", {
+          status: "PUBLISHED", limit: 50, page,
+          sortBy: "publishedAt", sortOrder: "desc",
+        });
+        const posts = (allRes as PostsResponse).data || [];
+        if (posts.length === 0) break;
+
+        const found = posts.find((p) => p.slug === slug || p.id === slug);
+        if (found) return found;
+
+        // Also try partial slug match (in case slug was truncated in shared URL)
+        const partialMatch = posts.find((p) =>
+          p.slug.startsWith(slug) || slug.startsWith(p.slug)
+        );
+        if (partialMatch) return partialMatch;
+
+        page++;
+      }
+
+      return null;
     } catch {
       return null;
     }

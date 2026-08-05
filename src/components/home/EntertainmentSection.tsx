@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Clock } from "lucide-react";
 import type { Post } from "@/lib/data";
 import { formatTimeAgo } from "@/lib/utils";
+import { SmartImage } from "@/components/home/SmartImage";
 
 interface EntertainmentSectionProps {
   entertainment: Post[];
@@ -30,7 +30,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
               {/* Main entertainment card */}
               <Link href={`/article/${main.slug}`} className="group block md:row-span-2">
                 <div className="relative aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-xl mb-4">
-                  <Image
+                  <SmartImage
                     src={main.coverImage}
                     alt={main.title}
                     fill
@@ -61,7 +61,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
                   className="group block"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-3">
-                    <Image
+                    <SmartImage
                       src={post.coverImage}
                       alt={post.title}
                       fill
@@ -100,7 +100,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
                     className="group flex gap-4 items-start"
                   >
                     <div className="relative w-24 h-20 shrink-0 overflow-hidden rounded-lg">
-                      <Image
+                      <SmartImage
                         src={post.coverImage}
                         alt={post.title}
                         fill

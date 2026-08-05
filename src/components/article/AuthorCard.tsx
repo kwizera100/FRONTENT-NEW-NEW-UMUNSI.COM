@@ -1,7 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowRight } from "lucide-react";
 import type { Post } from "@/lib/data";
+import { SmartImage } from "@/components/home/SmartImage";
 
 interface AuthorCardProps {
   author: Post["author"];
@@ -22,7 +22,7 @@ export function AuthorCard({ author }: AuthorCardProps) {
           <Link href={`/author/${authorSlug}`} className="shrink-0 group">
             {author.avatar ? (
               <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 transition-all" style={{ boxShadow: `0 0 0 4px ${accent}` }}>
-                <Image src={author.avatar} alt={author.name} fill sizes="96px" className="object-cover" />
+                <SmartImage src={author.avatar} alt={author.name} fill sizes="96px" className="object-cover" />
               </div>
             ) : (
               <div

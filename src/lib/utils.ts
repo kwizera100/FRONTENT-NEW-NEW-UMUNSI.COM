@@ -10,6 +10,9 @@ export function normalizeMediaUrl(url: string | null | undefined) {
   const trimmed = url.trim();
   if (!trimmed) return DEFAULT_IMAGE_FALLBACK;
 
+  // Handle string "null", "undefined", "NaN" etc
+  if (/^(null|undefined|nan|none|empty)$/i.test(trimmed)) return DEFAULT_IMAGE_FALLBACK;
+
   // Handle full URLs
   if (/^https?:\/\//i.test(trimmed)) {
     // Replace localhost with production API domain
@@ -23,7 +26,7 @@ export function normalizeMediaUrl(url: string | null | undefined) {
     return trimmed;
   }
 
-  // Handle relative paths
+  // Handle relative paths (e.g. /uploads/...)
   const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   return `${MEDIA_ASSET_BASE}${normalizedPath}`;
 }

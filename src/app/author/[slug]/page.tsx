@@ -5,6 +5,7 @@ import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft } from "lucide
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
+import { SmartImage } from "@/components/home/SmartImage";
 import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { normalizeMediaUrl } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -72,7 +73,7 @@ export default async function AuthorPage({ params }: Props) {
           {/* Cover */}
           <div className="relative h-48 sm:h-64 lg:h-80 overflow-hidden">
             {coverImage && coverImage !== normalizeMediaUrl(null) ? (
-              <Image src={coverImage} alt={name} fill sizes="100vw" className="object-cover" priority />
+              <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" priority />
             ) : (
               <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }} />
             )}
@@ -86,7 +87,7 @@ export default async function AuthorPage({ params }: Props) {
                 {/* Avatar */}
                 <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0">
                   {avatar && avatar !== normalizeMediaUrl(null) ? (
-                    <Image src={avatar} alt={name} fill sizes="160px" className="object-cover" />
+                    <SmartImage src={avatar} alt={name} fill sizes="160px" className="object-cover" />
                   ) : (
                     <div
                       className="w-full h-full flex items-center justify-center text-white font-black text-5xl sm:text-6xl"

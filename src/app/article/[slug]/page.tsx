@@ -2,6 +2,7 @@ import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
+import { SmartImage } from "@/components/home/SmartImage";
 import { ShareBar } from "@/components/article/ShareBar";
 import { ArticleContent } from "@/components/article/ArticleContent";
 import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
@@ -106,7 +107,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
       <div className="relative bg-gray-900">
         <div className="absolute inset-0 overflow-hidden">
-          <Image src={coverImage} alt={post.title} fill priority sizes="100vw" className="object-cover opacity-40" />
+          <SmartImage src={coverImage} alt={post.title} fill priority sizes="100vw" className="object-cover opacity-40" />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/80 to-gray-900/40" />
         </div>
         <div className="relative px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-24">
@@ -140,7 +141,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-14">
             <div className="lg:col-span-2">
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl sm:rounded-2xl mb-6 sm:mb-8">
-                <Image src={coverImage} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
+                <SmartImage src={coverImage} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               </div>
 
               <ShareBar title={post.title} slug={post.slug} />
@@ -162,7 +163,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                   <Link href={`/author/${mappedPost.author.username || mappedPost.author.id}`} className="shrink-0">
                     {mappedPost.author.avatar && mappedPost.author.avatar !== normalizeMediaUrl(null) ? (
                       <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0">
-                        <Image src={mappedPost.author.avatar} alt={authorName} fill sizes="56px" className="object-cover" />
+                        <SmartImage src={mappedPost.author.avatar} alt={authorName} fill sizes="56px" className="object-cover" />
                       </div>
                     ) : (
                       <div
