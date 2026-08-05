@@ -1,5 +1,3 @@
-import { notFound } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft } from "lucide-react";
 import { Header } from "@/components/layout/Header";
@@ -48,9 +46,43 @@ export default async function AuthorPage({ params }: Props) {
     api.getCategories(),
   ]);
 
-  if (!author) notFound();
-
   const allCats = (categories as ApiCategory[]) || [];
+
+  // If author not found, show a fallback page instead of 404
+  if (!author) {
+    const fallbackName = params.slug
+      .split(/[-_]/)
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(" ");
+
+    return (
+      <>
+        <Header categories={allCats} />
+        <main>
+          <div className="min-h-[60vh] flex items-center justify-center px-4">
+            <div className="text-center max-w-md">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-4xl mx-auto mb-6">
+                {fallbackName.charAt(0)}
+              </div>
+              <h1 className="text-2xl font-black text-gray-900 mb-2">{fallbackName}</h1>
+              <p className="text-gray-500 mb-6">
+                Author profile is being updated. Please check back later.
+              </p>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to Homepage
+              </Link>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   const name = [author.firstName, author.lastName].filter(Boolean).join(" ") || author.username;
   const accent = author.profileColor || "#e5b60d";
   const avatar = normalizeMediaUrl(author.avatar);

@@ -76,6 +76,40 @@ export default function ProfilePage() {
         });
       } catch {}
     }
+
+    // Fetch fresh user data from backend
+    if (u.id) {
+      fetch(`${API_BASE}/users/${u.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          const freshUser = data.data || data.user || data;
+          if (freshUser && freshUser.id) {
+            const merged = { ...u, ...freshUser };
+            localStorage.setItem("umunsi_admin_user", JSON.stringify(merged));
+            setUser(merged);
+            setBio(merged.bio || "");
+            if (merged.avatar) setAvatarUrl(merged.avatar);
+            if (merged.profileColor) setProfileColor(merged.profileColor);
+            if (merged.coverImage) setCoverUrl(merged.coverImage);
+            if (merged.socialLinks) {
+              try {
+                const links = typeof merged.socialLinks === "string" ? JSON.parse(merged.socialLinks) : merged.socialLinks;
+                setSocialLinks({
+                  facebook: links.facebook || "",
+                  twitter: links.twitter || "",
+                  linkedin: links.linkedin || "",
+                  instagram: links.instagram || "",
+                  website: links.website || "",
+                });
+              } catch {}
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
     setLoading(false);
   }, [router]);
 

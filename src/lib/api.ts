@@ -393,6 +393,9 @@ export const api = {
           (u.username && String(u.username).toLowerCase() === normalized) ||
           (u.id && String(u.id).toLowerCase() === normalized) ||
           (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase().replace(/\s+/g, "-") === normalized) ||
+          (u.firstName && u.lastName && `${u.firstName}${u.lastName}`.toLowerCase() === normalized.replace(/-/g, "")) ||
+          (u.username && String(u.username).toLowerCase().includes(normalized)) ||
+          (u.username && normalized.includes(String(u.username).toLowerCase())) ||
           (u.email && String(u.email).toLowerCase().startsWith(normalized))
         );
         if (user) return user;

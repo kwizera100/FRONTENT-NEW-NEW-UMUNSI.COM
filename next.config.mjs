@@ -25,6 +25,8 @@ const nextConfig = {
       { source: "/post/:category/:slug", destination: "/article/:slug", permanent: true },
       { source: "/posts/:category/:slug", destination: "/article/:slug", permanent: true },
       { source: "/news/:category/:slug", destination: "/article/:slug", permanent: true },
+      // Redirect /profile to /admin/profile
+      { source: "/profile", destination: "/admin/profile", permanent: true },
     ];
   },
   experimental: {

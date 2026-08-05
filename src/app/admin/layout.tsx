@@ -15,7 +15,6 @@ import {
   PenSquare,
   Eye,
   Users,
-  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +26,6 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/settings", label: "Settings", icon: Settings },
-  { href: "/admin/profile", label: "My Profile", icon: UserCircle },
 ];
 
 export default function AdminLayout({
@@ -66,7 +64,7 @@ export default function AdminLayout({
 
   const visibleNavItems = navItems.filter((item) => {
     if (userRole === "AUTHOR") {
-      return ["/admin", "/admin/posts", "/admin/posts/new", "/admin/profile"].includes(item.href);
+      return ["/admin", "/admin/posts", "/admin/posts/new"].includes(item.href);
     }
     if (item.href === "/admin/users" || item.href === "/admin/settings") {
       return userRole === "ADMIN";
@@ -172,19 +170,19 @@ export default function AdminLayout({
               )?.label || "Admin"}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-sm">
+          <Link href="/admin/profile" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-sm group-hover:ring-2 group-hover:ring-brand-300 transition-all">
               {userName.charAt(0).toUpperCase()}
             </div>
             <div className="hidden sm:block">
-              <span className="text-sm font-semibold text-ink-700 block leading-tight">
+              <span className="text-sm font-semibold text-ink-700 block leading-tight group-hover:text-brand-600 transition-colors">
                 {userName}
               </span>
               <span className={`text-xs font-bold ${userRole === "ADMIN" ? "text-red-500" : "text-blue-500"}`}>
                 {userRole}
               </span>
             </div>
-          </div>
+          </Link>
         </header>
 
         {/* Page content */}
