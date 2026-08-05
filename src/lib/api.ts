@@ -1,4 +1,4 @@
-import { normalizeArticleMediaUrls, normalizeMediaUrl } from "@/lib/utils";
+import { normalizeArticleMediaUrls, normalizeMediaUrl, slugify } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 
@@ -182,6 +182,8 @@ export const api = {
 
   getPostBySlug: async (slug: string) => {
     try {
+      if (!slug) return null;
+
       // Try direct fetch first
       const res = await fetch(`${API_BASE}/posts/${slug}`, {
         headers: HEADERS,
@@ -192,13 +194,42 @@ export const api = {
         if (data.data) return data.data;
       }
 
-      // Fallback: search through all posts (paginated) to find by slug
+      // Try common backend filter patterns
+      const filterEndpoints = [
+        `/posts?slug=${encodeURIComponent(slug)}&limit=1`,
+        `/posts?search=${encodeURIComponent(slug)}&limit=20`,
+        `/posts?q=${encodeURIComponent(slug)}&limit=20`,
+      ];
+
+      for (const filterUrl of filterEndpoints) {
+        try {
+          const filterRes = await fetch(`${API_BASE}${filterUrl}`, {
+            headers: HEADERS,
+            next: { revalidate: 300 },
+          });
+          if (filterRes.ok) {
+            const filterData: any = await filterRes.json();
+            const filterPosts = filterData.data || [];
+            const match = filterPosts.find(
+              (p: any) =>
+                p.slug === slug ||
+                p.id === slug ||
+                (p.title && slugify(p.title) === slug) ||
+                (p.slug && p.slug.startsWith(slug)) ||
+                (slug && slug.startsWith(p.slug))
+            );
+            if (match) return match;
+          }
+        } catch {}
+      }
+
+      // Fallback: paginate through all posts (34 pages × 100 = 3400)
       // This handles old articles that may not be directly accessible
       let page = 1;
-      const maxPages = 20; // Search up to 20 pages × 50 = 1000 posts
+      const maxPages = 40; // Search up to 40 pages × 100 = 4000 posts
       while (page <= maxPages) {
         const allRes = await fetchAPI<PostsResponse>("/posts", {
-          status: "PUBLISHED", limit: 50, page,
+          status: "PUBLISHED", limit: 100, page,
           sortBy: "publishedAt", sortOrder: "desc",
         });
         const posts = (allRes as PostsResponse).data || [];
@@ -207,7 +238,7 @@ export const api = {
         const found = posts.find((p) => p.slug === slug || p.id === slug);
         if (found) return found;
 
-        // Also try partial slug match (in case slug was truncated in shared URL)
+        // Try partial slug match (in case slug was truncated in shared URL)
         const partialMatch = posts.find((p) =>
           p.slug.startsWith(slug) || slug.startsWith(p.slug)
         );
