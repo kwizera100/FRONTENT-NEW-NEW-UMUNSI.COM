@@ -183,9 +183,10 @@ export const api = {
   getPostBySlug: async (slug: string) => {
     try {
       if (!slug) return null;
+      const cleanSlug = slug.split("?")[0].toLowerCase();
 
       // Try direct fetch first
-      const res = await fetch(`${API_BASE}/posts/${slug}`, {
+      const res = await fetch(`${API_BASE}/posts/${cleanSlug}`, {
         headers: HEADERS,
         next: { revalidate: 300 },
       });
@@ -196,9 +197,9 @@ export const api = {
 
       // Try common backend filter patterns
       const filterEndpoints = [
-        `/posts?slug=${encodeURIComponent(slug)}&limit=1`,
-        `/posts?search=${encodeURIComponent(slug)}&limit=20`,
-        `/posts?q=${encodeURIComponent(slug)}&limit=20`,
+        `/posts?slug=${encodeURIComponent(cleanSlug)}&limit=1`,
+        `/posts?search=${encodeURIComponent(cleanSlug)}&limit=50`,
+        `/posts?q=${encodeURIComponent(cleanSlug)}&limit=50`,
       ];
 
       for (const filterUrl of filterEndpoints) {
@@ -212,21 +213,61 @@ export const api = {
             const filterPosts = filterData.data || [];
             const match = filterPosts.find(
               (p: any) =>
-                p.slug === slug ||
-                p.id === slug ||
-                (p.title && slugify(p.title) === slug) ||
-                (p.slug && p.slug.startsWith(slug)) ||
-                (slug && slug.startsWith(p.slug))
+                p.slug === cleanSlug ||
+                p.id === cleanSlug ||
+                (p.title && slugify(p.title) === cleanSlug)
             );
             if (match) return match;
+
+            // Fuzzy: slug starts/ends with or contains cleanSlug
+            const fuzzy = filterPosts.find(
+              (p: any) =>
+                (p.slug && (p.slug.startsWith(cleanSlug) || p.slug.endsWith(cleanSlug))) ||
+                (p.title && slugify(p.title).startsWith(cleanSlug))
+            );
+            if (fuzzy) return fuzzy;
           }
         } catch {}
       }
 
-      // Fallback: paginate through all posts (34 pages × 100 = 3400)
-      // This handles old articles that may not be directly accessible
+      // Extract title keywords from slug and search by keyword
+      const keywords = cleanSlug.split("-").filter((w) => w.length > 2);
+      if (keywords.length > 0) {
+        const firstKeyword = keywords[0];
+        try {
+          const kwRes = await fetch(`${API_BASE}/posts?search=${encodeURIComponent(firstKeyword)}&limit=50`, {
+            headers: HEADERS,
+            next: { revalidate: 300 },
+          });
+          if (kwRes.ok) {
+            const kwData: any = await kwRes.json();
+            const kwPosts = kwData.data || [];
+            const kwMatch = kwPosts.find(
+              (p: any) =>
+                p.slug === cleanSlug ||
+                p.id === cleanSlug ||
+                (p.title && slugify(p.title) === cleanSlug)
+            );
+            if (kwMatch) return kwMatch;
+
+            // Match by several keywords in title
+            const bestMatch = kwPosts.find((p: any) => {
+              if (!p.title) return false;
+              const titleSlug = slugify(p.title);
+              const titleWords = p.title.toLowerCase().split(/\s+/);
+              const matches = keywords.filter((kw) =>
+                titleSlug.includes(kw) || titleWords.some((tw: string) => tw.startsWith(kw))
+              );
+              return matches.length >= Math.min(3, keywords.length);
+            });
+            if (bestMatch) return bestMatch;
+          }
+        } catch {}
+      }
+
+      // Fallback: paginate through all posts (40 pages × 100 = 4000)
       let page = 1;
-      const maxPages = 40; // Search up to 40 pages × 100 = 4000 posts
+      const maxPages = 40;
       while (page <= maxPages) {
         const allRes = await fetchAPI<PostsResponse>("/posts", {
           status: "PUBLISHED", limit: 100, page,
@@ -235,12 +276,12 @@ export const api = {
         const posts = (allRes as PostsResponse).data || [];
         if (posts.length === 0) break;
 
-        const found = posts.find((p) => p.slug === slug || p.id === slug);
+        const found = posts.find((p) => p.slug === cleanSlug || p.id === cleanSlug);
         if (found) return found;
 
-        // Try partial slug match (in case slug was truncated in shared URL)
         const partialMatch = posts.find((p) =>
-          p.slug.startsWith(slug) || slug.startsWith(p.slug)
+          p.slug.startsWith(cleanSlug) || cleanSlug.startsWith(p.slug) ||
+          (cleanSlug.length > 10 && p.slug.includes(cleanSlug.slice(0, 10)))
         );
         if (partialMatch) return partialMatch;
 
@@ -319,17 +360,8 @@ export const api = {
   getAuthorByUsername: async (username: string) => {
     try {
       if (!username) return null;
-      const res = await fetch(`${API_BASE}/users`, {
-        headers: HEADERS,
-        next: { revalidate: 60 },
-      });
-      if (!res.ok) return null;
-      const data = await res.json();
-      const users = Array.isArray(data) ? data : data.data || data.users || [];
-      const user = users.find((u: any) => u.username === username || u.id === username);
-      if (user) return user;
 
-      // If not found in users list, try fetching single user by ID
+      // Try to fetch single user by ID first
       try {
         const singleRes = await fetch(`${API_BASE}/users/${username}`, {
           headers: HEADERS,
@@ -337,9 +369,36 @@ export const api = {
         });
         if (singleRes.ok) {
           const singleData = await singleRes.json();
-          return singleData.data || singleData.user || singleData;
+          const singleUser = singleData.data || singleData.user || singleData;
+          if (singleUser && (singleUser.id || singleUser.username)) return singleUser;
         }
       } catch {}
+
+      // Paginate through all users to find a match
+      let page = 1;
+      const maxPages = 20;
+      while (page <= maxPages) {
+        const res = await fetch(`${API_BASE}/users?page=${page}&limit=100`, {
+          headers: HEADERS,
+          next: { revalidate: 60 },
+        });
+        if (!res.ok) break;
+
+        const data = await res.json();
+        const users = Array.isArray(data) ? data : data.data || data.users || [];
+        if (users.length === 0) break;
+
+        const normalized = String(username).toLowerCase();
+        const user = users.find((u: any) =>
+          (u.username && String(u.username).toLowerCase() === normalized) ||
+          (u.id && String(u.id).toLowerCase() === normalized) ||
+          (u.firstName && u.lastName && `${u.firstName} ${u.lastName}`.toLowerCase().replace(/\s+/g, "-") === normalized) ||
+          (u.email && String(u.email).toLowerCase().startsWith(normalized))
+        );
+        if (user) return user;
+
+        page++;
+      }
 
       return null;
     } catch {
