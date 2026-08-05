@@ -9,8 +9,21 @@ export function normalizeMediaUrl(url: string | null | undefined) {
 
   const trimmed = url.trim();
   if (!trimmed) return DEFAULT_IMAGE_FALLBACK;
-  if (/^https?:\/\//i.test(trimmed)) return trimmed;
 
+  // Handle full URLs
+  if (/^https?:\/\//i.test(trimmed)) {
+    // Replace localhost with production API domain
+    if (/localhost/i.test(trimmed)) {
+      return trimmed.replace(/https?:\/\/localhost[^/]*\//i, `${MEDIA_ASSET_BASE}/`);
+    }
+    // Upgrade http to https for api.umunsi.com
+    if (/^http:\/\/api\.umunsi\.com/i.test(trimmed)) {
+      return trimmed.replace(/^http:/i, "https:");
+    }
+    return trimmed;
+  }
+
+  // Handle relative paths
   const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
   return `${MEDIA_ASSET_BASE}${normalizedPath}`;
 }

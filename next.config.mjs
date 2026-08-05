@@ -12,11 +12,14 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Redirect old category-based article URLs to /article/slug
-      // Update these patterns once you confirm the exact old URL structure
+      // Redirect old article URLs to /article/slug
       { source: "/news/:slug", destination: "/article/:slug", permanent: true },
       { source: "/posts/:slug", destination: "/article/:slug", permanent: true },
       { source: "/story/:slug", destination: "/article/:slug", permanent: true },
+      { source: "/article/news/:slug", destination: "/article/:slug", permanent: true },
+      { source: "/blog/:slug", destination: "/article/:slug", permanent: true },
+      { source: "/p/:slug", destination: "/article/:slug", permanent: true },
+      { source: "/read/:slug", destination: "/article/:slug", permanent: true },
     ];
   },
   experimental: {

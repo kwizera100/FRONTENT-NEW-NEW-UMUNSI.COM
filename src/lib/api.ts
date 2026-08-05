@@ -121,6 +121,7 @@ function mapAuthorName(author: ApiPost["author"]): string {
 }
 
 export function mapApiPost(post: ApiPost) {
+  const rawImage = post.featuredImage || (post as any).image || (post as any).cover || (post as any).thumbnail || null;
   return {
     id: post.id,
     slug: post.slug,
@@ -143,7 +144,7 @@ export function mapApiPost(post: ApiPost) {
       order: 0,
     },
     author: {
-      id: post.author?.id || "",
+      id: post.author?.id || post.authorId || "",
       username: post.author?.username || "",
       name: mapAuthorName(post.author),
       avatar: fixImageUrl(post.author?.avatar),
@@ -155,7 +156,7 @@ export function mapApiPost(post: ApiPost) {
     media: [],
     tags: Array.isArray(post.tags) ? post.tags : [],
     readTime: Math.max(3, Math.ceil((post.content || "").length / 1000)),
-    coverImage: fixImageUrl(post.featuredImage),
+    coverImage: fixImageUrl(rawImage),
   };
 }
 
@@ -185,9 +186,16 @@ export const api = {
         headers: HEADERS,
         next: { revalidate: 300 },
       });
-      if (!res.ok) return null;
-      const data: SinglePostResponse = await res.json();
-      return data.data || null;
+      if (res.ok) {
+        const data: SinglePostResponse = await res.json();
+        if (data.data) return data.data;
+      }
+
+      // Fallback: search all posts and find by slug
+      const allRes = await fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit: 100, sortBy: "publishedAt", sortOrder: "desc" });
+      const posts = (allRes as PostsResponse).data || [];
+      const found = posts.find((p) => p.slug === slug || p.id === slug);
+      return found || null;
     } catch {
       return null;
     }
@@ -258,6 +266,7 @@ export const api = {
 
   getAuthorByUsername: async (username: string) => {
     try {
+      if (!username) return null;
       const res = await fetch(`${API_BASE}/users`, {
         headers: HEADERS,
         next: { revalidate: 60 },
@@ -266,7 +275,21 @@ export const api = {
       const data = await res.json();
       const users = Array.isArray(data) ? data : data.data || data.users || [];
       const user = users.find((u: any) => u.username === username || u.id === username);
-      return user || null;
+      if (user) return user;
+
+      // If not found in users list, try fetching single user by ID
+      try {
+        const singleRes = await fetch(`${API_BASE}/users/${username}`, {
+          headers: HEADERS,
+          next: { revalidate: 60 },
+        });
+        if (singleRes.ok) {
+          const singleData = await singleRes.json();
+          return singleData.data || singleData.user || singleData;
+        }
+      } catch {}
+
+      return null;
     } catch {
       return null;
     }

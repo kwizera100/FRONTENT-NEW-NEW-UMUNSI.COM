@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   const mapped = mapApiPost(post);
-  const ogImage = normalizeMediaUrl(post.featuredImage);
+  const ogImage = mapped.coverImage;
   const description = mapped.excerpt || post.title;
   const url = `${SITE_URL}/article/${post.slug}`;
 
@@ -83,6 +83,8 @@ export default async function ArticlePage({ params }: { params: { slug: string }
   const mappedPost = mapApiPost(post);
   const coverImage = mappedPost.coverImage;
   const authorName = mappedPost.author.name;
+  const authorSlug = mappedPost.author.username || mappedPost.author.id;
+  const hasAuthorSlug = Boolean(authorSlug);
   const publishedDate = mappedPost.publishedAt;
 
   const related = latestPosts
