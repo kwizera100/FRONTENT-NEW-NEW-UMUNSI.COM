@@ -3,7 +3,8 @@ import { api } from "@/lib/api";
 
 type Props = { params: { slug: string } };
 
-export const revalidate = 300;
+export const revalidate = 60;
+export const dynamicParams = true;
 
 const RESERVED_SLUGS = [
   "admin", "api", "article", "author", "category", "contact",

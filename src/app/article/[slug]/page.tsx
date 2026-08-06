@@ -14,7 +14,8 @@ import { notFound } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
 
-export const revalidate = 300;
+export const revalidate = 60;
+export const dynamicParams = true;
 
 const SITE_URL = "https://www.umunsi.com";
 
@@ -68,9 +69,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const [allCategories, post, trendingPosts, latestAll] = await Promise.all([
+  // Retry the post fetch once on failure to avoid caching a 404 from a transient API error
+  let post = null;
+  for (let attempt = 0; attempt < 2 && !post; attempt++) {
+    post = await api.getPostBySlug(params.slug);
+  }
+
+  const [allCategories, trendingPosts, latestAll] = await Promise.all([
     api.getCategories(),
-    api.getPostBySlug(params.slug),
     api.getTrendingPosts(8),
     api.getLatestPosts(12),
   ]);

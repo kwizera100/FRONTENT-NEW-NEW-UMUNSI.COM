@@ -185,7 +185,7 @@ export const api = {
       if (!slug) return null;
       const cleanSlug = slug.split("?")[0].toLowerCase();
 
-      // Try direct fetch first
+      // Try direct fetch first — this is the primary path and should work for all valid slugs
       const res = await fetch(`${API_BASE}/posts/${cleanSlug}`, {
         headers: HEADERS,
         next: { revalidate: 300 },
@@ -195,47 +195,27 @@ export const api = {
         if (data.data) return data.data;
       }
 
-      // Try common backend filter patterns
-      const filterEndpoints = [
-        `/posts?slug=${encodeURIComponent(cleanSlug)}&limit=1`,
-        `/posts?search=${encodeURIComponent(cleanSlug)}&limit=50`,
-        `/posts?q=${encodeURIComponent(cleanSlug)}&limit=50`,
-      ];
+      // Fallback 1: search by slug query param
+      try {
+        const filterRes = await fetch(`${API_BASE}/posts?slug=${encodeURIComponent(cleanSlug)}&limit=1`, {
+          headers: HEADERS,
+          next: { revalidate: 300 },
+        });
+        if (filterRes.ok) {
+          const filterData: any = await filterRes.json();
+          const filterPosts = filterData.data || [];
+          const match = filterPosts.find(
+            (p: any) => p.slug === cleanSlug || p.id === cleanSlug
+          );
+          if (match) return match;
+        }
+      } catch {}
 
-      for (const filterUrl of filterEndpoints) {
-        try {
-          const filterRes = await fetch(`${API_BASE}${filterUrl}`, {
-            headers: HEADERS,
-            next: { revalidate: 300 },
-          });
-          if (filterRes.ok) {
-            const filterData: any = await filterRes.json();
-            const filterPosts = filterData.data || [];
-            const match = filterPosts.find(
-              (p: any) =>
-                p.slug === cleanSlug ||
-                p.id === cleanSlug ||
-                (p.title && slugify(p.title) === cleanSlug)
-            );
-            if (match) return match;
-
-            // Fuzzy: slug starts/ends with or contains cleanSlug
-            const fuzzy = filterPosts.find(
-              (p: any) =>
-                (p.slug && (p.slug.startsWith(cleanSlug) || p.slug.endsWith(cleanSlug))) ||
-                (p.title && slugify(p.title).startsWith(cleanSlug))
-            );
-            if (fuzzy) return fuzzy;
-          }
-        } catch {}
-      }
-
-      // Extract title keywords from slug and search by keyword
+      // Fallback 2: search by first keyword (for old/edited slugs)
       const keywords = cleanSlug.split("-").filter((w) => w.length > 2);
       if (keywords.length > 0) {
-        const firstKeyword = keywords[0];
         try {
-          const kwRes = await fetch(`${API_BASE}/posts?search=${encodeURIComponent(firstKeyword)}&limit=50`, {
+          const kwRes = await fetch(`${API_BASE}/posts?search=${encodeURIComponent(keywords[0])}&limit=20`, {
             headers: HEADERS,
             next: { revalidate: 300 },
           });
@@ -249,43 +229,8 @@ export const api = {
                 (p.title && slugify(p.title) === cleanSlug)
             );
             if (kwMatch) return kwMatch;
-
-            // Match by several keywords in title
-            const bestMatch = kwPosts.find((p: any) => {
-              if (!p.title) return false;
-              const titleSlug = slugify(p.title);
-              const titleWords = p.title.toLowerCase().split(/\s+/);
-              const matches = keywords.filter((kw) =>
-                titleSlug.includes(kw) || titleWords.some((tw: string) => tw.startsWith(kw))
-              );
-              return matches.length >= Math.min(3, keywords.length);
-            });
-            if (bestMatch) return bestMatch;
           }
         } catch {}
-      }
-
-      // Fallback: paginate through all posts (40 pages × 100 = 4000)
-      let page = 1;
-      const maxPages = 40;
-      while (page <= maxPages) {
-        const allRes = await fetchAPI<PostsResponse>("/posts", {
-          status: "PUBLISHED", limit: 100, page,
-          sortBy: "publishedAt", sortOrder: "desc",
-        });
-        const posts = (allRes as PostsResponse).data || [];
-        if (posts.length === 0) break;
-
-        const found = posts.find((p) => p.slug === cleanSlug || p.id === cleanSlug);
-        if (found) return found;
-
-        const partialMatch = posts.find((p) =>
-          p.slug.startsWith(cleanSlug) || cleanSlug.startsWith(p.slug) ||
-          (cleanSlug.length > 10 && p.slug.includes(cleanSlug.slice(0, 10)))
-        );
-        if (partialMatch) return partialMatch;
-
-        page++;
       }
 
       return null;

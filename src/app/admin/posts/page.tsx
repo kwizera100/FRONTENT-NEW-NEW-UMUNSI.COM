@@ -229,9 +229,9 @@ export default function AdminPostsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4 hidden sm:table-cell">
-                      <span className="text-sm font-semibold text-ink-700 flex items-center gap-1">
-                        <Eye className="w-3.5 h-3.5 text-ink-400" />
-                        {(post.likeCount || 0).toLocaleString()}
+                      <span className="text-sm font-black text-ink-900 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-brand-500" />
+                        {(post.viewCount ?? post.likeCount ?? 0).toLocaleString()}
                       </span>
                     </td>
                     <td className="px-5 py-4">

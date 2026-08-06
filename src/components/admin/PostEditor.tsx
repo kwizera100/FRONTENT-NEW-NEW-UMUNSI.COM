@@ -283,8 +283,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const headerTitle = mode === "edit" ? "Edit Article" : "Write New Article";
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-ink-100">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/posts"
@@ -292,14 +292,19 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
+          <div>
+            <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
+            <p className="text-xs text-ink-400 mt-0.5">
+              {mode === "edit" ? "Hindura no kuvugurura inkuru" : "Andika inkuru nshya"}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {isAuthorOnly && mode === "edit" ? null : (
             <button
               onClick={() => handleSave(false)}
               disabled={saving || (isAuthorOnly && mode === "edit")}
-              className="px-4 py-2 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+              className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-ink-200 hover:bg-ink-50 text-ink-800 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Draft
@@ -309,7 +314,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             <button
               onClick={() => handleSave(true)}
               disabled={saving}
-              className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+              className="flex-1 sm:flex-initial px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
               Publish Now
@@ -332,7 +337,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
 
       <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isAuthorOnly && mode === "edit" ? "pointer-events-none opacity-60 select-none" : ""}`}>
         <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block flex items-center gap-2">
               <Type className="w-4 h-4" /> Article Title
             </label>
@@ -341,11 +346,11 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter article title..."
-              className="w-full text-2xl font-bold text-ink-900 border-0 outline-none placeholder:text-ink-300"
+              className="w-full text-2xl font-black text-ink-900 border-0 outline-none placeholder:text-ink-300 bg-transparent"
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block">
               Excerpt (Short Summary)
             </label>
@@ -358,12 +363,13 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
-            <label className="text-sm font-bold text-ink-700 mb-3 block">
-              Article Content
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center justify-between">
+              <span>Article Content</span>
+              <span className="text-xs font-bold text-ink-400">HTML supported</span>
             </label>
 
-            <div className="flex items-center gap-1 mb-3 p-2 bg-ink-50 rounded-xl border border-ink-100">
+            <div className="flex items-center gap-1 mb-3 p-2 bg-ink-50 rounded-xl border border-ink-100 shadow-inner">
               <button onClick={() => insertTag("h2")} className="p-2 rounded-lg hover:bg-white text-ink-600 transition-colors" title="Heading 2">
                 <Heading2 className="w-4 h-4" />
               </button>
@@ -399,17 +405,16 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               >
                 <Youtube className="w-4 h-4" />
               </button>
-              <span className="ml-auto text-xs text-ink-400">HTML supported</span>
             </div>
 
             <div className="flex items-center gap-2 mb-3">
               <button
                 onClick={() => setEditorMode("write")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "write" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-black ${editorMode === "write" ? "bg-brand-600 text-white shadow-sm" : "bg-ink-100 text-ink-600"}`}
               >Write</button>
               <button
                 onClick={() => setEditorMode("preview")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "preview" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
+                className={`px-4 py-1.5 rounded-lg text-xs font-black ${editorMode === "preview" ? "bg-brand-600 text-white shadow-sm" : "bg-ink-100 text-ink-600"}`}
               >Preview</button>
             </div>
             {editorMode === "write" ? (
@@ -441,7 +446,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         </div>
 
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
               Category
             </label>
@@ -458,7 +463,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </select>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
               Cover Image — Optional
             </label>
@@ -525,7 +530,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
                 <Star className="w-4 h-4 text-brand-500" />
@@ -543,7 +548,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
               <UserPlus className="w-4 h-4" /> Authors
             </label>
@@ -581,7 +586,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
               Tags (Keywords)
             </label>

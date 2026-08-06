@@ -6,7 +6,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
-export const revalidate = 300;
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const [allCategories, categoryPosts] = await Promise.all([
