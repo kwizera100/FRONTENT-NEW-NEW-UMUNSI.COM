@@ -20,7 +20,7 @@ async function fetchAPI<T = any>(endpoint: string, params?: Record<string, strin
   try {
     const res = await fetch(url.toString(), {
       headers: HEADERS,
-      next: { revalidate: 300 },
+      cache: "no-store",
     });
 
     if (!res.ok) {

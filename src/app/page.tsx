@@ -5,7 +5,8 @@ import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 
-export const revalidate = 300;
+export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 // Check if a post has a valid featured image — used to filter out posts
 // without images so the homepage doesn't show the same fallback image repeatedly.
