@@ -1,4 +1,4 @@
-import { api, mapApiPost, type ApiCategory } from "@/lib/api";
+import { api, mapApiPost, type ApiCategory, type ApiPost } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
@@ -7,6 +7,15 @@ import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 
 export const revalidate = 300;
 
+// Check if a post has a valid featured image — used to filter out posts
+// without images so the homepage doesn't show the same fallback image repeatedly.
+function hasValidImage(post: ApiPost): boolean {
+  const img = post.featuredImage;
+  if (!img || !img.trim()) return false;
+  if (/^(null|undefined|nan|none|empty)$/i.test(img.trim())) return false;
+  return true;
+}
+
 export default async function HomePage() {
   const [featuredPosts, trendingPosts, categories] = await Promise.all([
     api.getFeaturedPosts(7),
@@ -14,8 +23,8 @@ export default async function HomePage() {
     api.getCategories(),
   ]);
 
-  const featured = featuredPosts.map(mapApiPost);
-  const popular = trendingPosts.map(mapApiPost);
+  const featured = featuredPosts.filter(hasValidImage).map(mapApiPost);
+  const popular = trendingPosts.filter(hasValidImage).map(mapApiPost);
 
   const orderedSlugs = [
     "inkuru-nyamukuru",
@@ -41,7 +50,12 @@ export default async function HomePage() {
   const allDisplayCategories = [...orderedCategories, ...remainingCategories];
 
   const categoryPosts = await Promise.all(
-    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 8))
+    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 12))
+  );
+
+  // Filter out posts without a valid featured image for each category
+  const categoryPostsWithImages = categoryPosts.map((posts) =>
+    posts.filter(hasValidImage)
   );
 
   return (
@@ -52,7 +66,7 @@ export default async function HomePage() {
         <HeroFeaturedSection featured={featured} popular={popular} />
 
         {allDisplayCategories.map((cat, i) => {
-          const posts = categoryPosts[i].map(mapApiPost);
+          const posts = categoryPostsWithImages[i].map(mapApiPost);
           if (posts.length === 0) return null;
 
           if (cat.slug.toLowerCase() === "imyidagaduro") {
@@ -63,7 +77,7 @@ export default async function HomePage() {
               (c) => c.slug.toLowerCase() === "amatangazo"
             );
             const amatangazoPosts =
-              amatangazoIdx >= 0 ? categoryPosts[amatangazoIdx].map(mapApiPost) : [];
+              amatangazoIdx >= 0 ? categoryPostsWithImages[amatangazoIdx].map(mapApiPost) : [];
 
             if (amatangazoCat && amatangazoPosts.length > 0) {
               return (

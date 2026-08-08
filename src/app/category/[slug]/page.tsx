@@ -1,4 +1,4 @@
-import { api, mapApiPost, type ApiCategory } from "@/lib/api";
+import { api, mapApiPost, type ApiCategory, type ApiPost } from "@/lib/api";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
@@ -8,6 +8,13 @@ import { ArrowLeft } from "lucide-react";
 
 export const revalidate = 60;
 export const dynamicParams = true;
+
+function hasValidImage(post: ApiPost): boolean {
+  const img = post.featuredImage;
+  if (!img || !img.trim()) return false;
+  if (/^(null|undefined|nan|none|empty)$/i.test(img.trim())) return false;
+  return true;
+}
 
 export default async function CategoryPage({ params }: { params: { slug: string } }) {
   const [allCategories, categoryPosts] = await Promise.all([
@@ -20,7 +27,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
 
   if (!category) notFound();
 
-  const mappedPosts = categoryPosts.map(mapApiPost);
+  const mappedPosts = categoryPosts.filter(hasValidImage).map(mapApiPost);
   const color = category.color || "#f43f5e";
 
   return (
