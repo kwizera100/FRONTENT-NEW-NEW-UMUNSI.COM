@@ -80,7 +80,11 @@ export default function AdminPostsPage() {
       }
       if (search) params.set("search", search);
 
-      const res = await fetch(`/api/posts?${params.toString()}`, { cache: "no-store" });
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/posts?${params.toString()}`, {
+        cache: "no-store",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       setPosts(data.data || []);
       if (data.pagination) {
