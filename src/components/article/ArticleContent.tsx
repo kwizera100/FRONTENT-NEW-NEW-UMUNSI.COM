@@ -13,6 +13,47 @@ interface ArticleContentProps {
   html: string;
 }
 
+const AD_CLIENT = "ca-pub-3584259871242471";
+
+// Ad slots: inserted after specific paragraph indices (0-based)
+// After 3rd paragraph (index 2), 5th (index 4), 7th (index 6), 9th (index 8)
+const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string; format: string }> = [
+  { afterParagraph: 2, slot: "6173432779", format: "auto" },   // after 3rd paragraph (existing)
+  { afterParagraph: 4, slot: "8544566354", format: "auto" },   // after 5th paragraph
+  { afterParagraph: 6, slot: "7231484683", format: "auto" },   // after 7th paragraph
+  { afterParagraph: 8, slot: "5119226585", format: "auto" },   // after 9th paragraph
+];
+
+// Ad shown at the end of the article content (autorelaxed format)
+const END_AD_SLOT = "1008591184";
+
+function createAdElement(slot: string, format: string): HTMLElement {
+  const adWrapper = document.createElement("div");
+  adWrapper.className = "my-6 sm:my-8";
+  adWrapper.style.cssText = "text-align: center;";
+
+  const adIns = document.createElement("ins");
+  adIns.className = "adsbygoogle";
+  adIns.style.cssText = "display:block";
+  adIns.setAttribute("data-ad-client", AD_CLIENT);
+  adIns.setAttribute("data-ad-slot", slot);
+  adIns.setAttribute("data-ad-format", format);
+  if (format === "auto") {
+    adIns.setAttribute("data-full-width-responsive", "true");
+  }
+
+  adWrapper.appendChild(adIns);
+  return adWrapper;
+}
+
+function pushAd() {
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch {
+    // AdSense not loaded yet
+  }
+}
+
 export function ArticleContent({ html }: ArticleContentProps) {
   const normalizedHtml = formatArticleHtml(normalizeArticleMediaUrls(html));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -21,38 +62,25 @@ export function ArticleContent({ html }: ArticleContentProps) {
     if (!containerRef.current) return;
 
     const container = containerRef.current;
-
-    // Find all paragraph elements
     const paragraphs = container.querySelectorAll("p");
+    let adsPushed = 0;
 
-    if (paragraphs.length >= 3) {
-      const thirdParagraph = paragraphs[2];
-
-      // Create ad container
-      const adWrapper = document.createElement("div");
-      adWrapper.className = "my-6 sm:my-8";
-      adWrapper.style.cssText = "text-align: center;";
-
-      const adIns = document.createElement("ins");
-      adIns.className = "adsbygoogle";
-      adIns.style.cssText = "display:block";
-      adIns.setAttribute("data-ad-client", "ca-pub-3584259871242471");
-      adIns.setAttribute("data-ad-slot", "6173432779");
-      adIns.setAttribute("data-ad-format", "auto");
-      adIns.setAttribute("data-full-width-responsive", "true");
-
-      adWrapper.appendChild(adIns);
-
-      // Insert after the 3rd paragraph
-      thirdParagraph.insertAdjacentElement("afterend", adWrapper);
-
-      // Push to adsbygoogle
-      try {
-        (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch {
-        // AdSense not loaded yet
+    // Insert in-content ads after specified paragraphs
+    IN_CONTENT_ADS.forEach(({ afterParagraph, slot, format }) => {
+      if (paragraphs.length > afterParagraph) {
+        const target = paragraphs[afterParagraph];
+        const adEl = createAdElement(slot, format);
+        target.insertAdjacentElement("afterend", adEl);
+        pushAd();
+        adsPushed++;
       }
-    }
+    });
+
+    // Insert end-of-content ad (autorelaxed) at the end of the container
+    const endAd = createAdElement(END_AD_SLOT, "autorelaxed");
+    container.appendChild(endAd);
+    pushAd();
+    adsPushed++;
   }, [html]);
 
   return (
