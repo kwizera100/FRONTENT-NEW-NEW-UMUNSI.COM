@@ -166,7 +166,7 @@ export const api = {
       .then((r) => (r.data || []).filter((p) => p.isFeatured).slice(0, limit)),
 
   getLatestPosts: (limit = 20, page = 1) =>
-    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit, page, sortBy: "publishedAt", sortOrder: "desc" })
+    fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit, page, sortBy: "createdAt", sortOrder: "desc" })
       .then((r) => r.data || []),
 
   getPostsByCategory: async (categorySlug: string, limit = 20, page = 1) => {

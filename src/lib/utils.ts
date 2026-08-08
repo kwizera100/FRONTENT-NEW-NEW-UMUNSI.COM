@@ -23,6 +23,17 @@ export function normalizeMediaUrl(url: string | null | undefined) {
     if (/^http:\/\/api\.umunsi\.com/i.test(trimmed)) {
       return trimmed.replace(/^http:/i, "https:");
     }
+    // Redirect old umunsi.com (non-api) upload URLs to api.umunsi.com
+    // Old WordPress URLs like https://umunsi.com/uploads/media/... and
+    // https://umunsi.com/wp-content/uploads/... are broken (403/404).
+    // The same files exist on api.umunsi.com for /uploads/media/...
+    if (/^https?:\/\/(?!api\.)umunsi\.com\/uploads\/media\//i.test(trimmed)) {
+      return trimmed.replace(/^https?:\/\/umunsi\.com/i, MEDIA_ASSET_BASE);
+    }
+    // Old WordPress wp-content URLs are completely broken — use fallback
+    if (/^https?:\/\/(?!api\.)umunsi\.com\/wp-content\//i.test(trimmed)) {
+      return DEFAULT_IMAGE_FALLBACK;
+    }
     return trimmed;
   }
 

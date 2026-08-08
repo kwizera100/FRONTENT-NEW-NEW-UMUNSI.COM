@@ -68,7 +68,7 @@ export default function AdminPostsPage() {
       const params = new URLSearchParams({
         limit: "50",
         page: String(page),
-        sortBy: "updatedAt",
+        sortBy: "createdAt",
         sortOrder: "desc",
       });
       if (userRole === "AUTHOR" && userId) {
