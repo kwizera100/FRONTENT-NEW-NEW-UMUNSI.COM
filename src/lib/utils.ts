@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 const MEDIA_ASSET_BASE = "https://api.umunsi.com";
-const DEFAULT_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
+const DEFAULT_IMAGE_FALLBACK = "https://api.umunsi.com/uploads/media/umunsi-default-cover.jpg";
 
 export function normalizeMediaUrl(url: string | null | undefined) {
   if (!url) return DEFAULT_IMAGE_FALLBACK;

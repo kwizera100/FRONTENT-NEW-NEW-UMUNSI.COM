@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 
-const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
+// Fallback image — hosted on api.umunsi.com so it's always available
+const FALLBACK_IMAGE = "https://api.umunsi.com/uploads/media/umunsi-default-cover.jpg";
 
 interface SmartImageProps {
   src: string;
@@ -18,14 +18,18 @@ export function SmartImage({ src, alt, fill, sizes, priority, className }: Smart
   const [imgSrc, setImgSrc] = useState(src);
   const [errored, setErrored] = useState(false);
 
+  // Use plain <img> instead of next/image to bypass Vercel image optimization
+  // (which returns 402 Payment Required on the free plan)
   return (
-    <Image
+    <img
       src={imgSrc}
       alt={alt}
-      fill={fill}
       sizes={sizes}
+      // @ts-expect-error — priority is not a native img attr, but harmless
       priority={priority}
       className={className}
+      style={fill ? { width: "100%", height: "100%", objectFit: "cover" } : undefined}
+      loading={priority ? "eager" : "lazy"}
       onError={() => {
         if (!errored) {
           setErrored(true);

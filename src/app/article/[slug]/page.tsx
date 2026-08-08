@@ -9,7 +9,6 @@ import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
 import { AuthorCard } from "@/components/article/AuthorCard";
 import { formatDate, formatTimeAgo, normalizeMediaUrl } from "@/lib/utils";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";

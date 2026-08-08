@@ -9,6 +9,9 @@ const nextConfig = {
       { protocol: "http", hostname: "**" },
     ],
     formats: ["image/webp", "image/avif"],
+    // Disable Vercel image optimization — it returns 402 Payment Required
+    // on the free plan. We use plain <img> tags instead of next/image.
+    unoptimized: true,
   },
   async redirects() {
     return [

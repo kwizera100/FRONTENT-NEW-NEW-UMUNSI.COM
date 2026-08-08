@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Clock } from "lucide-react";
 import type { Post } from "@/lib/data";
 import { formatTimeAgo } from "@/lib/utils";
@@ -28,12 +27,11 @@ export function BreakingNewsSection({ posts }: BreakingNewsSectionProps) {
           <div className="lg:col-span-2">
             <Link href={`/article/${main.slug}`} className="group block">
               <div className="relative aspect-[16/9] overflow-hidden rounded-xl mb-4">
-                <Image
+                <img
                   src={main.coverImage}
                   alt={main.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                  loading="lazy"
                 />
                 <div className="absolute top-4 left-4">
                   <span
@@ -67,12 +65,11 @@ export function BreakingNewsSection({ posts }: BreakingNewsSectionProps) {
                 className="group flex gap-4 items-start"
               >
                 <div className="relative w-32 h-24 lg:w-40 lg:h-28 shrink-0 overflow-hidden rounded-lg">
-                  <Image
+                  <img
                     src={post.coverImage}
                     alt={post.title}
-                    fill
-                    sizes="160px"
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
                   />
                 </div>
                 <div className="flex-1 min-w-0">

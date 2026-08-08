@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -63,13 +62,13 @@ export function Header({ categories: propCategories = [] }: { categories?: Heade
           <div className="flex items-center justify-between h-20 lg:h-24">
             {/* Logo */}
             <Link href="/" className="flex items-center shrink-0">
-              <Image
+              <img
                 src="/images/umunsi-text-logo.jpg"
                 alt="Umunsi.com"
                 width={200}
                 height={50}
                 className="h-10 lg:h-12 w-auto"
-                priority
+                loading="eager"
               />
             </Link>
 
