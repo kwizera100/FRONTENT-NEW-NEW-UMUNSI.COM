@@ -36,7 +36,7 @@ export function Header({ categories: _categories = [] }: { categories?: HeaderCa
           <div className="flex items-center gap-2 sm:gap-3">
             <Link href="/" className="flex items-center shrink-0">
               <img
-                src="/images/umunsi-text-logo.jpg"
+                src="/images/umunsi-logo.jpg"
                 alt="Umunsi.com"
                 width={200}
                 height={50}
