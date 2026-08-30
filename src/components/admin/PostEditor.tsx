@@ -26,7 +26,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
-import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl } from "@/lib/utils";
+import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl, isValidUrl, getLinkDomain, getLinkFavicon } from "@/lib/utils";
 import type { ApiCategory } from "@/lib/api";
 
 function decodeHtmlEntities(raw: string): string {
@@ -86,7 +86,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [showMediaInContent, setShowMediaInContent] = useState(false);
   const [mediaCaptionInput, setMediaCaptionInput] = useState("");
   const [mediaUrlInput, setMediaUrlInput] = useState("");
-  const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption" | "youtube" | "library">("choose");
+  const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption" | "youtube" | "library" | "link">("choose");
   const [authors, setAuthors] = useState<string[]>([]);
   const [authorInput, setAuthorInput] = useState("");
   const [mediaLibrary, setMediaLibrary] = useState<{ url: string; caption?: string; type?: string }[]>([]);
@@ -215,9 +215,36 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
       const safeUrl = normalizeMediaUrl(url);
       const safeCaption = (caption || "").replace(/"/g, "&quot;");
       const figcaption = caption.trim() ? `  <figcaption>${caption}</figcaption>\n` : "";
-      html = `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border: 1px dashed #d1d5db; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="${safeCaption}" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n${figcaption}</figure>`;
+      html = `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="${safeCaption}" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n${figcaption}</figure>`;
     }
     if (!html) return;
+    restoreSelection();
+    document.execCommand("insertHTML", false, html);
+    setContent(editorRef.current?.innerHTML || "");
+    setShowMediaInContent(false);
+    setMediaCaptionInput("");
+    setMediaUrlInput("");
+    setMediaStep("choose");
+    setIsYouTube(false);
+  };
+
+  const insertLinkIntoContent = (url: string, caption: string) => {
+    if (!isValidUrl(url)) return;
+    const domain = getLinkDomain(url);
+    const favicon = getLinkFavicon(url);
+    const safeUrl = url.replace(/"/g, "&quot;");
+    const label = caption.trim() || domain;
+    const safeLabel = label.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const html = `<figure class="umunsi-link-card" style="margin:1rem 0;border:1px solid #e5e7eb;border-radius:0.75rem;overflow:hidden;">
+  <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;text-decoration:none;color:inherit;">
+    <img src="${favicon}" alt="" width="32" height="32" style="width:32px;height:32px;border-radius:0.25rem;flex-shrink:0;" loading="lazy" />
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeLabel}</div>
+      <div style="font-size:0.8rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${domain}</div>
+    </div>
+    <Link2 style="width:20px;height:20px;color:#9ca3af;flex-shrink:0;" />
+  </a>
+</figure>`;
     restoreSelection();
     document.execCommand("insertHTML", false, html);
     setContent(editorRef.current?.innerHTML || "");
@@ -701,6 +728,9 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                 <button onClick={() => { setIsYouTube(true); setMediaStep("youtube"); }} className="w-full p-4 border-2 border-red-200 hover:border-red-400 hover:bg-red-50 rounded-xl text-sm font-bold text-red-600 flex items-center justify-center gap-3 transition-colors">
                   <Youtube className="w-6 h-6" /> Add YouTube Video
                 </button>
+                <button onClick={() => { setIsYouTube(false); setMediaStep("link"); }} className="w-full p-4 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 rounded-xl text-sm font-bold text-blue-600 flex items-center justify-center gap-3 transition-colors">
+                  <Link2 className="w-6 h-6" /> Add Link (Social Media)
+                </button>
               </div>
             )}
 
@@ -714,7 +744,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                     const html = urls
                       .map((url) => {
                         const safeUrl = normalizeMediaUrl(url);
-                        return `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border: 1px dashed #d1d5db; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n</figure>`;
+                        return `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n</figure>`;
                       })
                       .join("\n\n");
                     restoreSelection();
@@ -785,6 +815,51 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                   <button onClick={() => setMediaStep("choose")} className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors">Back</button>
                   <button onClick={() => getYouTubeId(mediaUrlInput) && setMediaStep("caption")} disabled={!getYouTubeId(mediaUrlInput)} className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors">
                     Next: Add Caption
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {mediaStep === "link" && (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">Link URL (Facebook, Instagram, X, student.umunsi.com, any URL)</label>
+                  <input
+                    type="text"
+                    value={mediaUrlInput}
+                    onChange={(e) => setMediaUrlInput(e.target.value)}
+                    placeholder="https://student.umunsi.com/alumni/feed"
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-blue-500 outline-none text-sm"
+                  />
+                </div>
+                {mediaUrlInput && isValidUrl(mediaUrlInput) && (
+                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-gray-50">
+                    <img src={getLinkFavicon(mediaUrlInput)} alt="" width={32} height={32} className="w-8 h-8 rounded" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{getLinkDomain(mediaUrlInput)}</div>
+                      <div className="text-xs text-gray-500 truncate">{mediaUrlInput}</div>
+                    </div>
+                    <Link2 className="w-5 h-5 text-gray-400" />
+                  </div>
+                )}
+                {mediaUrlInput && !isValidUrl(mediaUrlInput) && (
+                  <p className="text-xs text-red-500 font-semibold">Please enter a valid URL starting with http:// or https://</p>
+                )}
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">Label (Optional)</label>
+                  <input
+                    type="text"
+                    value={mediaCaptionInput}
+                    onChange={(e) => setMediaCaptionInput(e.target.value)}
+                    placeholder="Text shown for this link (e.g. Follow us on Facebook)"
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-blue-500 outline-none text-sm"
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); insertLinkIntoContent(mediaUrlInput, mediaCaptionInput); } }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button onClick={() => setMediaStep("choose")} className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors">Back</button>
+                  <button onClick={() => insertLinkIntoContent(mediaUrlInput, mediaCaptionInput)} disabled={!isValidUrl(mediaUrlInput)} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors">
+                    <Plus className="w-4 h-4 inline mr-1" /> Insert Link into Article
                   </button>
                 </div>
               </div>

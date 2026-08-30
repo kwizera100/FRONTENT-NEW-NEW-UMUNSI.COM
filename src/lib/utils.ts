@@ -120,6 +120,33 @@ export function getYouTubeThumb(url: string) {
   return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : null;
 }
 
+export function isValidUrl(url: string) {
+  try {
+    const u = new URL(url.trim());
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+export function getLinkDomain(url: string) {
+  try {
+    const u = new URL(url.trim());
+    return u.hostname.replace(/^www\./, "");
+  } catch {
+    return "Link";
+  }
+}
+
+export function getLinkFavicon(url: string) {
+  try {
+    const u = new URL(url.trim());
+    return `https://www.google.com/s2/favicons?domain=${u.hostname}&sz=64`;
+  } catch {
+    return "";
+  }
+}
+
 const BLOCK_TAG_RE =/<\s*(?:p|div|h[1-6]|ul|ol|li|blockquote|figure|figcaption|pre|table|thead|tbody|tr|td|th|section|article|header|footer|hr|br|img|iframe|video|audio|source|embed|object|canvas|svg|form|input|button|label|select|textarea|address|fieldset|legend|dl|dt|dd|details|summary|main|nav|aside|picture|noscript)[\s\/>]/i;
 
 const MAX_PLAIN_TEXT_BLOCK = 600;

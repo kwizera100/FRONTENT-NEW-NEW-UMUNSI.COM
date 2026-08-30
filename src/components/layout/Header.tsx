@@ -33,16 +33,33 @@ export function Header({ categories: _categories = [] }: { categories?: HeaderCa
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 lg:h-24">
           {/* Logo */}
-          <Link href="/" className="flex items-center shrink-0">
-            <img
-              src="/images/umunsi-text-logo.jpg"
-              alt="Umunsi.com"
-              width={200}
-              height={50}
-              className="h-10 lg:h-12 w-auto"
-              loading="eager"
-            />
-          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/" className="flex items-center shrink-0">
+              <img
+                src="/images/umunsi-text-logo.jpg"
+                alt="Umunsi.com"
+                width={200}
+                height={50}
+                className="h-10 lg:h-12 w-auto"
+                loading="eager"
+              />
+            </Link>
+            <a
+              href="https://student.umunsi.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center shrink-0"
+            >
+              <img
+                src="/images/student-umunsi-logo.png"
+                alt="student.umunsi.com"
+                width={80}
+                height={80}
+                className="h-9 sm:h-10 w-auto"
+                loading="lazy"
+              />
+            </a>
+          </div>
 
           {/* Search action */}
           <button
