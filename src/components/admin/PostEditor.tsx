@@ -94,6 +94,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [isYouTube, setIsYouTube] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [linkPreview, setLinkPreview] = useState<{ title: string | null; description: string | null; image: string | null; siteName: string | null; domain: string; card: string | null } | null>(null);
+  const [linkPreviewLoading, setLinkPreviewLoading] = useState(false);
 
   const editorRef = useRef<HTMLDivElement>(null);
   const savedRange = useRef<Range | null>(null);
@@ -228,23 +230,46 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     setIsYouTube(false);
   };
 
-  const insertLinkIntoContent = (url: string, caption: string) => {
+  const insertLinkIntoContent = (url: string, caption: string, preview: typeof linkPreview) => {
     if (!isValidUrl(url)) return;
     const domain = getLinkDomain(url);
     const favicon = getLinkFavicon(url);
     const safeUrl = url.replace(/"/g, "&quot;");
-    const label = caption.trim() || domain;
+    const label = caption.trim() || preview?.title || domain;
     const safeLabel = label.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const html = `<figure class="umunsi-link-card" style="margin:1rem 0;border:1px solid #e5e7eb;border-radius:0.75rem;overflow:hidden;">
+    const desc = preview?.description || "";
+    const safeDesc = desc.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const img = preview?.image || favicon;
+
+    // Rich card with image if available
+    const hasImage = preview?.image || preview?.card === "image";
+    const html = hasImage
+      ? `<figure class="umunsi-link-card" style="margin:1rem 0;border:1px solid #e5e7eb;border-radius:0.75rem;overflow:hidden;max-width:100%;">
+  <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;color:inherit;">
+    <div style="position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#f3f4f6;">
+      <img src="${img}" alt="${safeLabel}" style="width:100%;height:100%;object-fit:cover;display:block;" loading="lazy" />
+    </div>
+    <div style="padding:0.75rem 1rem;">
+      <div style="font-weight:700;font-size:1rem;line-height:1.3;margin-bottom:0.25rem;">${safeLabel}</div>
+      ${safeDesc ? `<div style="font-size:0.85rem;color:#6b7280;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${safeDesc}</div>` : ""}
+      <div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.5rem;font-size:0.75rem;color:#9ca3af;">
+        <img src="${favicon}" alt="" width="16" height="16" style="width:16px;height:16px;border-radius:0.2rem;" loading="lazy" />
+        <span>${domain}</span>
+      </div>
+    </div>
+  </a>
+</figure>`
+      : `<figure class="umunsi-link-card" style="margin:1rem 0;border:1px solid #e5e7eb;border-radius:0.75rem;overflow:hidden;">
   <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;text-decoration:none;color:inherit;">
     <img src="${favicon}" alt="" width="32" height="32" style="width:32px;height:32px;border-radius:0.25rem;flex-shrink:0;" loading="lazy" />
     <div style="flex:1;min-width:0;">
       <div style="font-weight:600;font-size:0.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeLabel}</div>
       <div style="font-size:0.8rem;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${domain}</div>
     </div>
-    <Link2 style="width:20px;height:20px;color:#9ca3af;flex-shrink:0;" />
+    <span style="color:#9ca3af;font-size:0.75rem;flex-shrink:0;">↗</span>
   </a>
 </figure>`;
+
     restoreSelection();
     document.execCommand("insertHTML", false, html);
     setContent(editorRef.current?.innerHTML || "");
@@ -253,6 +278,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     setMediaUrlInput("");
     setMediaStep("choose");
     setIsYouTube(false);
+    setLinkPreview(null);
   };
 
   const fetchMediaLibrary = async () => {
@@ -824,15 +850,70 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-bold text-ink-700 mb-1.5 block">Link URL (Facebook, Instagram, X, student.umunsi.com, any URL)</label>
-                  <input
-                    type="text"
-                    value={mediaUrlInput}
-                    onChange={(e) => setMediaUrlInput(e.target.value)}
-                    placeholder="https://student.umunsi.com/alumni/feed"
-                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-blue-500 outline-none text-sm"
-                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={mediaUrlInput}
+                      onChange={(e) => setMediaUrlInput(e.target.value)}
+                      placeholder="https://student.umunsi.com/alumni/feed"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-ink-200 focus:border-blue-500 outline-none text-sm"
+                    />
+                    {isValidUrl(mediaUrlInput) && (
+                      <button
+                        onClick={async () => {
+                          setLinkPreviewLoading(true);
+                          setLinkPreview(null);
+                          try {
+                            const res = await fetch(`/api/link-preview?url=${encodeURIComponent(mediaUrlInput)}`);
+                            const data = await res.json();
+                            if (!data.error) setLinkPreview(data);
+                          } catch {
+                            // ignore
+                          } finally {
+                            setLinkPreviewLoading(false);
+                          }
+                        }}
+                        className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm transition-colors whitespace-nowrap"
+                      >
+                        Preview
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {mediaUrlInput && isValidUrl(mediaUrlInput) && (
+
+                {/* Loading state */}
+                {linkPreviewLoading && (
+                  <div className="flex items-center justify-center py-8 border border-gray-200 rounded-xl bg-gray-50">
+                    <Loader2 className="w-6 h-6 text-blue-500 animate-spin mr-2" />
+                    <span className="text-sm text-gray-500 font-semibold">Fetching preview...</span>
+                  </div>
+                )}
+
+                {/* Rich preview card */}
+                {!linkPreviewLoading && linkPreview && (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
+                    {linkPreview.image && (
+                      <div className="relative w-full aspect-video overflow-hidden bg-gray-100">
+                        <img src={linkPreview.image} alt={linkPreview.title || "Preview"} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                      </div>
+                    )}
+                    <div className="p-3">
+                      {linkPreview.title && (
+                        <div className="font-bold text-sm text-gray-900 mb-1 line-clamp-2">{linkPreview.title}</div>
+                      )}
+                      {linkPreview.description && (
+                        <div className="text-xs text-gray-500 line-clamp-2 mb-2">{linkPreview.description}</div>
+                      )}
+                      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                        <img src={getLinkFavicon(mediaUrlInput)} alt="" width={16} height={16} className="w-4 h-4 rounded" />
+                        <span>{linkPreview.domain}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Fallback simple preview when no rich data yet */}
+                {!linkPreviewLoading && !linkPreview && mediaUrlInput && isValidUrl(mediaUrlInput) && (
                   <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-gray-50">
                     <img src={getLinkFavicon(mediaUrlInput)} alt="" width={32} height={32} className="w-8 h-8 rounded" />
                     <div className="flex-1 min-w-0">
@@ -842,9 +923,11 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                     <Link2 className="w-5 h-5 text-gray-400" />
                   </div>
                 )}
+
                 {mediaUrlInput && !isValidUrl(mediaUrlInput) && (
                   <p className="text-xs text-red-500 font-semibold">Please enter a valid URL starting with http:// or https://</p>
                 )}
+
                 <div>
                   <label className="text-sm font-bold text-ink-700 mb-1.5 block">Label (Optional)</label>
                   <input
@@ -853,12 +936,14 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                     onChange={(e) => setMediaCaptionInput(e.target.value)}
                     placeholder="Text shown for this link (e.g. Follow us on Facebook)"
                     className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-blue-500 outline-none text-sm"
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); insertLinkIntoContent(mediaUrlInput, mediaCaptionInput); } }}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); insertLinkIntoContent(mediaUrlInput, mediaCaptionInput, linkPreview); } }}
                   />
+                  <p className="text-xs text-ink-400 mt-1">Click "Preview" to fetch the post image and title. Leave label empty to use the page title.</p>
                 </div>
+
                 <div className="flex gap-3">
-                  <button onClick={() => setMediaStep("choose")} className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors">Back</button>
-                  <button onClick={() => insertLinkIntoContent(mediaUrlInput, mediaCaptionInput)} disabled={!isValidUrl(mediaUrlInput)} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors">
+                  <button onClick={() => { setMediaStep("choose"); setLinkPreview(null); }} className="px-4 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors">Back</button>
+                  <button onClick={() => insertLinkIntoContent(mediaUrlInput, mediaCaptionInput, linkPreview)} disabled={!isValidUrl(mediaUrlInput)} className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-sm disabled:opacity-50 transition-colors">
                     <Plus className="w-4 h-4 inline mr-1" /> Insert Link into Article
                   </button>
                 </div>
