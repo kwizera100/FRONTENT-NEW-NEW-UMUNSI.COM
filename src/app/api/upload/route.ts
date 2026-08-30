@@ -12,14 +12,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: "File too large (max 5MB)." }, { status: 413 });
-    }
-
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
+    const allowedType = file.type.startsWith("image/");
+    if (!allowedType) {
       return NextResponse.json(
-        { error: `Unsupported file type: ${file.type}. Use JPEG, PNG, WebP, or GIF.` },
+        { error: `Unsupported file type: ${file.type}. Please upload an image.` },
         { status: 415 }
       );
     }

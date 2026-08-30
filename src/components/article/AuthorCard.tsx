@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowRight } from "lucide-react";
 import type { Post } from "@/lib/data";
-import { SmartImage } from "@/components/home/SmartImage";
+import { normalizeMediaUrl } from "@/lib/utils";
+import { AuthorAvatar } from "@/components/article/AuthorAvatar";
 
 interface AuthorCardProps {
   author: Post["author"];
@@ -12,7 +13,7 @@ export function AuthorCard({ author }: AuthorCardProps) {
   const socialLinks = author.socialLinks || {};
   const hasSocial = socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website;
   const authorSlug = author.username || author.id;
-  const shortBio = author.bio ? (author.bio.length > 120 ? author.bio.slice(0, 120) + "..." : author.bio) : null;
+  const avatar = normalizeMediaUrl(author.avatar);
 
   return (
     <div className="mt-8 lg:mt-12 rounded-2xl overflow-hidden border border-gray-200" style={{ borderTopColor: accent, borderTopWidth: "4px" }}>
@@ -20,24 +21,21 @@ export function AuthorCard({ author }: AuthorCardProps) {
         <div className="flex flex-col sm:flex-row items-start gap-5">
           {/* Avatar */}
           <Link href={`/author/${authorSlug}`} className="shrink-0 group">
-            {author.avatar ? (
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 transition-all" style={{ boxShadow: `0 0 0 4px ${accent}` }}>
-                <SmartImage src={author.avatar} alt={author.name} fill sizes="96px" className="object-cover" />
-              </div>
-            ) : (
-              <div
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-white font-black text-2xl sm:text-3xl shrink-0"
-                style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
-              >
-                {author.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden" style={{ boxShadow: `0 0 0 4px ${accent}` }}>
+              <AuthorAvatar
+                src={avatar}
+                name={author.name}
+                color={accent}
+                className="w-full h-full rounded-full"
+                textClassName="text-2xl sm:text-3xl"
+              />
+            </div>
           </Link>
 
           {/* Info */}
           <div className="flex-1 min-w-0">
             <Link href={`/author/${authorSlug}`}>
-              <h3 className="text-xl font-black text-gray-900 transition-colors font-display" style={{ color: undefined }}>
+              <h3 className="text-xl font-black transition-colors font-display" style={{ color: accent }}>
                 {author.name}
               </h3>
             </Link>
@@ -45,9 +43,9 @@ export function AuthorCard({ author }: AuthorCardProps) {
               Author
             </p>
 
-            {shortBio && (
-              <p className="text-gray-600 text-sm mt-3 leading-6 whitespace-pre-line">
-                {shortBio}
+            {author.bio && (
+              <p className="text-gray-600 text-sm mt-3 leading-6 line-clamp-2">
+                {author.bio}
               </p>
             )}
 

@@ -68,7 +68,7 @@ export default function AdminPostsPage() {
       const params = new URLSearchParams({
         limit: "50",
         page: String(page),
-        sortBy: "updatedAt",
+        sortBy: "createdAt",
         sortOrder: "desc",
       });
       if (userRole === "AUTHOR" && userId) {
@@ -80,7 +80,11 @@ export default function AdminPostsPage() {
       }
       if (search) params.set("search", search);
 
-      const res = await fetch(`/api/posts?${params.toString()}`, { cache: "no-store" });
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/posts?${params.toString()}`, {
+        cache: "no-store",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
       const data = await res.json();
       setPosts(data.data || []);
       if (data.pagination) {
@@ -229,9 +233,9 @@ export default function AdminPostsPage() {
                       </span>
                     </td>
                     <td className="px-5 py-4 hidden sm:table-cell">
-                      <span className="text-sm font-semibold text-ink-700 flex items-center gap-1">
-                        <Eye className="w-3.5 h-3.5 text-ink-400" />
-                        {(post.likeCount || 0).toLocaleString()}
+                      <span className="text-sm font-black text-ink-900 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-brand-500" />
+                        {(post.viewCount ?? post.likeCount ?? 0).toLocaleString()}
                       </span>
                     </td>
                     <td className="px-5 py-4">

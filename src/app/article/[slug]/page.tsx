@@ -7,14 +7,15 @@ import { ShareBar } from "@/components/article/ShareBar";
 import { ArticleContent } from "@/components/article/ArticleContent";
 import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
 import { AuthorCard } from "@/components/article/AuthorCard";
+import { AuthorAvatar } from "@/components/article/AuthorAvatar";
 import { formatDate, formatTimeAgo, normalizeMediaUrl } from "@/lib/utils";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
 
-export const revalidate = 300;
+export const revalidate = 60;
+export const dynamicParams = true;
 
 const SITE_URL = "https://www.umunsi.com";
 
@@ -68,9 +69,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const [allCategories, post, trendingPosts, latestAll] = await Promise.all([
+  // Retry the post fetch once on failure to avoid caching a 404 from a transient API error
+  let post = null;
+  for (let attempt = 0; attempt < 2 && !post; attempt++) {
+    post = await api.getPostBySlug(params.slug);
+  }
+
+  const [allCategories, trendingPosts, latestAll] = await Promise.all([
     api.getCategories(),
-    api.getPostBySlug(params.slug),
     api.getTrendingPosts(8),
     api.getLatestPosts(12),
   ]);
@@ -83,10 +89,28 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
   const mappedPost = mapApiPost(post);
   const coverImage = mappedPost.coverImage;
-  const authorName = mappedPost.author.name;
-  const authorSlug = mappedPost.author.username || mappedPost.author.id;
-  const hasAuthorSlug = Boolean(authorSlug);
   const publishedDate = mappedPost.publishedAt;
+
+  const rawAuthor = post.authorId ? await api.getUserById(post.authorId) : null;
+  const author = rawAuthor
+    ? {
+        ...mappedPost.author,
+        id: rawAuthor.id || mappedPost.author.id,
+        username: rawAuthor.username || mappedPost.author.username,
+        name: [rawAuthor.firstName, rawAuthor.lastName].filter(Boolean).join(" ") || rawAuthor.username || mappedPost.author.name,
+        avatar: normalizeMediaUrl(rawAuthor.avatar),
+        bio: rawAuthor.bio || mappedPost.author.bio,
+        socialLinks: rawAuthor.socialLinks
+          ? (typeof rawAuthor.socialLinks === "string" ? JSON.parse(rawAuthor.socialLinks) : rawAuthor.socialLinks)
+          : mappedPost.author.socialLinks,
+        profileColor: rawAuthor.profileColor || mappedPost.author.profileColor,
+        coverImage: normalizeMediaUrl(rawAuthor.coverImage),
+      }
+    : mappedPost.author;
+
+  const authorName = author.name;
+  const authorSlug = author.username || author.id;
+  const hasAuthorSlug = Boolean(authorSlug);
 
   const related = latestPosts
     .filter((p) => p.id !== post.id)
@@ -140,7 +164,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-14">
             <div className="lg:col-span-2">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl sm:rounded-2xl mb-6 sm:mb-8">
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl sm:rounded-2xl mb-6 sm:mb-8">
                 <SmartImage src={coverImage} alt={post.title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover" />
               </div>
 
@@ -154,31 +178,28 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
               <ArticleContent html={mappedPost.content || ""} />
 
-              <AuthorCard author={mappedPost.author} />
+              <AuthorCard author={author} />
             </div>
 
             <aside className="space-y-6">
-              <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
+              <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 p-4 sm:p-6">
                 <div className="flex items-center gap-3 sm:gap-4">
-                  <Link href={`/author/${mappedPost.author.username || mappedPost.author.id}`} className="shrink-0">
-                    {mappedPost.author.avatar && mappedPost.author.avatar !== normalizeMediaUrl(null) ? (
-                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden shrink-0">
-                        <SmartImage src={mappedPost.author.avatar} alt={authorName} fill sizes="56px" className="object-cover" />
-                      </div>
-                    ) : (
-                      <div
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center text-white font-black text-lg sm:text-xl shrink-0"
-                        style={{ background: `linear-gradient(135deg, ${mappedPost.author.profileColor || "#e5b60d"}, ${mappedPost.author.profileColor || "#c9a00c"}dd)` }}
-                      >
-                        {authorName.charAt(0)}
-                      </div>
-                    )}
+                  <Link href={`/author/${author.username || author.id}`} className="shrink-0">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden">
+                      <AuthorAvatar
+                        src={author.avatar}
+                        name={authorName}
+                        color={author.profileColor || "#e5b60d"}
+                        className="w-full h-full rounded-full"
+                        textClassName="text-lg sm:text-xl"
+                      />
+                    </div>
                   </Link>
                   <div className="min-w-0">
-                    <Link href={`/author/${mappedPost.author.username || mappedPost.author.id}`}>
-                      <h3 className="font-bold text-gray-900 truncate transition-colors" style={{ color: undefined }}>{authorName}</h3>
+                    <Link href={`/author/${author.username || author.id}`}>
+                      <h3 className="font-bold text-gray-900 truncate transition-colors" style={{ color: author.profileColor }}>{authorName}</h3>
                     </Link>
-                    <p className="text-sm" style={{ color: mappedPost.author.profileColor || "#9ca3af" }}>Author</p>
+                    <p className="text-sm" style={{ color: author.profileColor || "#9ca3af" }}>Author</p>
                   </div>
                 </div>
                 {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.length > 0 && (

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Save, Globe, Mail, Bell, Shield, Image as ImageIcon, Loader2 } from "lucide-react";
+import { ImageUploader } from "@/components/admin/ImageUploader";
 
 export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState("Umunsi.com");
@@ -17,6 +18,12 @@ export default function AdminSettingsPage() {
   const [socialTwitter, setSocialTwitter] = useState("https://twitter.com/umunsi");
   const [socialInstagram, setSocialInstagram] = useState("https://instagram.com/umunsi");
   const [socialYoutube, setSocialYoutube] = useState("https://youtube.com/umunsi");
+  const [sponsoredBannerImage, setSponsoredBannerImage] = useState("");
+  const [sponsoredBannerLink, setSponsoredBannerLink] = useState("/contact");
+  const [sponsoredBannerTitle, setSponsoredBannerTitle] = useState("Sponsored");
+  const [sponsoredBanner2Image, setSponsoredBanner2Image] = useState("");
+  const [sponsoredBanner2Link, setSponsoredBanner2Link] = useState("/contact");
+  const [sponsoredBanner2Title, setSponsoredBanner2Title] = useState("Sponsored");
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
@@ -35,6 +42,12 @@ export default function AdminSettingsPage() {
         if (data.socialTwitter) setSocialTwitter(data.socialTwitter);
         if (data.socialInstagram) setSocialInstagram(data.socialInstagram);
         if (data.socialYoutube) setSocialYoutube(data.socialYoutube);
+        if (data.sponsoredBannerImage) setSponsoredBannerImage(data.sponsoredBannerImage);
+        if (data.sponsoredBannerLink) setSponsoredBannerLink(data.sponsoredBannerLink);
+        if (data.sponsoredBannerTitle) setSponsoredBannerTitle(data.sponsoredBannerTitle);
+        if (data.sponsoredBanner2Image) setSponsoredBanner2Image(data.sponsoredBanner2Image);
+        if (data.sponsoredBanner2Link) setSponsoredBanner2Link(data.sponsoredBanner2Link);
+        if (data.sponsoredBanner2Title) setSponsoredBanner2Title(data.sponsoredBanner2Title);
       })
       .catch(() => {});
   }, []);
@@ -174,6 +187,108 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+      {/* Sponsored banner */}
+      <div className="bg-white rounded-2xl border border-ink-100 p-6">
+        <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-brand-600" />
+          Sponsored Banner
+        </h3>
+        <div className="space-y-4">
+          <ImageUploader
+            compact
+            onUploadComplete={(url) => setSponsoredBannerImage(url)}
+            onClose={() => {}}
+          />
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Image URL</label>
+            <input
+              type="text"
+              value={sponsoredBannerImage}
+              onChange={(e) => setSponsoredBannerImage(e.target.value)}
+              placeholder="https://... (GIF, PNG, JPG, WebP)"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 728x90.</p>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Title</label>
+            <input
+              type="text"
+              value={sponsoredBannerTitle}
+              onChange={(e) => setSponsoredBannerTitle(e.target.value)}
+              placeholder="Sponsored"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Click Link</label>
+            <input
+              type="text"
+              value={sponsoredBannerLink}
+              onChange={(e) => setSponsoredBannerLink(e.target.value)}
+              placeholder="https://... or /contact"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+          </div>
+          {sponsoredBannerImage && (
+            <div className="rounded-xl overflow-hidden border border-ink-200 h-[90px] w-full bg-white">
+              <img src={sponsoredBannerImage} alt="Banner preview" className="w-full h-full object-contain" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Second sponsored banner */}
+      <div className="bg-white rounded-2xl border border-ink-100 p-6">
+        <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-brand-600" />
+          Second Sponsored Banner
+        </h3>
+        <div className="space-y-4">
+          <ImageUploader
+            compact
+            onUploadComplete={(url) => setSponsoredBanner2Image(url)}
+            onClose={() => {}}
+          />
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Image URL</label>
+            <input
+              type="text"
+              value={sponsoredBanner2Image}
+              onChange={(e) => setSponsoredBanner2Image(e.target.value)}
+              placeholder="https://... (GIF, PNG, JPG, WebP)"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 728x90.</p>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Title</label>
+            <input
+              type="text"
+              value={sponsoredBanner2Title}
+              onChange={(e) => setSponsoredBanner2Title(e.target.value)}
+              placeholder="Sponsored"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Click Link</label>
+            <input
+              type="text"
+              value={sponsoredBanner2Link}
+              onChange={(e) => setSponsoredBanner2Link(e.target.value)}
+              placeholder="https://... or /contact"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+          </div>
+          {sponsoredBanner2Image && (
+            <div className="rounded-xl overflow-hidden border border-ink-200 h-[90px] w-full bg-white">
+              <img src={sponsoredBanner2Image} alt="Second banner preview" className="w-full h-full object-contain" />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Save button */}
       <button
         onClick={async () => {
@@ -199,6 +314,12 @@ export default function AdminSettingsPage() {
                 socialTwitter,
                 socialInstagram,
                 socialYoutube,
+                sponsoredBannerImage,
+                sponsoredBannerLink,
+                sponsoredBannerTitle,
+                sponsoredBanner2Image,
+                sponsoredBanner2Link,
+                sponsoredBanner2Title,
               }),
             });
             const data = await res.json();

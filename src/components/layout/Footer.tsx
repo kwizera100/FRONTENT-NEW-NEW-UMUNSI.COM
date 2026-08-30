@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Shield, FileText, Phone } from "lucide-react";
 
 export function Footer() {
@@ -13,13 +12,13 @@ export function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center mb-6">
-              <Image
+              <img
                 src="/images/umunsi-text-logo.jpg"
                 alt="Umunsi.com"
                 width={180}
                 height={45}
                 className="h-10 w-auto brightness-0 invert"
-                priority
+                loading="eager"
               />
             </Link>
             <p className="text-white/60 text-sm leading-relaxed">

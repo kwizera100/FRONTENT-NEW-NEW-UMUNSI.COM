@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useCallback, useEffect, useState } from "react";
@@ -46,13 +45,11 @@ export function HeroSlider({ posts }: { posts: Post[] }) {
             >
               <Link href={`/article/${post.slug}`} className="block">
                 <div className="relative aspect-hero w-full">
-                  <Image
+                  <img
                     src={post.coverImage}
                     alt={post.title}
-                    fill
-                    priority={posts.indexOf(post) === 0}
-                    sizes="100vw"
-                    className="object-cover"
+                    className="object-cover w-full h-full"
+                    loading={posts.indexOf(post) === 0 ? "eager" : "lazy"}
                   />
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />

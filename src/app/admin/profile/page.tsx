@@ -89,22 +89,26 @@ export default function ProfilePage() {
             const merged = { ...u, ...freshUser };
             localStorage.setItem("umunsi_admin_user", JSON.stringify(merged));
             setUser(merged);
-            setBio(merged.bio || "");
-            if (merged.avatar) setAvatarUrl(merged.avatar);
-            if (merged.profileColor) setProfileColor(merged.profileColor);
-            if (merged.coverImage) setCoverUrl(merged.coverImage);
-            if (merged.socialLinks) {
+            setBio((prev) => prev || (merged.bio || ""));
+            setAvatarUrl((prev) => prev || (merged.avatar || ""));
+            setProfileColor((prev) => prev || (merged.profileColor || "#e5b60d"));
+            setCoverUrl((prev) => prev || (merged.coverImage || ""));
+            setSocialLinks((prev) => {
+              if (prev.facebook || prev.twitter || prev.linkedin || prev.instagram || prev.website) return prev;
+              if (!merged.socialLinks) return prev;
               try {
                 const links = typeof merged.socialLinks === "string" ? JSON.parse(merged.socialLinks) : merged.socialLinks;
-                setSocialLinks({
+                return {
                   facebook: links.facebook || "",
                   twitter: links.twitter || "",
                   linkedin: links.linkedin || "",
                   instagram: links.instagram || "",
                   website: links.website || "",
-                });
-              } catch {}
-            }
+                };
+              } catch {
+                return prev;
+              }
+            });
           }
         })
         .catch(() => {});
@@ -121,45 +125,15 @@ export default function ProfilePage() {
     };
   };
 
-  const compressImage = (file: File, maxW: number, maxH: number, quality: number): Promise<File> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          let { width, height } = img;
-          if (width > maxW) { height = Math.round(height * maxW / width); width = maxW; }
-          if (height > maxH) { width = Math.round(width * maxH / height); height = maxH; }
-          const canvas = document.createElement("canvas");
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) { resolve(file); return; }
-          ctx.drawImage(img, 0, 0, width, height);
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" }));
-            } else { resolve(file); }
-          }, "image/jpeg", quality);
-        };
-        img.onerror = () => resolve(file);
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleUpload = async (file: File, type: "avatar" | "cover") => {
     if (type === "avatar") setUploadingAvatar(true);
     else setUploadingCover(true);
     setError("");
 
     try {
-      const compressed = await compressImage(file, 800, 800, 0.85);
       const token = localStorage.getItem("umunsi_admin_token") || "";
       const formData = new FormData();
-      formData.append("file", compressed);
+      formData.append("file", file);
 
       const res = await fetch("/api/upload", {
         method: "POST",
@@ -205,6 +179,7 @@ export default function ProfilePage() {
 
       // Try backend update with all fields
       let backendUpdated = false;
+      let backendError = "";
       try {
         const res = await fetch("/api/users/profile", {
           method: "PUT",
@@ -224,8 +199,13 @@ export default function ProfilePage() {
 
         if (res.ok) {
           backendUpdated = true;
+        } else {
+          const err = await res.json().catch(() => ({}));
+          backendError = err.error || err.message || "Server did not accept the profile update";
         }
-      } catch {}
+      } catch {
+        backendError = "Network error while saving profile";
+      }
 
       // Always save all profile data locally (including extras backend doesn't support)
       const profileExtras = {
@@ -242,12 +222,14 @@ export default function ProfilePage() {
       const updatedUser = { ...user, ...profileExtras };
       localStorage.setItem("umunsi_admin_user", JSON.stringify(updatedUser));
       setUser(updatedUser);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
 
       if (!backendUpdated) {
-        // Profile saved locally even if backend didn't accept it
+        setSaved(false);
+        setError(backendError || "Profile was not saved to the server");
+      } else {
+        setSaved(true);
         setError("");
+        setTimeout(() => setSaved(false), 3000);
       }
     } catch (e: any) {
       setError(e.message || "Failed to save profile");
@@ -256,39 +238,124 @@ export default function ProfilePage() {
     }
   };
 
+  const drawFallbackCard = () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 600;
+    canvas.height = 460;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return "";
+
+    const articleCount = user?.articlesCount || user?._count?.articles || user?._count?.posts || 0;
+    const memberSince = user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—";
+
+    // Background gradient
+    const grd = ctx.createLinearGradient(0, 0, 600, 460);
+    grd.addColorStop(0, profileColor);
+    grd.addColorStop(1, `${profileColor}88`);
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, 600, 460);
+
+    // White card
+    ctx.fillStyle = "#ffffff";
+    roundRect(ctx, 40, 60, 520, 340, 20);
+    ctx.fill();
+
+    // Umunsi logo (top of card)
+    ctx.fillStyle = profileColor;
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText("UMUNSI", 80, 105);
+    ctx.fillStyle = "#111827";
+    ctx.font = "bold 24px sans-serif";
+    ctx.fillText(".COM", 80 + ctx.measureText("UMUNSI ").width - 6, 105);
+
+    // Name
+    ctx.fillStyle = "#111827";
+    ctx.font = "bold 32px sans-serif";
+    ctx.fillText(name, 80, 160);
+
+    // Role
+    ctx.fillStyle = profileColor;
+    ctx.font = "bold 16px sans-serif";
+    ctx.fillText("Author at Umunsi.com", 80, 200);
+
+    // Bio (truncated)
+    if (bio) {
+      ctx.fillStyle = "#4b5563";
+      ctx.font = "16px sans-serif";
+      const maxWidth = 440;
+      const words = bio.split(" ");
+      let line = "";
+      let y = 240;
+      for (const word of words) {
+        const test = line + word + " ";
+        if (ctx.measureText(test).width > maxWidth) {
+          ctx.fillText(line, 80, y);
+          line = word + " ";
+          y += 26;
+          if (y > 340) break;
+        } else {
+          line = test;
+        }
+      }
+      if (line && y <= 340) ctx.fillText(line, 80, y);
+    }
+
+    // Bottom info
+    ctx.fillStyle = "#4b5563";
+    ctx.font = "14px sans-serif";
+    ctx.fillText(`Articles: ${articleCount}`, 80, 370);
+    ctx.fillText(`Member since: ${memberSince}`, 80, 395);
+    ctx.fillStyle = profileColor;
+    ctx.font = "bold 14px sans-serif";
+    ctx.fillText("www.umunsi.com", 80, 420);
+
+    return canvas.toDataURL("image/jpeg", 0.92);
+  };
+
   const handleSaveAsImage = async () => {
     if (!profileRef.current) return;
     setError("");
     try {
-      const { toPng } = await import("html-to-image");
-      let dataUrl: string;
-      try {
-        dataUrl = await toPng(profileRef.current, {
-          quality: 0.95,
-          pixelRatio: 2,
-          backgroundColor: "#ffffff",
-          cacheBust: true,
-          skipFonts: true,
-        });
-      } catch {
-        const { toJpeg } = await import("html-to-image");
-        dataUrl = await toJpeg(profileRef.current, {
-          quality: 0.95,
-          pixelRatio: 2,
-          backgroundColor: "#ffffff",
-          cacheBust: true,
-          skipFonts: true,
-        });
-      }
+      const { toJpeg } = await import("html-to-image");
+      const dataUrl = await toJpeg(profileRef.current, {
+        quality: 0.92,
+        pixelRatio: 1,
+        backgroundColor: "#ffffff",
+        skipFonts: true,
+      });
       const link = document.createElement("a");
-      link.download = `umunsi-profile-${user?.username || "author"}.png`;
+      link.download = `umunsi-profile-${user?.username || "author"}.jpg`;
       link.href = dataUrl;
       link.click();
     } catch (e: any) {
       console.error("Save as image error:", e);
-      setError("Failed to save profile as image. Try removing cover/avatar images or use a smaller image.");
+      // Fallback to a generated canvas card
+      const dataUrl = drawFallbackCard();
+      if (dataUrl) {
+        const link = document.createElement("a");
+        link.download = `umunsi-profile-${user?.username || "author"}.jpg`;
+        link.href = dataUrl;
+        link.click();
+      } else {
+        setError("Could not generate image. Right-click the preview and save it manually.");
+      }
     }
   };
+
+  // Helper for rounded rect on canvas
+  function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
 
   if (loading) {
     return (

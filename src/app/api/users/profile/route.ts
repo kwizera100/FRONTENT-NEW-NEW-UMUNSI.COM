@@ -21,7 +21,8 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "No user ID provided" }, { status: 400 });
     }
 
-    const { userId: _omit, ...profileData } = body;
+    // Remove userId from the payload - it goes in the URL
+    const { userId: _omit, ...updateData } = body;
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
@@ -30,73 +31,66 @@ export async function PUT(req: NextRequest) {
     };
     if (authHeader) headers["Authorization"] = authHeader;
 
-    const url = `${API_BASE}/users/${userId}`;
-
-    // First, fetch the current user to get required fields
-    let fullData: Record<string, any> = { ...profileData };
+    // The backend requires username, email, firstName, lastName.
+    // First fetch the current user to get those required fields.
+    let fullData: Record<string, any> = { ...updateData };
     try {
-      const usersRes = await fetch(`${API_BASE}/users`, {
+      const userRes = await fetch(`${API_BASE}/users/${userId}`, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
           "Accept": "application/json",
           ...(authHeader ? { Authorization: authHeader } : {}),
         },
       });
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const users = Array.isArray(usersData) ? usersData : usersData.data || usersData.users || [];
-        const existingUser = users.find((u: any) => u.id === userId);
-        if (existingUser) {
-          // Merge: start with existing user data, override with new profile data
-          fullData = { ...existingUser, ...profileData };
-          // Remove fields that shouldn't be sent
-          delete fullData.password;
-          delete fullData.createdAt;
-          delete fullData.updatedAt;
-          delete fullData.lastLogin;
+      if (userRes.ok) {
+        const userData = await safeJson(userRes);
+        const existing = userData.user || userData.data || userData;
+        if (existing && existing.id) {
+          fullData = {
+            username: existing.username,
+            email: existing.email,
+            firstName: existing.firstName,
+            lastName: existing.lastName,
+            role: existing.role,
+            isActive: existing.isActive,
+            ...updateData, // override with new values
+          };
         }
       }
     } catch (e) {
-      console.error("Failed to fetch existing user for merge:", e);
+      console.error("Failed to fetch existing user:", e);
     }
 
-    const bodyStr = JSON.stringify(fullData);
+    // PUT to /users/{id} - this is the working endpoint
+    let res = await fetch(`${API_BASE}/users/${userId}`, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify(fullData),
+    });
 
-    // Try PUT first, then PATCH
-    let res = await fetch(url, { method: "PUT", headers, body: bodyStr });
-
+    // Try PATCH if PUT returns 404
     if (res.status === 404) {
-      res = await fetch(url, { method: "PATCH", headers, body: bodyStr });
-    }
-
-    // If still validation error, try with only core fields
-    if (!res.ok && (res.status === 400 || res.status === 422)) {
-      const coreData: Record<string, any> = {};
-      const fields = ["bio", "avatar", "firstName", "lastName", "phone", "profileUrl",
-                      "email", "username", "role", "isPremium", "isActive", "isVerified",
-                      "socialLinks", "profileColor", "coverImage"];
-      for (const f of fields) {
-        if (fullData[f] !== undefined) coreData[f] = fullData[f];
-      }
-      const coreStr = JSON.stringify(coreData);
-      res = await fetch(url, { method: "PUT", headers, body: coreStr });
-      if (res.status === 404) {
-        res = await fetch(url, { method: "PATCH", headers, body: coreStr });
-      }
+      res = await fetch(`${API_BASE}/users/${userId}`, {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(fullData),
+      });
     }
 
     const data = await safeJson(res);
     if (!res.ok) {
       const errMsg = data.message || data.error ||
-        (Array.isArray(data.errors) ? data.errors.map((e: any) => e.message || e.msg || String(e)).join("; ") : "") ||
+        (Array.isArray(data.details)
+          ? (typeof data.details === "string"
+              ? data.details
+              : data.details.map((e: any) => `${e.field}: ${e.message}`).join("; "))
+              : "") ||
         `Failed to update profile (${res.status})`;
-      return NextResponse.json({ error: errMsg }, { status: res.status });
+      return NextResponse.json({ error: errMsg, details: data }, { status: res.status });
     }
 
-    // Return merged data so client sees all fields
-    const responseData = data.data || data.user || data;
-    const merged = { ...responseData, ...profileData };
-    return NextResponse.json(merged);
+    const responseData = data.user || data.data || data;
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Profile update error:", error);
     return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });

@@ -4,13 +4,15 @@ import { useRef, useState } from "react";
 import { Upload, Loader2, X, Image as ImageIcon, Link2, CheckCircle2 } from "lucide-react";
 
 interface ImageUploaderProps {
-  onUploadComplete: (url: string) => void;
+  onUploadComplete?: (url: string) => void;
+  onUploadMultiple?: (urls: string[]) => void;
   onClose?: () => void;
   showUrlOption?: boolean;
   compact?: boolean;
+  multiple?: boolean;
 }
 
-export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true, compact = false }: ImageUploaderProps) {
+export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, showUrlOption = true, compact = false, multiple = false }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -19,69 +21,85 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
   const [mode, setMode] = useState<"upload" | "url">("upload");
   const [urlInput, setUrlInput] = useState("");
 
-  const handleFile = async (file: File) => {
+  const uploadFile = async (file: File): Promise<string | null> => {
+    if (!file.type.startsWith("image/")) {
+      throw new Error(`Unsupported file type: ${file.name || file.type}`);
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : "";
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+      headers,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Upload failed. Please try again.");
+    }
+
+    return data.url as string;
+  };
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
     setError("");
     setUploading(true);
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-    if (!allowedTypes.includes(file.type)) {
-      setError("Allowed file types: JPEG, PNG, WebP, GIF");
-      setUploading(false);
-      return;
+    const fileList = Array.from(files);
+    if (fileList.length === 1) {
+      const reader = new FileReader();
+      reader.onload = (e) => setPreview(e.target?.result as string);
+      reader.readAsDataURL(fileList[0]);
+    } else {
+      setPreview("");
     }
 
-    if (file.size > 2 * 1024 * 1024) {
-      setError("File is too large. Maximum 2MB.");
-      setUploading(false);
-      return;
+    const urls: string[] = [];
+    const errors: string[] = [];
+
+    for (const file of fileList) {
+      try {
+        const url = await uploadFile(file);
+        if (url) urls.push(url);
+      } catch (err) {
+        errors.push(err instanceof Error ? err.message : "Upload failed");
+      }
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => setPreview(e.target?.result as string);
-    reader.readAsDataURL(file);
+    setUploading(false);
 
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
+    if (errors.length > 0) {
+      setError(errors[0] + (errors.length > 1 ? ` (+${errors.length - 1} more)` : ""));
+    }
 
-      const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : "";
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-      }
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-        headers,
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Upload failed. Please try again.");
-        setUploading(false);
-        return;
-      }
-
-      onUploadComplete(data.url);
-      setUploading(false);
-    } catch {
-      setError("Something went wrong. Please try again.");
-      setUploading(false);
+    if (urls.length === 1 && onUploadComplete) {
+      onUploadComplete(urls[0]);
+    } else if (urls.length > 0 && onUploadMultiple) {
+      onUploadMultiple(urls);
+    } else if (urls.length > 0 && onUploadComplete) {
+      urls.forEach(onUploadComplete);
     }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    handleFiles(e.dataTransfer.files);
   };
 
   const handleUrlSubmit = () => {
     if (urlInput.trim()) {
-      onUploadComplete(urlInput.trim());
+      onUploadComplete?.(urlInput.trim());
       setUrlInput("");
     }
   };
@@ -111,12 +129,10 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/jpeg,image/png,image/webp,image/gif"
+          accept="image/*"
+          multiple={multiple}
           className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) handleFile(file);
-          }}
+          onChange={(e) => handleFiles(e.target.files)}
         />
       </div>
     );
@@ -166,12 +182,10 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/*"
+              multiple={multiple}
               className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFile(file);
-              }}
+              onChange={(e) => handleFiles(e.target.files)}
             />
 
             {uploading ? (
@@ -200,7 +214,7 @@ export function ImageUploader({ onUploadComplete, onClose, showUrlOption = true,
                     Drag an image here or click to select
                   </p>
                   <p className="text-xs text-ink-400 mt-1">
-                    JPEG, PNG, WebP, GIF — 10MB max
+                    Any image type — no size limit
                   </p>
                 </div>
               </div>

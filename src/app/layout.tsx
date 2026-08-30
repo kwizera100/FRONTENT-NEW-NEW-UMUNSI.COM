@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,11 +66,10 @@ export default function RootLayout({
   return (
     <html lang="rw" className={`${inter.variable} ${poppins.variable}`}>
       <head>
-        <Script
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3584259871242471"
           crossOrigin="anonymous"
-          strategy="lazyOnload"
         />
       </head>
       <body className="font-sans">{children}</body>

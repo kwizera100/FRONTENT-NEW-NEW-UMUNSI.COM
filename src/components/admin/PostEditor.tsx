@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -26,8 +26,17 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
-import { getYouTubeId, getYouTubeThumb, formatArticleHtml } from "@/lib/utils";
+import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl } from "@/lib/utils";
 import type { ApiCategory } from "@/lib/api";
+
+function decodeHtmlEntities(raw: string): string {
+  return raw
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
+}
 
 function getAdminUserRole(): string {
   if (typeof window === "undefined") return "ADMIN";
@@ -51,6 +60,7 @@ interface PostEditorProps {
     excerpt?: string | null;
     content?: string;
     categoryId?: string | number;
+    coCategoryIds?: string[];
     featuredImage?: string | null;
     status?: string;
     isFeatured?: boolean;
@@ -65,8 +75,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const isAuthorOnly = userRole === "AUTHOR";
   const [title, setTitle] = useState(initialPost?.title || "");
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || "");
-  const [content, setContent] = useState(initialPost?.content || "");
-  const [categoryId, setCategoryId] = useState("");
+  const [content, setContent] = useState(decodeHtmlEntities(initialPost?.content || ""));
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [apiCategories, setApiCategories] = useState<ApiCategory[]>([]);
   const [featured, setFeatured] = useState(initialPost?.isFeatured || false);
   const [coverImage, setCoverImage] = useState(initialPost?.featuredImage || "");
@@ -82,13 +92,62 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [mediaLibrary, setMediaLibrary] = useState<{ url: string; caption?: string; type?: string }[]>([]);
   const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
   const [isYouTube, setIsYouTube] = useState(false);
-  const [editorMode, setEditorMode] = useState<"write" | "preview">("write");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
+
+  const editorRef = useRef<HTMLDivElement>(null);
+  const savedRange = useRef<Range | null>(null);
+  const didInitContent = useRef(false);
+
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+        savedRange.current = range.cloneRange();
+      }
+    }
+  };
+
+  const restoreSelection = () => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    const sel = window.getSelection();
+    if (!sel) return;
+    sel.removeAllRanges();
+    if (savedRange.current) {
+      try {
+        sel.addRange(savedRange.current);
+      } catch {
+        // ignore
+      }
+    }
+    if (sel.rangeCount === 0) {
+      const range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+      sel.addRange(range);
+    }
+  };
 
   useEffect(() => {
     setUserRole(getAdminUserRole());
   }, []);
+
+  useEffect(() => {
+    if (editorRef.current && !didInitContent.current) {
+      editorRef.current.innerHTML = normalizeArticleMediaUrls(content || "");
+      didInitContent.current = true;
+    }
+  }, [content]);
+
+  useEffect(() => {
+    if (initialPost?.content !== undefined) {
+      setContent(decodeHtmlEntities(initialPost.content || ""));
+      didInitContent.current = false;
+    }
+  }, [initialPost]);
 
   useEffect(() => {
     fetch("/api/categories")
@@ -97,7 +156,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         if (Array.isArray(data)) {
           setApiCategories(data);
           if (mode === "create") {
-            if (data.length > 0) setCategoryId(data[0].slug);
+            if (data.length > 0) setCategoryIds([data[0].slug]);
           }
         }
       })
@@ -106,14 +165,18 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
 
   useEffect(() => {
     if (mode === "edit" && initialPost && apiCategories.length > 0) {
-      const matching = apiCategories.find((c) => c.id === String(initialPost.categoryId));
-      if (matching) {
-        setCategoryId(matching.slug);
-      } else if (initialPost.categoryId) {
-        // Fallback: try by slug if id was passed as a slug string
+      const selectedIds: string[] = [];
+      const main = apiCategories.find((c) => c.id === String(initialPost.categoryId));
+      if (main) selectedIds.push(main.slug);
+      (initialPost.coCategoryIds || []).forEach((id) => {
+        const c = apiCategories.find((cat) => cat.id === id);
+        if (c && !selectedIds.includes(c.slug)) selectedIds.push(c.slug);
+      });
+      if (initialPost.categoryId && selectedIds.length === 0) {
         const bySlug = apiCategories.find((c) => c.slug === String(initialPost.categoryId));
-        if (bySlug) setCategoryId(bySlug.slug);
+        if (bySlug) selectedIds.push(bySlug.slug);
       }
+      setCategoryIds(selectedIds);
     }
   }, [mode, initialPost, apiCategories]);
 
@@ -140,10 +203,6 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   };
 
   const insertMediaIntoContent = (url: string, caption: string, youtube: boolean) => {
-    const textarea = document.getElementById("content-textarea") as HTMLTextAreaElement;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
     let html = "";
     if (youtube) {
       const videoId = getYouTubeId(url);
@@ -153,22 +212,20 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           : `<div class="video-wrapper" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.75rem;margin:1rem 0;">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allowfullscreen loading="lazy"></iframe>\n</div>`;
       }
     } else {
-      html = caption.trim()
-        ? `<figure>\n  <img src="${url}" alt="${caption}" />\n  <figcaption>${caption}</figcaption>\n</figure>`
-        : `<figure>\n  <img src="${url}" alt="" />\n</figure>`;
+      const safeUrl = normalizeMediaUrl(url);
+      const safeCaption = (caption || "").replace(/"/g, "&quot;");
+      const figcaption = caption.trim() ? `  <figcaption>${caption}</figcaption>\n` : "";
+      html = `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border: 1px dashed #d1d5db; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="${safeCaption}" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n${figcaption}</figure>`;
     }
     if (!html) return;
-    const newContent = content.substring(0, start) + html + content.substring(end);
-    setContent(newContent);
+    restoreSelection();
+    document.execCommand("insertHTML", false, html);
+    setContent(editorRef.current?.innerHTML || "");
     setShowMediaInContent(false);
     setMediaCaptionInput("");
     setMediaUrlInput("");
     setMediaStep("choose");
     setIsYouTube(false);
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + html.length, start + html.length);
-    }, 0);
   };
 
   const fetchMediaLibrary = async () => {
@@ -190,28 +247,35 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   };
 
   const insertTag = (tag: string) => {
-    const textarea = document.getElementById("content-textarea") as HTMLTextAreaElement;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selected = content.substring(start, end);
-    let replacement = "";
+    const editor = editorRef.current;
+    if (!editor) return;
+    restoreSelection();
+    let ok = false;
     switch (tag) {
-      case "h2": replacement = `<h2>${selected || "Heading"}</h2>`; break;
-      case "h3": replacement = `<h3>${selected || "Subheading"}</h3>`; break;
-      case "bold": replacement = `<strong>${selected || "bold text"}</strong>`; break;
-      case "italic": replacement = `<em>${selected || "italic text"}</em>`; break;
-      case "quote": replacement = `<blockquote>${selected || "quote"}</blockquote>`; break;
-      case "list": replacement = `<ul>\n  <li>${selected || "Item 1"}</li>\n  <li>Item 2</li>\n</ul>`; break;
+      case "h2": ok = document.execCommand("formatBlock", false, "H2"); break;
+      case "h3": ok = document.execCommand("formatBlock", false, "H3"); break;
+      case "bold": ok = document.execCommand("bold"); break;
+      case "italic": ok = document.execCommand("italic"); break;
+      case "quote": ok = document.execCommand("formatBlock", false, "BLOCKQUOTE"); break;
+      case "list": ok = document.execCommand("insertUnorderedList"); break;
       case "image": return;
-      default: replacement = selected;
     }
-    const newContent = content.substring(0, start) + replacement + content.substring(end);
-    setContent(newContent);
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + replacement.length, start + replacement.length);
-    }, 0);
+    if (!ok) {
+      const sel = window.getSelection();
+      const selected = sel?.toString() || "";
+      let replacement = "";
+      switch (tag) {
+        case "h2": replacement = `<h2>${selected || "Heading"}</h2>`; break;
+        case "h3": replacement = `<h3>${selected || "Subheading"}</h3>`; break;
+        case "bold": replacement = `<strong>${selected || "bold text"}</strong>`; break;
+        case "italic": replacement = `<em>${selected || "italic text"}</em>`; break;
+        case "quote": replacement = `<blockquote>${selected || "quote"}</blockquote>`; break;
+        case "list": replacement = `<ul>\n  <li>${selected || "Item 1"}</li>\n  <li>Item 2</li>\n</ul>`; break;
+        default: return;
+      }
+      document.execCommand("insertHTML", false, replacement);
+    }
+    setContent(editorRef.current?.innerHTML || "");
   };
 
   const handleSave = async (publish: boolean) => {
@@ -219,8 +283,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
       setSaveError("Title and content are required.");
       return;
     }
-    if (!categoryId) {
-      setSaveError("Please select a category.");
+    if (categoryIds.length === 0) {
+      setSaveError("Please select at least one category.");
       return;
     }
 
@@ -228,12 +292,15 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     setSaveError("");
     try {
       const token = localStorage.getItem("umunsi_admin_token");
-      const selectedCat = apiCategories.find((c) => c.slug === categoryId || c.id === categoryId);
+      const selectedCategories = apiCategories.filter((c) => categoryIds.includes(c.slug) || categoryIds.includes(c.id));
+      const mainCategory = selectedCategories[0];
+      const coCategories = selectedCategories.slice(1).map((c) => c.id);
       const body = {
         title: title.trim(),
         excerpt: excerpt.trim(),
         content: formatArticleHtml(content.trim()),
-        categoryId: selectedCat ? selectedCat.id : categoryId,
+        categoryId: mainCategory ? mainCategory.id : categoryIds[0],
+        coCategoryIds: coCategories,
         featuredImage: coverImage || undefined,
         status: publish ? "PUBLISHED" : "DRAFT",
         publishedAt: publish ? new Date().toISOString() : undefined,
@@ -283,8 +350,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const headerTitle = mode === "edit" ? "Edit Article" : "Write New Article";
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-ink-100">
         <div className="flex items-center gap-3">
           <Link
             href="/admin/posts"
@@ -292,14 +359,19 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           >
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
+          <div>
+            <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
+            <p className="text-xs text-ink-400 mt-0.5">
+              {mode === "edit" ? "Hindura no kuvugurura inkuru" : "Andika inkuru nshya"}
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           {isAuthorOnly && mode === "edit" ? null : (
             <button
               onClick={() => handleSave(false)}
               disabled={saving || (isAuthorOnly && mode === "edit")}
-              className="px-4 py-2 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+              className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-ink-200 hover:bg-ink-50 text-ink-800 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Draft
@@ -309,7 +381,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             <button
               onClick={() => handleSave(true)}
               disabled={saving}
-              className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50 text-sm"
+              className="flex-1 sm:flex-initial px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Eye className="w-4 h-4" />}
               Publish Now
@@ -332,7 +404,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
 
       <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isAuthorOnly && mode === "edit" ? "pointer-events-none opacity-60 select-none" : ""}`}>
         <div className="lg:col-span-2 space-y-5">
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block flex items-center gap-2">
               <Type className="w-4 h-4" /> Article Title
             </label>
@@ -341,11 +413,11 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter article title..."
-              className="w-full text-2xl font-bold text-ink-900 border-0 outline-none placeholder:text-ink-300"
+              className="w-full text-2xl font-black text-ink-900 border-0 outline-none placeholder:text-ink-300 bg-transparent"
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block">
               Excerpt (Short Summary)
             </label>
@@ -358,12 +430,13 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             />
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
-            <label className="text-sm font-bold text-ink-700 mb-3 block">
-              Article Content
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center justify-between">
+              <span>Article Content</span>
+              <span className="text-xs font-bold text-ink-400">HTML supported</span>
             </label>
 
-            <div className="flex items-center gap-1 mb-3 p-2 bg-ink-50 rounded-xl border border-ink-100">
+            <div className="flex items-center gap-1 mb-3 p-2 bg-ink-50 rounded-xl border border-ink-100 shadow-inner">
               <button onClick={() => insertTag("h2")} className="p-2 rounded-lg hover:bg-white text-ink-600 transition-colors" title="Heading 2">
                 <Heading2 className="w-4 h-4" />
               </button>
@@ -399,56 +472,42 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               >
                 <Youtube className="w-4 h-4" />
               </button>
-              <span className="ml-auto text-xs text-ink-400">HTML supported</span>
             </div>
 
-            <div className="flex items-center gap-2 mb-3">
-              <button
-                onClick={() => setEditorMode("write")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "write" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
-              >Write</button>
-              <button
-                onClick={() => setEditorMode("preview")}
-                className={`px-3 py-1 rounded-lg text-xs font-bold ${editorMode === "preview" ? "bg-brand-600 text-white" : "bg-ink-100 text-ink-600"}`}
-              >Preview</button>
-            </div>
-            {editorMode === "write" ? (
-              <textarea
-                id="content-textarea"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                placeholder="Write your article content here... Use the toolbar above for formatting."
-                rows={15}
-                className="w-full text-ink-800 border-0 outline-none resize-y text-base leading-relaxed placeholder:text-ink-300"
-              />
-            ) : (
-              <div
-                className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-relaxed space-y-4 min-h-[300px] p-2
-                  [&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-4
-                  [&_img]:rounded-xl [&_img]:max-w-full [&_img]:h-auto [&_img]:my-4
-                  [&_figure]:my-6 [&_figure]:mx-auto
-                  [&_figcaption]:text-sm [&_figcaption]:text-gray-500 [&_figcaption]:italic [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:px-4 [&_figcaption]:py-2 [&_figcaption]:bg-gray-50 [&_figcaption]:rounded-lg
-                  [&_blockquote]:border-l-4 [&_blockquote]:border-[#e5b60d] [&_blockquote]:pl-6 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:bg-gray-50/50 [&_blockquote]:rounded-r-lg
-                  [&_h2]:text-2xl [&_h2]:font-black [&_h2]:text-gray-900 [&_h2]:mt-6 [&_h2]:mb-4
-                  [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-4 [&_h3]:mb-3
-                  [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2
-                  [&_.video-wrapper]:my-6 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
-                  [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
-                dangerouslySetInnerHTML={{ __html: formatArticleHtml(content) || '<p class="text-gray-400">Nothing to preview yet.</p>' }}
-              />
-            )}
+            <div
+              ref={editorRef}
+              contentEditable
+              suppressContentEditableWarning
+              onInput={() => setContent(editorRef.current?.innerHTML || "")}
+              onBlur={saveSelection}
+              className="w-full min-h-[300px] p-3 rounded-xl border border-ink-200 bg-white text-ink-800 prose prose-base sm:prose-lg max-w-none focus:border-brand-500 outline-none
+                [&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-4
+                [&_img]:rounded-xl [&_img]:max-w-full [&_img]:w-full [&_img]:h-auto [&_img]:my-4 [&_img]:block
+                [&_figure]:my-6 [&_figure]:mx-auto
+                [&_figcaption]:text-sm [&_figcaption]:text-gray-500 [&_figcaption]:italic [&_figcaption]:text-center [&_figcaption]:mt-2 [&_figcaption]:px-4 [&_figcaption]:py-2 [&_figcaption]:bg-gray-50 [&_figcaption]:rounded-lg
+                [&_blockquote]:border-l-4 [&_blockquote]:border-[#e5b60d] [&_blockquote]:pl-6 [&_blockquote]:py-2 [&_blockquote]:italic [&_blockquote]:bg-gray-50/50 [&_blockquote]:rounded-r-lg
+                [&_h2]:text-2xl [&_h2]:font-black [&_h2]:text-gray-900 [&_h2]:mt-6 [&_h2]:mb-4
+                [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-4 [&_h3]:mb-3
+                [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2
+                [&_.video-wrapper]:my-6 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
+                [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
+            />
           </div>
         </div>
 
         <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
-              Category
+              Categories (hold Ctrl / Cmd to select more than one)
             </label>
             <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none font-semibold text-sm"
+              multiple
+              value={categoryIds}
+              onChange={(e) => {
+                const options = Array.from(e.target.selectedOptions).map((o) => o.value);
+                setCategoryIds(options);
+              }}
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none font-semibold text-sm min-h-[120px]"
             >
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.slug}>
@@ -458,7 +517,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </select>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
               Cover Image — Optional
             </label>
@@ -525,7 +584,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
                 <Star className="w-4 h-4 text-brand-500" />
@@ -543,7 +602,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
               <UserPlus className="w-4 h-4" /> Authors
             </label>
@@ -581,7 +640,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-ink-100 p-5">
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block">
               Tags (Keywords)
             </label>
@@ -648,7 +707,25 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             {mediaStep === "upload" && (
               <div className="space-y-4">
                 <ImageUploader
+                  multiple
                   onUploadComplete={(url) => { setMediaUrlInput(url); setMediaStep("caption"); }}
+                  onUploadMultiple={(urls) => {
+                    if (!urls.length) return;
+                    const html = urls
+                      .map((url) => {
+                        const safeUrl = normalizeMediaUrl(url);
+                        return `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border: 1px dashed #d1d5db; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n</figure>`;
+                      })
+                      .join("\n\n");
+                    restoreSelection();
+                    document.execCommand("insertHTML", false, html);
+                    setContent(editorRef.current?.innerHTML || "");
+                    setShowMediaInContent(false);
+                    setMediaStep("choose");
+                    setMediaUrlInput("");
+                    setMediaCaptionInput("");
+                    setIsYouTube(false);
+                  }}
                   onClose={() => setMediaStep("choose")}
                 />
               </div>

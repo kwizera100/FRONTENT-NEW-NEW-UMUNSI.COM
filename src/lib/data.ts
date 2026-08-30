@@ -29,6 +29,7 @@ export interface Post {
   publishedAt: string;
   createdAt: string;
   category: Category;
+  coCategoryIds?: string[];
   author: {
     id: string;
     username: string;

@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
 import { SmartImage } from "@/components/home/SmartImage";
+import { AuthorAvatar } from "@/components/article/AuthorAvatar";
 import { api, mapApiPost, type ApiCategory } from "@/lib/api";
 import { normalizeMediaUrl } from "@/lib/utils";
 import type { Metadata } from "next";
@@ -117,22 +118,19 @@ export default async function AuthorPage({ params }: Props) {
             <div className="max-w-5xl mx-auto">
               <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
                 {/* Avatar */}
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0">
-                  {avatar && avatar !== normalizeMediaUrl(null) ? (
-                    <SmartImage src={avatar} alt={name} fill sizes="160px" className="object-cover" />
-                  ) : (
-                    <div
-                      className="w-full h-full flex items-center justify-center text-white font-black text-5xl sm:text-6xl"
-                      style={{ background: `linear-gradient(135deg, ${accent}, ${accent}dd)` }}
-                    >
-                      {name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0">
+                  <AuthorAvatar
+                    src={avatar}
+                    name={name}
+                    color={accent}
+                    className="w-full h-full rounded-full"
+                    textClassName="text-5xl sm:text-6xl"
+                  />
                 </div>
 
                 {/* Name + social */}
                 <div className="flex-1 pb-2">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 font-display">{name}</h1>
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display" style={{ color: accent }}>{name}</h1>
                   <p className="text-sm font-bold uppercase tracking-wide mt-1" style={{ color: accent }}>
                     Author at Umunsi.com
                   </p>

@@ -2,7 +2,7 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
 const MEDIA_ASSET_BASE = "https://api.umunsi.com";
-const DEFAULT_IMAGE_FALLBACK = "https://images.unsplash.com/photo-1495020689067-958854a1dd38?w=1600&q=80";
+export const DEFAULT_IMAGE_FALLBACK = "https://api.umunsi.com/uploads/media/umunsi-default-cover.jpg";
 
 export function normalizeMediaUrl(url: string | null | undefined) {
   if (!url) return DEFAULT_IMAGE_FALLBACK;
@@ -22,6 +22,17 @@ export function normalizeMediaUrl(url: string | null | undefined) {
     // Upgrade http to https for api.umunsi.com
     if (/^http:\/\/api\.umunsi\.com/i.test(trimmed)) {
       return trimmed.replace(/^http:/i, "https:");
+    }
+    // Redirect old umunsi.com (non-api) upload URLs to api.umunsi.com
+    // Old WordPress URLs like https://umunsi.com/uploads/media/... and
+    // https://umunsi.com/wp-content/uploads/... are broken (403/404).
+    // The same files exist on api.umunsi.com for /uploads/media/...
+    if (/^https?:\/\/(?!api\.)umunsi\.com\/uploads\/media\//i.test(trimmed)) {
+      return trimmed.replace(/^https?:\/\/umunsi\.com/i, MEDIA_ASSET_BASE);
+    }
+    // Old WordPress wp-content URLs are completely broken — use fallback
+    if (/^https?:\/\/(?!api\.)umunsi\.com\/wp-content\//i.test(trimmed)) {
+      return DEFAULT_IMAGE_FALLBACK;
     }
     return trimmed;
   }

@@ -12,81 +12,75 @@ interface EntertainmentSectionProps {
 export function EntertainmentSection({ entertainment, amatangazo }: EntertainmentSectionProps) {
   if (entertainment.length === 0) return null;
 
-  const main = entertainment[0];
-  const grid = entertainment.slice(1, 5);
+  const color = "#e5b60d";
+  const left = entertainment.slice(1, 5);
+  const center = entertainment[0];
 
   return (
-    <section className="py-8 lg:py-12 bg-gray-50">
+    <section className="py-8 lg:py-10 bg-white border-t border-gray-100">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main content */}
-          <div className="lg:col-span-8">
-            <div className="flex items-center gap-3 mb-6">
-              <span className="w-1.5 h-8 bg-[#e5b60d] rounded-full" />
-              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Imyidagaduro</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Main entertainment card */}
-              <Link href={`/article/${main.slug}`} className="group block md:row-span-2">
-                <div className="relative aspect-[4/3] md:aspect-[3/4] overflow-hidden rounded-xl mb-4">
-                  <SmartImage
-                    src={main.coverImage}
-                    alt={main.title}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 40vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1.5 rounded-md text-xs font-bold text-white bg-[#e5b60d]">
-                      Imyidagaduro
-                    </span>
-                  </div>
-                </div>
-                <h3 className="text-xl font-black text-gray-900 group-hover:text-[#e5b60d] transition-colors mb-2 font-display line-clamp-2">
-                  {main.title}
-                </h3>
-                <p className="text-gray-600 text-sm line-clamp-2 mb-3">{main.excerpt}</p>
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {formatTimeAgo(main.publishedAt)}
-                </span>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          {/* IMYIDAGADURO LEFT LIST */}
+          <div className="lg:col-span-3">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b-2" style={{ borderColor: color }}>
+              <h2 className="text-2xl lg:text-3xl font-black tracking-tight font-display" style={{ color }}>
+                Imyidagaduro
+              </h2>
+              <Link
+                href="/category/imyidagaduro"
+                className="text-xs font-bold hover:text-[#e5b60d] transition-colors"
+                style={{ color }}
+              >
+                Reba byose
               </Link>
-
-              {/* Side grid */}
-              {grid.map((post) => (
+            </div>
+            <div className="flex flex-col divide-y divide-gray-200">
+              {left.map((post) => (
                 <Link
                   key={post.id}
                   href={`/article/${post.slug}`}
-                  className="group block"
+                  className="group flex gap-4 items-start py-4 first:pt-0"
                 >
-                  <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-3">
+                  <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-lg">
                     <SmartImage
                       src={post.coverImage}
                       alt={post.title}
                       fill
-                      sizes="(max-width: 768px) 100vw, 30vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      sizes="80px"
+                      className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2.5 py-1 rounded-md text-xs font-bold text-white bg-[#e5b60d]">
-                        Imyidagaduro
-                      </span>
-                    </div>
                   </div>
-                  <h4 className="font-bold text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
-                    {post.title}
-                  </h4>
-                  <span className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatTimeAgo(post.publishedAt)}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
+                      {post.title}
+                    </h3>
+                  </div>
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Amatangazo sidebar - numbered ranking style */}
+          {/* CENTER LARGE */}
+          <div className="lg:col-span-5">
+            <Link href={`/article/${center.slug}`} className="group block">
+              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-4">
+                <SmartImage
+                  src={center.coverImage}
+                  alt={center.title}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  priority
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
+                {center.title}
+              </h1>
+              <p className="text-gray-700 text-base lg:text-lg mt-3 line-clamp-3">{center.excerpt}</p>
+            </Link>
+          </div>
+
+          {/* AMATANGAZO - remains as it is */}
           <div className="lg:col-span-4">
             <div className="bg-white p-5 lg:p-6 rounded-xl shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b-2 border-[#e5b60d]">
