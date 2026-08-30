@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
+import { ProfitableRateAds } from "@/components/ads/ProfitableRateAds";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -75,11 +75,7 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         {children}
-        <Script
-          id="profitableratecpm-body"
-          strategy="afterInteractive"
-          src="https://pl18337357.profitableratecpmnetwork.com/8b/bd/af/8bbdaf0eb5f4fa429c2183dbad47a65a.js"
-        />
+        <ProfitableRateAds />
       </body>
     </html>
   );
