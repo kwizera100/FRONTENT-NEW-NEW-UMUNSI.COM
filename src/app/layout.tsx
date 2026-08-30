@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
 
@@ -74,7 +75,11 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         {children}
-        <script async src="https://pl18337357.profitableratecpmnetwork.com/8b/bd/af/8bbdaf0eb5f4fa429c2183dbad47a65a.js" />
+        <Script
+          id="profitableratecpm-body"
+          strategy="afterInteractive"
+          src="https://pl18337357.profitableratecpmnetwork.com/8b/bd/af/8bbdaf0eb5f4fa429c2183dbad47a65a.js"
+        />
       </body>
     </html>
   );
