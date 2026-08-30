@@ -24,6 +24,10 @@ const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
 
 const END_AD_SLOT = "1008591184";
 
+const PROFITABLE_RATE_AD_AFTER_PARAGRAPH = 4;
+const PROFITABLE_RATE_SCRIPT_SRC = "https://pl18296255.profitableratecpmnetwork.com/533b579a4ffcc3c134a9961c1a434570/invoke.js";
+const PROFITABLE_RATE_CONTAINER_ID = "container-533b579a4ffcc3c134a9961c1a434570";
+
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
 function decodeHtmlEntities(raw: string): string {
@@ -92,6 +96,24 @@ function pushAd() {
   }
 }
 
+function createProfitableRateAd(): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "my-6 sm:my-8";
+  wrapper.style.cssText = "text-align: center; min-height: 250px;";
+
+  const container = document.createElement("div");
+  container.id = PROFITABLE_RATE_CONTAINER_ID;
+  wrapper.appendChild(container);
+
+  const script = document.createElement("script");
+  script.async = true;
+  script.setAttribute("data-cfasync", "false");
+  script.src = PROFITABLE_RATE_SCRIPT_SRC;
+  wrapper.appendChild(script);
+
+  return wrapper;
+}
+
 export function ArticleContent({ html }: ArticleContentProps) {
   const normalizedHtml = formatArticleHtml(preprocessArticleHtml(html));
   const containerRef = useRef<HTMLDivElement>(null);
@@ -110,6 +132,13 @@ export function ArticleContent({ html }: ArticleContentProps) {
         pushAd();
       }
     });
+
+    // Insert ProfitableRateCPM ad after 4th paragraph
+    if (paragraphs.length > PROFITABLE_RATE_AD_AFTER_PARAGRAPH) {
+      const target = paragraphs[PROFITABLE_RATE_AD_AFTER_PARAGRAPH];
+      const adEl = createProfitableRateAd();
+      target.insertAdjacentElement("afterend", adEl);
+    }
 
     const endAd = createFallbackAd(END_AD_SLOT);
     container.appendChild(endAd);
