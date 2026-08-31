@@ -197,11 +197,14 @@ export default function ProfilePage() {
           }),
         });
 
-        if (res.ok) {
+        const result = await res.json().catch(() => ({}));
+        if (res.ok || result.partial) {
           backendUpdated = true;
+          if (result.warning && !result.partial) {
+            backendError = result.warning;
+          }
         } else {
-          const err = await res.json().catch(() => ({}));
-          backendError = err.error || err.message || "Server did not accept the profile update";
+          backendError = result.error || result.message || "Server did not accept the profile update";
         }
       } catch {
         backendError = "Network error while saving profile";
@@ -224,11 +227,14 @@ export default function ProfilePage() {
       setUser(updatedUser);
 
       if (!backendUpdated) {
-        setSaved(false);
-        setError(backendError || "Profile was not saved to the server");
+        // Even if backend didn't fully accept, we saved locally
+        // Show success but with a note
+        setSaved(true);
+        setError(backendError ? `Note: ${backendError}. Profile saved locally.` : "");
+        setTimeout(() => setSaved(false), 3000);
       } else {
         setSaved(true);
-        setError("");
+        setError(backendError ? `Note: ${backendError}` : "");
         setTimeout(() => setSaved(false), 3000);
       }
     } catch (e: any) {

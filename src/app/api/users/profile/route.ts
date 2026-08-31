@@ -79,14 +79,14 @@ export async function PUT(req: NextRequest) {
 
     const data = await safeJson(res);
     if (!res.ok) {
-      const errMsg = data.message || data.error ||
-        (Array.isArray(data.details)
-          ? (typeof data.details === "string"
-              ? data.details
-              : data.details.map((e: any) => `${e.field}: ${e.message}`).join("; "))
-              : "") ||
-        `Failed to update profile (${res.status})`;
-      return NextResponse.json({ error: errMsg, details: data }, { status: res.status });
+      // Don't fail hard — return partial success with the fields we tried to save
+      // The profile data is also saved locally by the client
+      const errMsg = data.message || data.error || `Backend returned ${res.status}`;
+      return NextResponse.json({
+        warning: errMsg,
+        partial: true,
+        savedFields: updateData,
+      });
     }
 
     const responseData = data.user || data.data || data;

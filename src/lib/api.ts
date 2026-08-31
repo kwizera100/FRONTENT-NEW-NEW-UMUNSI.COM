@@ -323,7 +323,7 @@ export const api = {
     try {
       if (!username) return null;
 
-      // Try to fetch single user by ID first
+      // Try to fetch single user by ID first (may require auth)
       try {
         const singleRes = await fetch(`${API_BASE}/users/${username}`, {
           headers: HEADERS,
@@ -336,7 +336,7 @@ export const api = {
         }
       } catch {}
 
-      // Paginate through all users to find a match
+      // Paginate through all users to find a match (may require auth)
       let page = 1;
       const maxPages = 20;
       while (page <= maxPages) {
@@ -361,6 +361,33 @@ export const api = {
 
         page++;
       }
+
+      // Fallback: fetch author data from their published posts (public API)
+      // The posts API returns author info (id, username, firstName, lastName, avatar, etc.)
+      try {
+        const normalized = String(username).toLowerCase();
+        const postsRes = await fetch(`${API_BASE}/posts?status=PUBLISHED&limit=100`, {
+          headers: HEADERS,
+          next: { revalidate: 60 },
+        });
+        if (postsRes.ok) {
+          const postsData = await postsRes.json();
+          const posts = postsData.data || [];
+          // Find a post by this author
+          const post = posts.find((p: any) => {
+            const a = p.author;
+            if (!a) return false;
+            return (a.username && String(a.username).toLowerCase() === normalized) ||
+                   (a.id && String(a.id).toLowerCase() === normalized) ||
+                   (a.firstName && a.lastName && `${a.firstName} ${a.lastName}`.toLowerCase().replace(/\s+/g, "-") === normalized) ||
+                   (a.firstName && a.lastName && `${a.firstName}${a.lastName}`.toLowerCase() === normalized.replace(/-/g, ""));
+          });
+          if (post && post.author) {
+            // Return the author object from the post
+            return post.author;
+          }
+        }
+      } catch {}
 
       return null;
     } catch {
