@@ -65,6 +65,9 @@ interface PostEditorProps {
     status?: string;
     isFeatured?: boolean;
     tags?: string[];
+    authors?: string[];
+    authorId?: string;
+    authorName?: string;
   };
   onSave?: () => void;
 }
@@ -87,8 +90,11 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [mediaCaptionInput, setMediaCaptionInput] = useState("");
   const [mediaUrlInput, setMediaUrlInput] = useState("");
   const [mediaStep, setMediaStep] = useState<"choose" | "upload" | "url" | "caption" | "youtube" | "library" | "link">("choose");
-  const [authors, setAuthors] = useState<string[]>([]);
+  const [authors, setAuthors] = useState<string[]>(initialPost?.authors || []);
   const [authorInput, setAuthorInput] = useState("");
+  const [systemUsers, setSystemUsers] = useState<{ id: string; name: string; email: string; role?: string }[]>([]);
+  const [selectedAuthorId, setSelectedAuthorId] = useState<string>(initialPost?.authorId || "");
+  const [showAuthorDropdown, setShowAuthorDropdown] = useState(false);
   const [mediaLibrary, setMediaLibrary] = useState<{ url: string; caption?: string; type?: string }[]>([]);
   const [mediaLibraryLoading, setMediaLibraryLoading] = useState(false);
   const [isYouTube, setIsYouTube] = useState(false);
@@ -165,6 +171,26 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
       .catch(() => {});
   }, [mode]);
 
+  // Fetch system users for author selection
+  useEffect(() => {
+    const token = localStorage.getItem("umunsi_admin_token");
+    fetch("/api/users", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSystemUsers(data.map((u: any) => ({
+            id: u.id,
+            name: u.name || `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.username || u.email,
+            email: u.email,
+            role: u.role,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (mode === "edit" && initialPost && apiCategories.length > 0) {
       const selectedIds: string[] = [];
@@ -193,10 +219,23 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     }
   };
 
-  const addAuthor = () => {
-    if (authorInput.trim() && !authors.includes(authorInput.trim())) {
-      setAuthors([...authors, authorInput.trim()]);
+  const addAuthor = (name?: string) => {
+    const value = (name || authorInput).trim();
+    if (value && !authors.includes(value)) {
+      setAuthors([...authors, value]);
       setAuthorInput("");
+      setShowAuthorDropdown(false);
+    }
+  };
+
+  const addAuthorById = (userId: string) => {
+    const user = systemUsers.find((u) => u.id === userId);
+    if (user) {
+      setSelectedAuthorId(userId);
+      if (!authors.includes(user.name)) {
+        setAuthors([...authors, user.name]);
+      }
+      setShowAuthorDropdown(false);
     }
   };
 
@@ -359,6 +398,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         publishedAt: publish ? new Date().toISOString() : undefined,
         isFeatured: featured,
         tags: tags.length > 0 ? tags : undefined,
+        authors: authors.length > 0 ? authors : undefined,
+        authorId: selectedAuthorId || undefined,
       };
 
       let res: Response;
@@ -660,18 +701,66 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               <UserPlus className="w-4 h-4" /> Authors
             </label>
             <p className="text-xs text-ink-400 mb-3">
-              Add co-authors who contributed to this article. They will be shown in the article page.
+              Select from existing users or type a name. Selected authors will be shown in the article page.
             </p>
+
+            {/* Select from existing users */}
+            {!isAuthorOnly && systemUsers.length > 0 && (
+              <div className="mb-3">
+                <label className="text-xs font-bold text-ink-500 mb-1.5 block">Select from existing users</label>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAuthorDropdown(!showAuthorDropdown)}
+                    className="w-full px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm text-left bg-white flex items-center justify-between"
+                  >
+                    <span className="text-ink-500">
+                      {selectedAuthorId
+                        ? systemUsers.find((u) => u.id === selectedAuthorId)?.name || "Choose author..."
+                        : "Choose existing author..."}
+                    </span>
+                    <Plus className="w-4 h-4 text-ink-400" />
+                  </button>
+                  {showAuthorDropdown && (
+                    <div className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto bg-white border border-ink-200 rounded-lg shadow-lg">
+                      {systemUsers
+                        .filter((u) => !authors.includes(u.name))
+                        .map((user) => (
+                          <button
+                            key={user.id}
+                            type="button"
+                            onClick={() => addAuthorById(user.id)}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-ink-50 flex items-center gap-2 border-b border-ink-50 last:border-0"
+                          >
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-400 to-brand-700 flex items-center justify-center text-white font-bold text-xs shrink-0">
+                              {user.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-semibold text-ink-700 truncate">{user.name}</div>
+                              <div className="text-xs text-ink-400 truncate">{user.email} · {user.role || "AUTHOR"}</div>
+                            </div>
+                          </button>
+                        ))}
+                      {systemUsers.filter((u) => !authors.includes(u.name)).length === 0 && (
+                        <p className="px-3 py-2 text-xs text-ink-400 text-center">All users already added.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Manual entry */}
             <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={authorInput}
                 onChange={(e) => setAuthorInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addAuthor())}
-                placeholder="Add author name..."
+                placeholder="Or type author name..."
                 className="flex-1 px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm"
               />
-              <button onClick={addAuthor} className="px-3 py-2 bg-ink-900 text-white rounded-lg text-sm font-bold">
+              <button onClick={() => addAuthor()} className="px-3 py-2 bg-ink-900 text-white rounded-lg text-sm font-bold">
                 <Plus className="w-4 h-4" />
               </button>
             </div>
@@ -688,7 +777,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                 </div>
               ))}
               {authors.length === 0 && (
-                <p className="text-xs text-ink-400 text-center py-2">No co-authors added.</p>
+                <p className="text-xs text-ink-400 text-center py-2">No authors added.</p>
               )}
             </div>
           </div>

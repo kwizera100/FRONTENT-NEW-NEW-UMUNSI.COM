@@ -12,6 +12,7 @@ import {
   Clock,
   Loader2,
   Globe,
+  UserCog,
 } from "lucide-react";
 import { formatTimeAgo } from "@/lib/utils";
 import type { ApiPost, ApiCategory } from "@/lib/api";
@@ -28,6 +29,10 @@ export default function AdminPostsPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [userRole, setUserRole] = useState<string>("ADMIN");
   const [userId, setUserId] = useState<string>("");
+  const [systemUsers, setSystemUsers] = useState<{ id: string; name: string; email: string; role?: string }[]>([]);
+  const [assigningPost, setAssigningPost] = useState<string | null>(null);
+  const [assignAuthorId, setAssignAuthorId] = useState<string>("");
+  const [assignLoading, setAssignLoading] = useState(false);
 
   useEffect(() => {
     try {
@@ -39,6 +44,67 @@ export default function AdminPostsPage() {
       }
     } catch {}
   }, []);
+
+  // Fetch system users for author assignment (admin only)
+  useEffect(() => {
+    if (userRole !== "ADMIN") return;
+    const token = localStorage.getItem("umunsi_admin_token");
+    fetch("/api/users", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSystemUsers(data.map((u: any) => ({
+            id: u.id,
+            name: u.name || `${u.firstName || ""} ${u.lastName || ""}`.trim() || u.username || u.email,
+            email: u.email,
+            role: u.role,
+          })));
+        }
+      })
+      .catch(() => {});
+  }, [userRole]);
+
+  const handleAssignAuthor = async (postId: string) => {
+    if (!assignAuthorId) return;
+    setAssignLoading(true);
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/posts/${postId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ authorId: assignAuthorId }),
+      });
+      if (res.ok) {
+        setPosts((prev) => prev.map((p) => {
+          if (p.id !== postId) return p;
+          const user = systemUsers.find((u) => u.id === assignAuthorId);
+          return {
+            ...p,
+            author: user ? {
+              ...p.author,
+              id: user.id,
+              firstName: user.name.split(" ")[0],
+              lastName: user.name.split(" ").slice(1).join(" "),
+              username: user.email.split("@")[0],
+            } : p.author,
+          };
+        }));
+        setAssigningPost(null);
+        setAssignAuthorId("");
+      } else {
+        alert("Failed to assign author.");
+      }
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setAssignLoading(false);
+    }
+  };
 
   const handleDelete = async (post: ApiPost) => {
     if (!window.confirm(`Are you sure you want to delete "${post.title}"?`)) return;
@@ -274,6 +340,15 @@ export default function AdminPostsPage() {
                         </Link>
                         {userRole === "ADMIN" && (
                           <button
+                            onClick={() => { setAssigningPost(post.id); setAssignAuthorId(post.author?.id || ""); }}
+                            className="p-2 rounded-lg hover:bg-purple-50 text-ink-500 hover:text-purple-600 transition-colors"
+                            title="Assign to Author"
+                          >
+                            <UserCog className="w-4 h-4" />
+                          </button>
+                        )}
+                        {userRole === "ADMIN" && (
+                          <button
                             onClick={() => handleDelete(post)}
                             disabled={deleting === post.id}
                             className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors disabled:opacity-50"
@@ -287,6 +362,36 @@ export default function AdminPostsPage() {
                           </button>
                         )}
                       </div>
+                      {assigningPost === post.id && (
+                        <div className="mt-2 flex flex-col gap-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
+                          <label className="text-xs font-bold text-purple-700">Assign edit to author:</label>
+                          <select
+                            value={assignAuthorId}
+                            onChange={(e) => setAssignAuthorId(e.target.value)}
+                            className="px-2 py-1.5 rounded-lg border border-purple-200 text-sm outline-none"
+                          >
+                            <option value="">Select author...</option>
+                            {systemUsers.map((u) => (
+                              <option key={u.id} value={u.id}>{u.name} ({u.role || "AUTHOR"})</option>
+                            ))}
+                          </select>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleAssignAuthor(post.id)}
+                              disabled={!assignAuthorId || assignLoading}
+                              className="flex-1 px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg disabled:opacity-50"
+                            >
+                              {assignLoading ? "Assigning..." : "Assign"}
+                            </button>
+                            <button
+                              onClick={() => { setAssigningPost(null); setAssignAuthorId(""); }}
+                              className="px-2 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))
