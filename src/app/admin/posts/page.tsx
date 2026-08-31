@@ -341,10 +341,11 @@ export default function AdminPostsPage() {
                         {userRole === "ADMIN" && (
                           <button
                             onClick={() => { setAssigningPost(post.id); setAssignAuthorId(post.author?.id || ""); }}
-                            className="p-2 rounded-lg hover:bg-purple-50 text-ink-500 hover:text-purple-600 transition-colors"
-                            title="Assign to Author"
+                            className="px-2 py-1.5 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-bold flex items-center gap-1 transition-colors"
+                            title="Grant edit access to author"
                           >
-                            <UserCog className="w-4 h-4" />
+                            <UserCog className="w-3.5 h-3.5" />
+                            <span className="hidden sm:inline">Assign</span>
                           </button>
                         )}
                         {userRole === "ADMIN" && (
@@ -363,29 +364,33 @@ export default function AdminPostsPage() {
                         )}
                       </div>
                       {assigningPost === post.id && (
-                        <div className="mt-2 flex flex-col gap-2 p-2 bg-purple-50 rounded-lg border border-purple-200">
-                          <label className="text-xs font-bold text-purple-700">Assign edit to author:</label>
-                          <select
-                            value={assignAuthorId}
-                            onChange={(e) => setAssignAuthorId(e.target.value)}
-                            className="px-2 py-1.5 rounded-lg border border-purple-200 text-sm outline-none"
-                          >
-                            <option value="">Select author...</option>
-                            {systemUsers.map((u) => (
-                              <option key={u.id} value={u.id}>{u.name} ({u.role || "AUTHOR"})</option>
-                            ))}
-                          </select>
+                        <div className="mt-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                          <label className="text-xs font-bold text-purple-700 mb-2 block">Grant edit access to author:</label>
+                          {systemUsers.length === 0 ? (
+                            <p className="text-xs text-red-500 mb-2">No users found. Make sure you are logged in as admin.</p>
+                          ) : (
+                            <select
+                              value={assignAuthorId}
+                              onChange={(e) => setAssignAuthorId(e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-purple-200 text-sm outline-none mb-2 bg-white"
+                            >
+                              <option value="">Select author...</option>
+                              {systemUsers.map((u) => (
+                                <option key={u.id} value={u.id}>{u.name} ({u.role || "AUTHOR"})</option>
+                              ))}
+                            </select>
+                          )}
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleAssignAuthor(post.id)}
                               disabled={!assignAuthorId || assignLoading}
-                              className="flex-1 px-2 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg disabled:opacity-50"
+                              className="flex-1 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-lg disabled:opacity-50"
                             >
-                              {assignLoading ? "Assigning..." : "Assign"}
+                              {assignLoading ? "Assigning..." : "Grant Edit Access"}
                             </button>
                             <button
                               onClick={() => { setAssigningPost(null); setAssignAuthorId(""); }}
-                              className="px-2 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg"
+                              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-bold rounded-lg"
                             >
                               Cancel
                             </button>

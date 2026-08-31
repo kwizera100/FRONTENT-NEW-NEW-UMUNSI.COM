@@ -49,33 +49,70 @@ export default async function AuthorPage({ params }: Props) {
 
   const allCats = (categories as ApiCategory[]) || [];
 
-  // If author not found, show a fallback page instead of 404
+  // If author not found, show a fallback page with author name
   if (!author) {
     const fallbackName = params.slug
       .split(/[-_]/)
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
       .join(" ");
 
+    // Try to fetch articles by this author slug even without profile
+    let fallbackPosts: any[] = [];
+    try {
+      const postsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api"}/posts?authorUsername=${encodeURIComponent(params.slug)}&status=PUBLISHED&limit=20`, {
+        headers: { "User-Agent": "Mozilla/5.0", Accept: "application/json" },
+        next: { revalidate: 60 },
+      });
+      if (postsRes.ok) {
+        const data = await postsRes.json();
+        fallbackPosts = data.data || [];
+      }
+    } catch {}
+
+    const mappedFallback = fallbackPosts.map((p) => mapApiPost(p));
+
     return (
       <>
         <Header categories={allCats} />
         <main>
-          <div className="min-h-[60vh] flex items-center justify-center px-4">
-            <div className="text-center max-w-md">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-4xl mx-auto mb-6">
-                {fallbackName.charAt(0)}
+          <div className="px-4 sm:px-6 lg:px-8 py-12">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex flex-col items-center text-center mb-8">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] flex items-center justify-center text-white font-black text-4xl mx-auto mb-4">
+                  {fallbackName.charAt(0)}
+                </div>
+                <h1 className="text-2xl font-black text-gray-900 mb-2">{fallbackName}</h1>
+                <p className="text-gray-500 mb-2">Author at Umunsi.com</p>
               </div>
-              <h1 className="text-2xl font-black text-gray-900 mb-2">{fallbackName}</h1>
-              <p className="text-gray-500 mb-6">
-                Author profile is being updated. Please check back later.
-              </p>
-              <Link
-                href="/"
-                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Homepage
-              </Link>
+
+              {mappedFallback.length > 0 ? (
+                <div>
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
+                    <h2 className="text-xl lg:text-2xl font-black text-gray-900">
+                      Articles by {fallbackName}
+                    </h2>
+                    <span className="text-sm font-bold text-gray-400">({mappedFallback.length})</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {mappedFallback.map((post) => (
+                      <ArticleCard key={post.id} post={post} />
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-12">No articles found for this author.</p>
+              )}
+
+              <div className="mt-8 text-center">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Homepage
+                </Link>
+              </div>
             </div>
           </div>
         </main>
