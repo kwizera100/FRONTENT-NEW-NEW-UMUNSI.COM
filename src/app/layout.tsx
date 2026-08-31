@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import "./globals.css";
-import { ProfitableRateAds } from "@/components/ads/ProfitableRateAds";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -75,7 +74,6 @@ export default function RootLayout({
       </head>
       <body className="font-sans">
         {children}
-        <ProfitableRateAds />
       </body>
     </html>
   );
