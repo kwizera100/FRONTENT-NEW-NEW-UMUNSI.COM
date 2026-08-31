@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
+import { HomepageViewTracker } from "@/components/article/HomepageViewTracker";
 
 export const revalidate = 60;
 export const dynamic = "force-dynamic";
@@ -59,6 +60,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <HomepageViewTracker articleId={featured[0]?.id || popular[0]?.id || ""} />
       <Header categories={allCats} />
 
       <main>
