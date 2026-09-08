@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!author) return { title: "Author not found | Umunsi.com" };
 
   const name = [author.firstName, author.lastName].filter(Boolean).join(" ") || author.username;
-  const avatar = normalizeMediaUrl(author.avatar);
+  const avatar = author.avatar ? normalizeMediaUrl(author.avatar) : undefined;
   const bio = author.bio || `Articles by ${name} on Umunsi.com`;
 
   return {
@@ -30,13 +30,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: "profile",
       title: `${name} | Umunsi.com`,
       description: bio,
-      images: [{ url: avatar, width: 400, height: 400, alt: name }],
+      ...(avatar ? { images: [{ url: avatar, width: 400, height: 400, alt: name }] } : {}),
     },
     twitter: {
       card: "summary",
       title: `${name} | Umunsi.com`,
       description: bio,
-      images: [avatar],
+      ...(avatar ? { images: [avatar] } : {}),
     },
   };
 }
