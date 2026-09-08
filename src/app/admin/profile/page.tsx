@@ -35,6 +35,8 @@ export default function ProfilePage() {
     linkedin: "",
     instagram: "",
     website: "",
+    studentProfile: "",
+    writerProfile: "",
   });
 
   useEffect(() => {
@@ -73,6 +75,8 @@ export default function ProfilePage() {
           linkedin: links.linkedin || "",
           instagram: links.instagram || "",
           website: links.website || "",
+          studentProfile: links.studentProfile || "",
+          writerProfile: links.writerProfile || "",
         });
       } catch {}
     }
@@ -104,6 +108,8 @@ export default function ProfilePage() {
                   linkedin: links.linkedin || "",
                   instagram: links.instagram || "",
                   website: links.website || "",
+                  studentProfile: links.studentProfile || "",
+                  writerProfile: links.writerProfile || "",
                 };
               } catch {
                 return prev;
@@ -602,6 +608,30 @@ export default function ProfilePage() {
                 value={socialLinks.website}
                 onChange={(e) => setSocialLinks({ ...socialLinks, website: e.target.value })}
                 placeholder="https://yourwebsite.com"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-3 pt-2 border-t border-gray-100 mt-2">
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-gray-50">
+                <img src="/images/student-umunsi-logo.png" alt="Student" className="w-7 h-7 object-contain" />
+              </div>
+              <input
+                type="url"
+                value={socialLinks.studentProfile}
+                onChange={(e) => setSocialLinks({ ...socialLinks, studentProfile: e.target.value })}
+                placeholder="https://student.umunsi.com/your-profile"
+                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0 bg-gray-50">
+                <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-7 h-7 object-contain" />
+              </div>
+              <input
+                type="url"
+                value={socialLinks.writerProfile}
+                onChange={(e) => setSocialLinks({ ...socialLinks, writerProfile: e.target.value })}
+                placeholder="https://writer.umunsi.com/your-profile"
                 className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none text-sm"
               />
             </div>

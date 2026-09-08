@@ -148,6 +148,28 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             </h1>
             <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-white/70 text-xs sm:text-sm">
               <span className="font-bold text-white text-sm sm:text-base">{authorName}</span>
+              {author.socialLinks?.studentProfile && (
+                <a
+                  href={author.socialLinks.studentProfile}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center"
+                  title="Student profile"
+                >
+                  <img src="/images/student-umunsi-logo.png" alt="Student" className="h-5 w-5 object-contain" />
+                </a>
+              )}
+              {author.socialLinks?.writerProfile && (
+                <a
+                  href={author.socialLinks.writerProfile}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center"
+                  title="Writer profile"
+                >
+                  <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="h-5 w-5 object-contain" />
+                </a>
+              )}
               {post.coAuthors && Array.isArray(post.coAuthors) && post.coAuthors.map((coAuthor: string, idx: number) => (
                 <span key={idx} className="font-bold text-white text-sm sm:text-base">
                   &middot; {coAuthor}

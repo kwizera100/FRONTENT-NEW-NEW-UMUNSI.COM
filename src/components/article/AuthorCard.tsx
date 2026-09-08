@@ -35,8 +35,32 @@ export function AuthorCard({ author }: AuthorCardProps) {
           {/* Info */}
           <div className="flex-1 min-w-0">
             <Link href={`/author/${authorSlug}`}>
-              <h3 className="text-xl font-black transition-colors font-display" style={{ color: accent }}>
+              <h3 className="text-xl font-black transition-colors font-display inline-flex items-center gap-2" style={{ color: accent }}>
                 {author.name}
+                {socialLinks.studentProfile && (
+                  <a
+                    href={socialLinks.studentProfile}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Student profile"
+                  >
+                    <img src="/images/student-umunsi-logo.png" alt="Student" className="h-5 w-5 object-contain" />
+                  </a>
+                )}
+                {socialLinks.writerProfile && (
+                  <a
+                    href={socialLinks.writerProfile}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Writer profile"
+                  >
+                    <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="h-5 w-5 object-contain" />
+                  </a>
+                )}
               </h3>
             </Link>
             <p className="text-sm font-bold uppercase tracking-wide mt-0.5" style={{ color: accent }}>
