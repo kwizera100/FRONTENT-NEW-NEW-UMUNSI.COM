@@ -21,7 +21,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const name = [author.firstName, author.lastName].filter(Boolean).join(" ") || author.username;
   const avatar = author.avatar ? normalizeMediaUrl(author.avatar) : undefined;
-  const bio = author.bio || `Articles by ${name} on Umunsi.com`;
+
+  // Decode profile extras from profileUrl
+  let decodedBio = "";
+  try {
+    const rawUrl = (author as any).profileUrl || "";
+    if (rawUrl && rawUrl.startsWith("https://umunsi.com/_p/")) {
+      const b64 = rawUrl.replace("https://umunsi.com/_p/", "");
+      const json = typeof Buffer !== "undefined"
+        ? Buffer.from(b64, "base64").toString("utf-8")
+        : decodeURIComponent(escape(atob(b64)));
+      const extras = JSON.parse(json);
+      decodedBio = extras.bio || "";
+    }
+  } catch {}
+  const bio = decodedBio || author.bio || `Articles by ${name} on Umunsi.com`;
 
   return {
     title: `${name} | Umunsi.com`,
@@ -122,15 +136,31 @@ export default async function AuthorPage({ params }: Props) {
   }
 
   const name = [author.firstName, author.lastName].filter(Boolean).join(" ") || author.username;
-  const accent = author.profileColor || "#e5b60d";
+
+  // Decode profile extras from profileUrl (carried publicly via the posts API).
+  // Format: https://umunsi.com/_p/<base64-json>
+  let decodedExtras: any = {};
+  try {
+    const rawUrl = (author as any).profileUrl || "";
+    if (rawUrl && rawUrl.startsWith("https://umunsi.com/_p/")) {
+      const b64 = rawUrl.replace("https://umunsi.com/_p/", "");
+      const json = typeof Buffer !== "undefined"
+        ? Buffer.from(b64, "base64").toString("utf-8")
+        : decodeURIComponent(escape(atob(b64)));
+      decodedExtras = JSON.parse(json);
+    }
+  } catch {}
+
+  const accent = decodedExtras.profileColor || author.profileColor || "#e5b60d";
   const rawAvatar = author.avatar;
   const avatar = rawAvatar ? normalizeMediaUrl(rawAvatar) : null;
-  const rawCover = author.coverImage;
+  const rawCover = decodedExtras.coverImage || author.coverImage;
   const coverImage = rawCover ? normalizeMediaUrl(rawCover) : null;
-  const coverPosition = author.coverPosition || 50;
-  const bio = author.bio || "";
-  const socialLinks = author.socialLinks
-    ? (typeof author.socialLinks === "string" ? JSON.parse(author.socialLinks) : author.socialLinks)
+  const coverPosition = decodedExtras.coverPosition || author.coverPosition || 50;
+  const bio = decodedExtras.bio || author.bio || "";
+  const rawSocial = decodedExtras.socialLinks || author.socialLinks;
+  const socialLinks = rawSocial
+    ? (typeof rawSocial === "string" ? JSON.parse(rawSocial) : rawSocial)
     : {};
 
   const posts = await api.getPostsByAuthor(author.id, 20);

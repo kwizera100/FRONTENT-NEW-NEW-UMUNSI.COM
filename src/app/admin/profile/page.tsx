@@ -190,6 +190,20 @@ export default function ProfilePage() {
       // Try backend update with all fields
       let backendUpdated = false;
       let backendError = "";
+
+      // Encode profile extras into profileUrl so they are visible publicly
+      // (the public posts API returns profileUrl but not bio/cover/socialLinks).
+      // Format: https://umunsi.com/_p/<base64-json>
+      const profileExtrasPayload = {
+        bio,
+        coverImage: coverUrl || undefined,
+        coverPosition,
+        profileColor,
+        socialLinks,
+      };
+      const encodedExtras = btoa(unescape(encodeURIComponent(JSON.stringify(profileExtrasPayload))));
+      const profileUrlPayload = `https://umunsi.com/_p/${encodedExtras}`;
+
       try {
         const res = await fetch("/api/users/profile", {
           method: "PUT",
@@ -205,6 +219,7 @@ export default function ProfilePage() {
             coverImage: coverUrl || undefined,
             socialLinks: JSON.stringify(socialLinks),
             coverPosition,
+            profileUrl: profileUrlPayload,
           }),
         });
 
