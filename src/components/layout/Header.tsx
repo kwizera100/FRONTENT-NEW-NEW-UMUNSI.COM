@@ -59,6 +59,21 @@ export function Header({ categories: _categories = [] }: { categories?: HeaderCa
                 loading="lazy"
               />
             </a>
+            <a
+              href="https://writer.umunsi.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center shrink-0"
+            >
+              <img
+                src="/images/umunsimedia-logo.jpg"
+                alt="writer.umunsi.com"
+                width={80}
+                height={80}
+                className="h-9 sm:h-10 w-auto"
+                loading="lazy"
+              />
+            </a>
           </div>
 
           {/* Search action */}
