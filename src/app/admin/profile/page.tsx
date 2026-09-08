@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, Save, Download, Palette, Facebook, Twitter, Linkedin, Instagram, Globe, Loader2, Check } from "lucide-react";
+import { normalizeMediaUrl } from "@/lib/utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 const SERVER_BASE = "https://api.umunsi.com";
@@ -64,8 +65,8 @@ export default function ProfilePage() {
     };
 
     setProfileColor(userExtras.profileColor);
-    setAvatarUrl(u.avatar || "");
-    setCoverUrl(userExtras.coverImage);
+    setAvatarUrl(u.avatar ? normalizeMediaUrl(u.avatar) : "");
+    setCoverUrl(userExtras.coverImage ? normalizeMediaUrl(userExtras.coverImage) : "");
     if (userExtras.socialLinks) {
       try {
         const links = typeof userExtras.socialLinks === "string" ? JSON.parse(userExtras.socialLinks) : userExtras.socialLinks;
@@ -94,9 +95,9 @@ export default function ProfilePage() {
             localStorage.setItem("umunsi_admin_user", JSON.stringify(merged));
             setUser(merged);
             setBio((prev) => prev || (merged.bio || ""));
-            setAvatarUrl((prev) => prev || (merged.avatar || ""));
+            setAvatarUrl((prev) => prev || (merged.avatar ? normalizeMediaUrl(merged.avatar) : ""));
             setProfileColor((prev) => prev || (merged.profileColor || "#e5b60d"));
-            setCoverUrl((prev) => prev || (merged.coverImage || ""));
+            setCoverUrl((prev) => prev || (merged.coverImage ? normalizeMediaUrl(merged.coverImage) : ""));
             setSocialLinks((prev) => {
               if (prev.facebook || prev.twitter || prev.linkedin || prev.instagram || prev.website) return prev;
               if (!merged.socialLinks) return prev;

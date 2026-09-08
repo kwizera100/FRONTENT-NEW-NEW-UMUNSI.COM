@@ -98,7 +98,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
         id: rawAuthor.id || mappedPost.author.id,
         username: rawAuthor.username || mappedPost.author.username,
         name: [rawAuthor.firstName, rawAuthor.lastName].filter(Boolean).join(" ") || rawAuthor.username || mappedPost.author.name,
-        avatar: normalizeMediaUrl(rawAuthor.avatar),
+        avatar: rawAuthor.avatar ? normalizeMediaUrl(rawAuthor.avatar) : null,
         bio: rawAuthor.bio || mappedPost.author.bio,
         socialLinks: rawAuthor.socialLinks
           ? (typeof rawAuthor.socialLinks === "string" ? JSON.parse(rawAuthor.socialLinks) : rawAuthor.socialLinks)

@@ -123,8 +123,10 @@ export default async function AuthorPage({ params }: Props) {
 
   const name = [author.firstName, author.lastName].filter(Boolean).join(" ") || author.username;
   const accent = author.profileColor || "#e5b60d";
-  const avatar = normalizeMediaUrl(author.avatar);
-  const coverImage = normalizeMediaUrl(author.coverImage);
+  const rawAvatar = author.avatar;
+  const avatar = rawAvatar ? normalizeMediaUrl(rawAvatar) : null;
+  const rawCover = author.coverImage;
+  const coverImage = rawCover ? normalizeMediaUrl(rawCover) : null;
   const bio = author.bio || "";
   const socialLinks = author.socialLinks
     ? (typeof author.socialLinks === "string" ? JSON.parse(author.socialLinks) : author.socialLinks)
@@ -142,7 +144,7 @@ export default async function AuthorPage({ params }: Props) {
         <div className="relative">
           {/* Cover */}
           <div className="relative h-48 sm:h-64 lg:h-80 overflow-hidden">
-            {coverImage && coverImage !== normalizeMediaUrl(null) ? (
+            {coverImage ? (
               <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" priority />
             ) : (
               <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }} />

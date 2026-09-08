@@ -148,7 +148,7 @@ export function mapApiPost(post: ApiPost) {
       id: post.author?.id || post.authorId || "",
       username: post.author?.username || "",
       name: mapAuthorName(post.author),
-      avatar: fixImageUrl(post.author?.avatar),
+      avatar: post.author?.avatar ? fixImageUrl(post.author.avatar) : null,
       bio: post.author?.bio || null,
       socialLinks: post.author?.socialLinks ? (typeof post.author.socialLinks === "string" ? JSON.parse(post.author.socialLinks) : post.author.socialLinks) : null,
       profileColor: post.author?.profileColor || "#e5b60d",
