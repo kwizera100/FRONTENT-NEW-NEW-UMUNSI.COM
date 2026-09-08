@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft, FileText, Calendar, PenLine } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
@@ -135,6 +135,11 @@ export default async function AuthorPage({ params }: Props) {
   const posts = await api.getPostsByAuthor(author.id, 20);
   const mappedPosts = posts.map((p) => mapApiPost(p));
 
+  const memberSince = author.createdAt ? new Date(author.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : null;
+  const articleCount = mappedPosts.length;
+
+  const hasAnySocial = socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website || socialLinks.studentProfile || socialLinks.writerProfile;
+
   return (
     <>
       <Header categories={allCats} />
@@ -143,91 +148,191 @@ export default async function AuthorPage({ params }: Props) {
         {/* Author Hero */}
         <div className="relative">
           {/* Cover */}
-          <div className="relative h-48 sm:h-64 lg:h-80 overflow-hidden">
+          <div className="relative h-56 sm:h-72 lg:h-96 overflow-hidden">
             {coverImage ? (
               <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" priority />
             ) : (
               <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }} />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
           </div>
 
-          {/* Profile */}
-          <div className="px-4 sm:px-6 lg:px-8 -mt-16 sm:-mt-20 relative">
+          {/* Profile Section */}
+          <div className="px-4 sm:px-6 lg:px-8 -mt-20 sm:-mt-24 relative">
             <div className="max-w-5xl mx-auto">
-              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 sm:gap-6">
-                {/* Avatar */}
-                <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0">
-                  <AuthorAvatar
-                    src={avatar}
-                    name={name}
-                    color={accent}
-                    className="w-full h-full rounded-full"
-                    textClassName="text-5xl sm:text-6xl"
-                  />
-                </div>
+              {/* Main profile card */}
+              <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5 sm:gap-6">
+                    {/* Avatar */}
+                    <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0 -mt-16 sm:-mt-20">
+                      <AuthorAvatar
+                        src={avatar}
+                        name={name}
+                        color={accent}
+                        className="w-full h-full rounded-full"
+                        textClassName="text-5xl sm:text-6xl"
+                      />
+                    </div>
 
-                {/* Name + social */}
-                <div className="flex-1 pb-2">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display" style={{ color: accent }}>{name}</h1>
-                  <p className="text-sm font-bold uppercase tracking-wide mt-1" style={{ color: accent }}>
-                    Author at Umunsi.com
-                  </p>
+                    {/* Name + role */}
+                    <div className="flex-1 pb-2">
+                      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display" style={{ color: accent }}>{name}</h1>
+                      <div className="flex items-center gap-2 mt-2">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
+                          style={{ backgroundColor: accent }}
+                        >
+                          <PenLine className="w-3 h-3" />
+                          Author at Umunsi.com
+                        </span>
+                        {memberSince && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
+                            <Calendar className="w-3 h-3" />
+                            Since {memberSince}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                  {(socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website) && (
-                    <div className="flex items-center gap-2 mt-3">
-                      {socialLinks.facebook && (
-                        <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-all hover:opacity-80" style={{ backgroundColor: accent }}>
-                          <Facebook className="w-4 h-4" />
-                        </a>
-                      )}
-                      {socialLinks.twitter && (
-                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-all hover:opacity-80" style={{ backgroundColor: accent }}>
-                          <Twitter className="w-4 h-4" />
-                        </a>
-                      )}
-                      {socialLinks.linkedin && (
-                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-all hover:opacity-80" style={{ backgroundColor: accent }}>
-                          <Linkedin className="w-4 h-4" />
-                        </a>
-                      )}
-                      {socialLinks.instagram && (
-                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-all hover:opacity-80" style={{ backgroundColor: accent }}>
-                          <Instagram className="w-4 h-4" />
-                        </a>
-                      )}
-                      {socialLinks.website && (
-                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full flex items-center justify-center text-white transition-all hover:opacity-80" style={{ backgroundColor: accent }}>
-                          <Globe className="w-4 h-4" />
-                        </a>
-                      )}
+                    {/* Stats badge */}
+                    <div className="flex items-center gap-3 pb-2">
+                      <div
+                        className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl text-white shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
+                      >
+                        <FileText className="w-5 h-5 mb-1" />
+                        <span className="text-2xl font-black leading-none">{articleCount}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide mt-0.5">Articles</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bio */}
+                  {bio && (
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">About</h2>
+                      <p className="text-gray-700 text-base sm:text-lg leading-8 whitespace-pre-line">
+                        {bio}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Social Links */}
+                  {hasAnySocial && (
+                    <div className="mt-6 pt-6 border-t border-gray-100">
+                      <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">Connect</h2>
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        {/* Student platform */}
+                        {socialLinks.studentProfile && (
+                          <a
+                            href={socialLinks.studentProfile}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
+                            title="Student profile"
+                          >
+                            <img src="/images/student-umunsi-logo.png" alt="Student" className="w-6 h-6 object-contain" />
+                            <span className="text-sm font-bold text-gray-700">Student</span>
+                          </a>
+                        )}
+                        {/* Writer platform */}
+                        {socialLinks.writerProfile && (
+                          <a
+                            href={socialLinks.writerProfile}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
+                            title="Writer profile"
+                          >
+                            <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-6 h-6 object-contain" />
+                            <span className="text-sm font-bold text-gray-700">Writer</span>
+                          </a>
+                        )}
+                        {/* Facebook */}
+                        {socialLinks.facebook && (
+                          <a
+                            href={socialLinks.facebook}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
+                            style={{ backgroundColor: "#1877f2" }}
+                            title="Facebook"
+                          >
+                            <Facebook className="w-5 h-5" />
+                          </a>
+                        )}
+                        {/* Twitter / X */}
+                        {socialLinks.twitter && (
+                          <a
+                            href={socialLinks.twitter}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
+                            style={{ backgroundColor: "#000000" }}
+                            title="X (Twitter)"
+                          >
+                            <Twitter className="w-5 h-5" />
+                          </a>
+                        )}
+                        {/* LinkedIn */}
+                        {socialLinks.linkedin && (
+                          <a
+                            href={socialLinks.linkedin}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
+                            style={{ backgroundColor: "#0a66c2" }}
+                            title="LinkedIn"
+                          >
+                            <Linkedin className="w-5 h-5" />
+                          </a>
+                        )}
+                        {/* Instagram */}
+                        {socialLinks.instagram && (
+                          <a
+                            href={socialLinks.instagram}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
+                            style={{ background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" }}
+                            title="Instagram"
+                          >
+                            <Instagram className="w-5 h-5" />
+                          </a>
+                        )}
+                        {/* Website */}
+                        {socialLinks.website && (
+                          <a
+                            href={socialLinks.website}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
+                            style={{ backgroundColor: accent }}
+                            title="Website"
+                          >
+                            <Globe className="w-5 h-5" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-
-              {/* Bio */}
-              {bio && (
-                <div className="mt-6 max-w-3xl pl-4 border-l-4" style={{ borderColor: accent }}>
-                  <p className="text-gray-700 text-base sm:text-lg leading-7 whitespace-pre-line">
-                    {bio}
-                  </p>
-                </div>
-              )}
             </div>
           </div>
         </div>
 
         {/* Articles */}
-        <section className="py-8 lg:py-12" style={{ borderTop: `3px solid ${accent}` }}>
+        <section className="py-10 lg:py-16">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="w-1.5 h-8 rounded-full" style={{ backgroundColor: accent }} />
+              <div className="flex items-center gap-3 mb-8">
+                <span className="w-1.5 h-10 rounded-full" style={{ backgroundColor: accent }} />
                 <h2 className="text-xl lg:text-2xl font-black font-display" style={{ color: accent }}>
                   Articles by {name}
                 </h2>
-                <span className="text-sm font-bold text-gray-400">({mappedPosts.length})</span>
+                <span className="text-sm font-bold text-gray-400">({articleCount})</span>
               </div>
 
               {mappedPosts.length === 0 ? (
@@ -240,8 +345,11 @@ export default async function AuthorPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="mt-8">
-                <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors" style={{ color: accent }}>
+              <div className="mt-10 text-center">
+                <Link
+                  href="/"
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm transition-colors"
+                >
                   <ArrowLeft className="w-4 h-4" /> Back to Homepage
                 </Link>
               </div>
