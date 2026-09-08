@@ -38,7 +38,8 @@ export interface Post {
     bio?: string | null;
     socialLinks?: { facebook?: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; studentProfile?: string; writerProfile?: string } | null;
     profileColor?: string;
-    coverImage?: string;
+    coverImage?: string | null;
+    coverPosition?: number;
   };
   media: PostMedia[];
   tags: string[];

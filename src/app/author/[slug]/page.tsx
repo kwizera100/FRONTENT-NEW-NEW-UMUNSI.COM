@@ -127,6 +127,7 @@ export default async function AuthorPage({ params }: Props) {
   const avatar = rawAvatar ? normalizeMediaUrl(rawAvatar) : null;
   const rawCover = author.coverImage;
   const coverImage = rawCover ? normalizeMediaUrl(rawCover) : null;
+  const coverPosition = author.coverPosition || 50;
   const bio = author.bio || "";
   const socialLinks = author.socialLinks
     ? (typeof author.socialLinks === "string" ? JSON.parse(author.socialLinks) : author.socialLinks)
@@ -150,7 +151,7 @@ export default async function AuthorPage({ params }: Props) {
           {/* Cover */}
           <div className="relative h-56 sm:h-72 lg:h-96 overflow-hidden">
             {coverImage ? (
-              <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" priority />
+              <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" style={{ objectPosition: `center ${coverPosition}%` }} priority />
             ) : (
               <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }} />
             )}
@@ -208,112 +209,81 @@ export default async function AuthorPage({ params }: Props) {
                     </div>
                   </div>
 
-                  {/* Bio */}
+                  {/* Bio - shown in profile card */}
                   {bio && (
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">About</h2>
-                      <p className="text-gray-700 text-base sm:text-lg leading-8 whitespace-pre-line">
-                        {bio}
-                      </p>
+                      <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
+                        <p className="text-gray-700 text-base sm:text-lg leading-8 whitespace-pre-line">
+                          {bio}
+                        </p>
+                      </div>
                     </div>
                   )}
 
-                  {/* Social Links */}
+                  {/* Social Links - grouped in a card */}
                   {hasAnySocial && (
                     <div className="mt-6 pt-6 border-t border-gray-100">
                       <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">Connect</h2>
-                      <div className="flex flex-wrap items-center gap-2.5">
-                        {/* Student platform */}
-                        {socialLinks.studentProfile && (
-                          <a
-                            href={socialLinks.studentProfile}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
-                            title="Student profile"
-                          >
-                            <img src="/images/student-umunsi-logo.png" alt="Student" className="w-6 h-6 object-contain" />
-                            <span className="text-sm font-bold text-gray-700">Student</span>
-                          </a>
-                        )}
-                        {/* Writer platform */}
-                        {socialLinks.writerProfile && (
-                          <a
-                            href={socialLinks.writerProfile}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-all"
-                            title="Writer profile"
-                          >
-                            <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-6 h-6 object-contain" />
-                            <span className="text-sm font-bold text-gray-700">Writer</span>
-                          </a>
-                        )}
-                        {/* Facebook */}
-                        {socialLinks.facebook && (
-                          <a
-                            href={socialLinks.facebook}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
-                            style={{ backgroundColor: "#1877f2" }}
-                            title="Facebook"
-                          >
-                            <Facebook className="w-5 h-5" />
-                          </a>
-                        )}
-                        {/* Twitter / X */}
-                        {socialLinks.twitter && (
-                          <a
-                            href={socialLinks.twitter}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
-                            style={{ backgroundColor: "#000000" }}
-                            title="X (Twitter)"
-                          >
-                            <Twitter className="w-5 h-5" />
-                          </a>
-                        )}
-                        {/* LinkedIn */}
-                        {socialLinks.linkedin && (
-                          <a
-                            href={socialLinks.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
-                            style={{ backgroundColor: "#0a66c2" }}
-                            title="LinkedIn"
-                          >
-                            <Linkedin className="w-5 h-5" />
-                          </a>
-                        )}
-                        {/* Instagram */}
-                        {socialLinks.instagram && (
-                          <a
-                            href={socialLinks.instagram}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
-                            style={{ background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" }}
-                            title="Instagram"
-                          >
-                            <Instagram className="w-5 h-5" />
-                          </a>
-                        )}
-                        {/* Website */}
-                        {socialLinks.website && (
-                          <a
-                            href={socialLinks.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg"
-                            style={{ backgroundColor: accent }}
-                            title="Website"
-                          >
-                            <Globe className="w-5 h-5" />
-                          </a>
-                        )}
+                      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          {/* Student platform */}
+                          {socialLinks.studentProfile && (
+                            <a
+                              href={socialLinks.studentProfile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-all hover:shadow-md"
+                              title="Student profile"
+                            >
+                              <img src="/images/student-umunsi-logo.png" alt="Student" className="w-6 h-6 object-contain" />
+                              <span className="text-sm font-bold text-gray-700">Student</span>
+                            </a>
+                          )}
+                          {/* Writer platform */}
+                          {socialLinks.writerProfile && (
+                            <a
+                              href={socialLinks.writerProfile}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-all hover:shadow-md"
+                              title="Writer profile"
+                            >
+                              <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-6 h-6 object-contain" />
+                              <span className="text-sm font-bold text-gray-700">Writer</span>
+                            </a>
+                          )}
+                          {/* Social icons */}
+                          {(socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website) && (
+                            <div className="flex items-center gap-2">
+                              {socialLinks.facebook && (
+                                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#1877f2" }} title="Facebook">
+                                  <Facebook className="w-5 h-5" />
+                                </a>
+                              )}
+                              {socialLinks.twitter && (
+                                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#000000" }} title="X (Twitter)">
+                                  <Twitter className="w-5 h-5" />
+                                </a>
+                              )}
+                              {socialLinks.linkedin && (
+                                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#0a66c2" }} title="LinkedIn">
+                                  <Linkedin className="w-5 h-5" />
+                                </a>
+                              )}
+                              {socialLinks.instagram && (
+                                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" }} title="Instagram">
+                                  <Instagram className="w-5 h-5" />
+                                </a>
+                              )}
+                              {socialLinks.website && (
+                                <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: accent }} title="Website">
+                                  <Globe className="w-5 h-5" />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}

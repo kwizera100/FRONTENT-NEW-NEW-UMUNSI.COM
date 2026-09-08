@@ -39,6 +39,7 @@ export default function ProfilePage() {
     studentProfile: "",
     writerProfile: "",
   });
+  const [coverPosition, setCoverPosition] = useState(50);
 
   useEffect(() => {
     const token = localStorage.getItem("umunsi_admin_token");
@@ -67,6 +68,7 @@ export default function ProfilePage() {
     setProfileColor(userExtras.profileColor);
     setAvatarUrl(u.avatar ? normalizeMediaUrl(u.avatar) : "");
     setCoverUrl(userExtras.coverImage ? normalizeMediaUrl(userExtras.coverImage) : "");
+    setCoverPosition(u.coverPosition || extras.coverPosition || 50);
     if (userExtras.socialLinks) {
       try {
         const links = typeof userExtras.socialLinks === "string" ? JSON.parse(userExtras.socialLinks) : userExtras.socialLinks;
@@ -98,6 +100,7 @@ export default function ProfilePage() {
             setAvatarUrl((prev) => prev || (merged.avatar ? normalizeMediaUrl(merged.avatar) : ""));
             setProfileColor((prev) => prev || (merged.profileColor || "#e5b60d"));
             setCoverUrl((prev) => prev || (merged.coverImage ? normalizeMediaUrl(merged.coverImage) : ""));
+            setCoverPosition((prev) => prev || (merged.coverPosition || 50));
             setSocialLinks((prev) => {
               if (prev.facebook || prev.twitter || prev.linkedin || prev.instagram || prev.website) return prev;
               if (!merged.socialLinks) return prev;
@@ -201,6 +204,7 @@ export default function ProfilePage() {
             profileColor,
             coverImage: coverUrl || undefined,
             socialLinks: JSON.stringify(socialLinks),
+            coverPosition,
           }),
         });
 
@@ -221,6 +225,7 @@ export default function ProfilePage() {
       const profileExtras = {
         profileColor,
         coverImage: coverUrl || undefined,
+        coverPosition,
         socialLinks,
         bio,
         avatar: avatarUrl || undefined,
@@ -511,6 +516,36 @@ export default function ProfilePage() {
               />
             </label>
           </div>
+          {/* Cover position picker */}
+          {coverUrl && (
+            <div className="mt-3">
+              <label className="block text-xs font-bold text-gray-500 mb-2">Cover position (drag to choose which part shows)</label>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={coverPosition}
+                onChange={(e) => setCoverPosition(Number(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#e5b60d]"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                <span>Top</span>
+                <span>Center</span>
+                <span>Bottom</span>
+              </div>
+              {/* Live preview */}
+              <div className="mt-2 rounded-lg overflow-hidden ring-2 ring-gray-200">
+                <div className="w-full h-24 relative">
+                  <img
+                    src={coverUrl}
+                    alt="Cover preview"
+                    className="w-full h-full object-cover"
+                    style={{ objectPosition: `center ${coverPosition}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bio */}

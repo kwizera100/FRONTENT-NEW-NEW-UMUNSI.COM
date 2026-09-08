@@ -74,6 +74,7 @@ export interface ApiPost {
     socialLinks: string | null;
     profileColor: string | null;
     coverImage: string | null;
+    coverPosition?: number | null;
     role: string;
     isVerified: boolean;
   };
@@ -152,7 +153,8 @@ export function mapApiPost(post: ApiPost) {
       bio: post.author?.bio || null,
       socialLinks: post.author?.socialLinks ? (typeof post.author.socialLinks === "string" ? JSON.parse(post.author.socialLinks) : post.author.socialLinks) : null,
       profileColor: post.author?.profileColor || "#e5b60d",
-      coverImage: fixImageUrl(post.author?.coverImage),
+      coverImage: post.author?.coverImage ? fixImageUrl(post.author.coverImage) : null,
+      coverPosition: post.author?.coverPosition || 50,
     },
     media: [],
     coCategoryIds: post.coCategoryIds || [],
