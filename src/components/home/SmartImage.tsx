@@ -12,9 +12,10 @@ interface SmartImageProps {
   sizes?: string;
   priority?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }
 
-export function SmartImage({ src, alt, fill, sizes, priority, className }: SmartImageProps) {
+export function SmartImage({ src, alt, fill, sizes, priority, className, style }: SmartImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
   const [errored, setErrored] = useState(false);
 
@@ -28,7 +29,7 @@ export function SmartImage({ src, alt, fill, sizes, priority, className }: Smart
       // @ts-expect-error — priority is not a native img attr, but harmless
       priority={priority}
       className={className}
-      style={fill ? { width: "100%", height: "100%", objectFit: "cover" } : undefined}
+      style={{ ...(fill ? { width: "100%", height: "100%", objectFit: "cover" } : {}), ...style }}
       loading={priority ? "eager" : "lazy"}
       onError={() => {
         if (!errored) {
