@@ -34,7 +34,7 @@ export interface Post {
     id: string;
     username: string;
     name: string;
-    avatar?: string;
+    avatar?: string | null;
     bio?: string | null;
     socialLinks?: { facebook?: string; twitter?: string; linkedin?: string; instagram?: string; website?: string; studentProfile?: string; writerProfile?: string } | null;
     profileColor?: string;
