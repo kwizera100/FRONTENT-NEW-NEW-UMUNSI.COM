@@ -20,12 +20,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     // empty UAs as bots anyway).
     const visitorUA = req.headers.get("user-agent") || "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36";
 
+    // Forward the visitor's real IP so the backend can deduplicate views per-visitor
+    // instead of treating all views as coming from the Vercel server's IP.
+    // Vercel provides the client IP in x-forwarded-for, x-vercel-forwarded-for,
+    // or x-real-ip headers.
+    const clientIP =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-vercel-forwarded-for") ||
+      req.headers.get("x-real-ip") ||
+      "";
+
     const res = await fetch(`${API_BASE}/analytics/article/${encodeURIComponent(params.id)}/view`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "User-Agent": visitorUA,
         Accept: "application/json",
+        ...(clientIP ? { "X-Forwarded-For": clientIP, "X-Real-IP": clientIP } : {}),
       },
       body: JSON.stringify(body),
     });

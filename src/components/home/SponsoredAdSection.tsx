@@ -78,7 +78,7 @@ export function SponsoredAdSection({ variant = "full" }: { variant?: "full" | "s
           <img
             src={image}
             alt={title}
-            className="w-full h-full object-cover bg-white"
+            className="w-full h-full object-contain bg-white"
           />
         ) : (
           <DefaultAd />
@@ -97,8 +97,8 @@ export function SponsoredAdSection({ variant = "full" }: { variant?: "full" | "s
 
   if (variant === "sidebar") {
     return (
-      <div className="w-full h-full">
-        <Banner heightClass="h-full" />
+      <div className="w-full">
+        <Banner heightClass="h-[90px]" />
       </div>
     );
   }

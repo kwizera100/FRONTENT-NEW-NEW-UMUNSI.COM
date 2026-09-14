@@ -208,7 +208,7 @@ export default function AdminSettingsPage() {
               placeholder="https://... (GIF, PNG, JPG, WebP)"
               className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
             />
-            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 728x90.</p>
+            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 300x250 (vertical slot, GIF supported).</p>
           </div>
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Title</label>
@@ -231,7 +231,7 @@ export default function AdminSettingsPage() {
             />
           </div>
           {sponsoredBannerImage && (
-            <div className="rounded-xl overflow-hidden border border-ink-200 h-[90px] w-full bg-white">
+            <div className="rounded-xl overflow-hidden border border-ink-200 h-[200px] w-full bg-white">
               <img src={sponsoredBannerImage} alt="Banner preview" className="w-full h-full object-contain" />
             </div>
           )}
@@ -259,7 +259,7 @@ export default function AdminSettingsPage() {
               placeholder="https://... (GIF, PNG, JPG, WebP)"
               className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
             />
-            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 728x90.</p>
+            <p className="text-xs text-ink-400 mt-1">Recommended exact size: 728x90 (leaderboard slot, GIF supported).</p>
           </div>
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Title</label>
