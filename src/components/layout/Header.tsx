@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CategoryBar } from "@/components/home/CategoryBar";
 
 interface HeaderCategory {
   id: string;
@@ -13,7 +14,7 @@ interface HeaderCategory {
   icon?: string | null;
 }
 
-export function Header({ categories: _categories = [] }: { categories?: HeaderCategory[] }) {
+export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -102,6 +103,9 @@ export function Header({ categories: _categories = [] }: { categories?: HeaderCa
           </div>
         )}
       </div>
+
+      {/* Category navigation bar */}
+      {categories.length > 0 && <CategoryBar categories={categories} />}
     </header>
   );
 }
