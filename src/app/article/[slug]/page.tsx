@@ -8,6 +8,9 @@ import { ArticleContent } from "@/components/article/ArticleContent";
 import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
 import { AuthorCard } from "@/components/article/AuthorCard";
 import { AuthorAvatar } from "@/components/article/AuthorAvatar";
+import { PaymentPopupTrigger } from "@/components/article/PaymentPopupTrigger";
+import { SponsorBanner } from "@/components/article/SponsorBanner";
+import { ArticlePaywall } from "@/components/article/ArticlePaywall";
 import { formatDate, formatTimeAgo, normalizeMediaUrl } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -199,6 +202,12 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               )}
 
               <ArticleContent html={mappedPost.content || ""} />
+
+              <ArticlePaywall postId={post.id} postTitle={post.title} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} />
+
+              <SponsorBanner adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
+
+              <PaymentPopupTrigger adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
 
               <AuthorCard author={author} />
             </div>

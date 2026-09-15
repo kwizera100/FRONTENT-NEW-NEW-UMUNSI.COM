@@ -24,6 +24,7 @@ import {
   Link2,
   FolderOpen,
   CheckCircle2,
+  Crown,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl, isValidUrl, getLinkDomain, getLinkFavicon } from "@/lib/utils";
@@ -84,6 +85,13 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   const [featured, setFeatured] = useState(initialPost?.isFeatured || false);
   const [coverImage, setCoverImage] = useState(initialPost?.featuredImage || "");
   const [tags, setTags] = useState<string[]>(initialPost?.tags || []);
+  const [isPremium, setIsPremium] = useState((initialPost as any)?.isPremium || false);
+  const [showAdsense, setShowAdsense] = useState(true);
+  const [showAdsterra, setShowAdsterra] = useState(true);
+  const [sponsorName, setSponsorName] = useState("");
+  const [sponsorUrl, setSponsorUrl] = useState("");
+  const [articlePrice, setArticlePrice] = useState<number>(0);
+  const [requirePayment, setRequirePayment] = useState(false);
   const [tagInput, setTagInput] = useState("");
   const [showCoverUploader, setShowCoverUploader] = useState(false);
   const [showMediaInContent, setShowMediaInContent] = useState(false);
@@ -154,6 +162,37 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     if (initialPost?.content !== undefined) {
       setContent(decodeHtmlEntities(initialPost.content || ""));
       didInitContent.current = false;
+    }
+    if (initialPost) {
+      setIsPremium((initialPost as any).isPremium || false);
+      // Load adConfig from dedicated field
+      const rawAdConfig = (initialPost as any).adConfig;
+      if (rawAdConfig) {
+        try {
+          const parsed = typeof rawAdConfig === "string" ? JSON.parse(rawAdConfig) : rawAdConfig;
+          if (parsed && typeof parsed === "object") {
+            setShowAdsense(parsed.showAdsense !== false);
+            setShowAdsterra(parsed.showAdsterra !== false);
+            setSponsorName(parsed.sponsorName || "");
+            setSponsorUrl(parsed.sponsorUrl || "");
+          }
+        } catch {
+          // ignore
+        }
+      }
+      // Load articlePayment from dedicated field
+      const rawPayment = (initialPost as any).articlePayment;
+      if (rawPayment) {
+        try {
+          const parsed = typeof rawPayment === "string" ? JSON.parse(rawPayment) : rawPayment;
+          if (parsed && typeof parsed === "object") {
+            setRequirePayment(Boolean(parsed.requirePayment));
+            setArticlePrice(Number(parsed.price) || 0);
+          }
+        } catch {
+          // ignore
+        }
+      }
     }
   }, [initialPost]);
 
@@ -397,7 +436,10 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         status: publish ? "PUBLISHED" : "DRAFT",
         publishedAt: publish ? new Date().toISOString() : undefined,
         isFeatured: featured,
+        isPremium,
         tags: tags.length > 0 ? tags : undefined,
+        adConfig: { showAdsense, showAdsterra, sponsorName, sponsorUrl },
+        articlePayment: { requirePayment, price: articlePrice },
         authors: authors.length > 0 ? authors : undefined,
         authorId: selectedAuthorId || undefined,
       };
@@ -694,6 +736,110 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             <p className="text-xs text-ink-400 mt-2">
               Will appear on the homepage slider
             </p>
+          </div>
+
+          {/* Premium Article */}
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <label className="flex items-center justify-between cursor-pointer">
+              <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-brand-500" />
+                Premium Article (No Ads)
+              </span>
+              <button
+                onClick={() => setIsPremium(!isPremium)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${isPremium ? "bg-brand-600" : "bg-ink-200"}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${isPremium ? "translate-x-6" : "translate-x-0.5"}`} />
+              </button>
+            </label>
+            <p className="text-xs text-ink-400 mt-2">
+              Premium articles show no ads. Users pay to read without ads.
+            </p>
+          </div>
+
+          {/* Ad Controls */}
+          {!isPremium && (
+            <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+              <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
+                <Star className="w-4 h-4 text-brand-500" /> Ad Settings
+              </label>
+              <div className="space-y-3">
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-semibold text-ink-600">Google AdSense</span>
+                  <button
+                    onClick={() => setShowAdsense(!showAdsense)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${showAdsense ? "bg-brand-600" : "bg-ink-200"}`}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${showAdsense ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </button>
+                </label>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <span className="text-xs font-semibold text-ink-600">Adsterra Ads</span>
+                  <button
+                    onClick={() => setShowAdsterra(!showAdsterra)}
+                    className={`relative w-12 h-6 rounded-full transition-colors ${showAdsterra ? "bg-brand-600" : "bg-ink-200"}`}
+                  >
+                    <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${showAdsterra ? "translate-x-6" : "translate-x-0.5"}`} />
+                  </button>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Sponsor */}
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
+              <Star className="w-4 h-4 text-brand-500" /> Sponsored By
+            </label>
+            <p className="text-xs text-ink-400 mb-3">
+              Shows "Article Sponsored by..." at the top of the article. Link redirects to partner URL.
+            </p>
+            <input
+              type="text"
+              value={sponsorName}
+              onChange={(e) => setSponsorName(e.target.value)}
+              placeholder="Partner name (e.g. MTN Rwanda)"
+              className="w-full px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm mb-2"
+            />
+            <input
+              type="url"
+              value={sponsorUrl}
+              onChange={(e) => setSponsorUrl(e.target.value)}
+              placeholder="https://partner-url.rw"
+              className="w-full px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm"
+            />
+          </div>
+
+          {/* Article Payment — Pay-per-article */}
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <label className="flex items-center justify-between cursor-pointer mb-3">
+              <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
+                <Crown className="w-4 h-4 text-brand-500" />
+                Require Payment for this Article
+              </span>
+              <button
+                onClick={() => setRequirePayment(!requirePayment)}
+                className={`relative w-12 h-6 rounded-full transition-colors ${requirePayment ? "bg-brand-600" : "bg-ink-200"}`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${requirePayment ? "translate-x-6" : "translate-x-0.5"}`} />
+              </button>
+            </label>
+            <p className="text-xs text-ink-400 mb-3">
+              When ON, readers must pay this price to read the full article. They get access anytime after paying.
+            </p>
+            {requirePayment && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-ink-500">Price (RWF):</span>
+                <input
+                  type="number"
+                  min={0}
+                  value={articlePrice}
+                  onChange={(e) => setArticlePrice(Math.max(0, parseInt(e.target.value) || 0))}
+                  className="w-full px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                  placeholder="e.g. 500"
+                />
+              </div>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
