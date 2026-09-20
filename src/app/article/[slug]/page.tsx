@@ -11,6 +11,7 @@ import { AuthorAvatar } from "@/components/article/AuthorAvatar";
 import { PaymentPopupTrigger } from "@/components/article/PaymentPopupTrigger";
 import { SponsorBanner } from "@/components/article/SponsorBanner";
 import { ArticlePaywall } from "@/components/article/ArticlePaywall";
+import { CommentSection } from "@/components/article/CommentSection";
 import { formatDate, formatTimeAgo, normalizeMediaUrl } from "@/lib/utils";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -208,6 +209,8 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               <SponsorBanner adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
 
               <PaymentPopupTrigger adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
+
+              <CommentSection postId={post.id} postTitle={post.title} />
 
               <AuthorCard author={author} />
             </div>

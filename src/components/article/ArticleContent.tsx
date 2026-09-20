@@ -101,16 +101,23 @@ function createProfitableRateAd(): HTMLElement {
   wrapper.className = "my-6 sm:my-8";
   wrapper.style.cssText = "text-align: center; min-height: 250px;";
 
-  const container = document.createElement("div");
-  container.id = PROFITABLE_RATE_CONTAINER_ID;
-  wrapper.appendChild(container);
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "width:100%;border:0;overflow:hidden;display:block;";
+  iframe.setAttribute("scrolling", "no");
+  iframe.setAttribute("loading", "lazy");
+  iframe.setAttribute("title", "Advertisement");
+  iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:0}</style></head><body><div id="${PROFITABLE_RATE_CONTAINER_ID}"></div><script async data-cfasync="false" src="${PROFITABLE_RATE_SCRIPT_SRC}"><\/script></body></html>`;
+  iframe.onload = () => {
+    try {
+      const h = iframe.contentDocument?.body?.scrollHeight;
+      if (h && h > 0) iframe.style.height = `${h}px`;
+      else iframe.style.height = "250px";
+    } catch {
+      iframe.style.height = "250px";
+    }
+  };
 
-  const script = document.createElement("script");
-  script.async = true;
-  script.setAttribute("data-cfasync", "false");
-  script.src = PROFITABLE_RATE_SCRIPT_SRC;
-  wrapper.appendChild(script);
-
+  wrapper.appendChild(iframe);
   return wrapper;
 }
 
