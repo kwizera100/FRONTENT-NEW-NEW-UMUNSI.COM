@@ -75,6 +75,7 @@ export default function RootLayout({
       <body className="font-sans">
         {children}
         <script async src="https://pl18337357.profitableratecpmnetwork.com/8b/bd/af/8bbdaf0eb5f4fa429c2183dbad47a65a.js" />
+        <script async src="https://pl22417990.profitableratecpmnetwork.com/5e/33/e8/5e33e80096b0f155e2c9370fe7ed66c8.js" />
       </body>
     </html>
   );
