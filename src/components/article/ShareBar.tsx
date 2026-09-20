@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2, Bookmark, Copy, Check, Facebook, Twitter, MessageCircle, Linkedin } from "lucide-react";
+import { Share2, Bookmark, Copy, Check } from "lucide-react";
 
 interface ShareBarProps {
   title: string;
@@ -48,13 +48,6 @@ export function ShareBar({ title, slug }: ShareBarProps) {
     }
   };
 
-  const shareLinks = [
-    { icon: Facebook, label: "Facebook", color: "hover:bg-[#1877F2] hover:text-white", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}` },
-    { icon: Twitter, label: "Twitter", color: "hover:bg-[#1DA1F2] hover:text-white", url: `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}` },
-    { icon: MessageCircle, label: "WhatsApp", color: "hover:bg-[#25D366] hover:text-white", url: `https://wa.me/?text=${encodeURIComponent(`${title} - ${url}`)}` },
-    { icon: Linkedin, label: "LinkedIn", color: "hover:bg-[#0A66C2] hover:text-white", url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}` },
-  ];
-
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8 pb-6 border-b border-gray-100">
       <span className="text-sm font-bold text-gray-500 flex items-center gap-1.5 shrink-0">
@@ -62,19 +55,21 @@ export function ShareBar({ title, slug }: ShareBarProps) {
       </span>
 
       <div className="flex items-center gap-2 flex-wrap">
-        {shareLinks.map((platform) => (
-          <a
-            key={platform.label}
-            href={platform.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-semibold transition-all flex items-center gap-1.5 ${platform.color}`}
-            aria-label={`Sanga kuri ${platform.label}`}
-          >
-            <platform.icon className="w-4 h-4" />
-            <span className="hidden sm:inline">{platform.label}</span>
-          </a>
-        ))}
+        <a
+          href={`https://writer.umunsi.com/`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 hover:bg-[#e5b60d]/10 transition-all flex items-center"
+          aria-label="Sanga kuri writer.umunsi.com"
+          title="writer.umunsi.com"
+        >
+          <img
+            src="/images/umunsimedia-logo.jpg"
+            alt="writer.umunsi.com"
+            className="h-5 sm:h-6 w-auto"
+            loading="lazy"
+          />
+        </a>
       </div>
 
       <button
