@@ -85,6 +85,22 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
                 loading="lazy"
               />
             </a>
+            <a
+              href="https://eng.umunsi.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center shrink-0"
+              title="Umunsi English"
+            >
+              <img
+                src="/images/eng-umunsi-logo.svg"
+                alt="eng.umunsi.com"
+                width={60}
+                height={36}
+                className="h-7 sm:h-8 w-auto rounded"
+                loading="lazy"
+              />
+            </a>
           </div>
 
           {/* Desktop nav */}
