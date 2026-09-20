@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Lock, User, ArrowRight } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const [identifier, setIdentifier] = useState("admin@umunsi.com");
+  const [identifier, setIdentifier] = useState("admin@eng.umunsi.com");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,10 +46,10 @@ export default function AdminLoginPage() {
             </div>
             <div>
               <span className="text-2xl font-black text-white">Umunsi</span>
-              <span className="text-brand-500 text-2xl font-black">.com</span>
+              <span className="text-brand-500 text-2xl font-black"> English</span>
             </div>
           </div>
-          <p className="text-white/50 text-sm">Admin Dashboard</p>
+          <p className="text-white/50 text-sm">Admin Dashboard — eng.umunsi.com</p>
         </div>
 
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-ink-100 focus:border-brand-500 outline-none transition-colors"
-                  placeholder="admin@umunsi.com or username"
+                  placeholder="admin@eng.umunsi.com or username"
                   required
                 />
               </div>
