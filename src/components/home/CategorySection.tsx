@@ -32,7 +32,7 @@ export function CategorySection({ category, posts }: CategorySectionProps) {
             href={`/category/${category.slug}`}
             className="flex items-center gap-1 text-sm font-bold text-brand-600 hover:text-brand-700 transition-colors"
           >
-            Reba byinshi <ArrowRight className="w-4 h-4" />
+            View more <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

@@ -75,15 +75,15 @@ function ResetPasswordForm() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-black text-ink-900">Byakunze</h2>
+              <h2 className="text-2xl font-black text-ink-900">Success</h2>
               <p className="text-ink-500 text-sm">Ijambo ry'ibanga ryahinduwe. Kwinjira...</p>
             </div>
           ) : (
             <>
               <Link href="/admin/login" className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-brand-600 mb-4">
-                <ArrowLeft className="w-4 h-4" /> Subira ku login
+                <ArrowLeft className="w-4 h-4" /> Back to login
               </Link>
-              <h2 className="text-2xl font-black text-ink-900 mb-2">Hindura ijambo ry'ibanga</h2>
+              <h2 className="text-2xl font-black text-ink-900 mb-2">Reset your password</h2>
               <p className="text-ink-400 text-sm mb-6">Andika email, kode yohererejwe, n'ijambo ry'ibanga rishya.</p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -96,21 +96,21 @@ function ResetPasswordForm() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">Kode yohererejwe</label>
+                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">Reset code</label>
                   <div className="relative">
                     <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
                     <input type="text" value={code} onChange={(e) => setCode(e.target.value)} required className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-ink-100 focus:border-brand-500 outline-none transition-colors" placeholder="123456" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">Ijambo ry'ibanga rishya</label>
+                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">New password</label>
                   <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-ink-100 focus:border-brand-500 outline-none transition-colors" placeholder="••••••••" />
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">Subiramo ijambo ry'ibanga</label>
+                  <label className="text-sm font-semibold text-ink-700 mb-1.5 block">Confirm password</label>
                   <div className="relative">
                     <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-400" />
                     <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} required minLength={6} className="w-full pl-11 pr-4 py-3 rounded-xl border-2 border-ink-100 focus:border-brand-500 outline-none transition-colors" placeholder="••••••••" />
@@ -131,7 +131,7 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-ink-900 flex items-center justify-center text-white">Birimo kuboneka...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-ink-900 flex items-center justify-center text-white">Loading...</div>}>
       <ResetPasswordForm />
     </Suspense>
   );

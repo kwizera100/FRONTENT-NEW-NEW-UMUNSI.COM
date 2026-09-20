@@ -67,7 +67,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
 
   const handleSubmit = async () => {
     if (!name.trim() || !email.trim() || !phone.trim()) {
-      setError("Uzuza amakuru yose: Amazina, Email, na Telefoni");
+      setError("Fill in all fields: Name, Email, and Phone");
       return;
     }
     setLoading(true);
@@ -89,10 +89,10 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
           localStorage.setItem("umunsi_subscribed", "active");
         } catch {}
       } else {
-        setError(data.error || "Habayemo ikibazo. Gerageza nyuma.");
+        setError(data.error || "Something went wrong. Try again later.");
       }
     } catch {
-      setError("Ntibishoboye. Gerageza nyuma.");
+      setError("Could not complete. Try again later.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +107,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
         <div className="sticky top-0 bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] text-white p-5 rounded-t-2xl flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <Crown className="w-6 h-6" />
-            <h2 className="text-lg font-black">SOMA INKURU NTA ADS ZIRIMO</h2>
+            <h2 className="text-lg font-black">READ WITHOUT ADS</h2>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/20 transition-colors">
             <X className="w-5 h-5" />
@@ -119,7 +119,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
           {step === "packages" && (
             <div>
               <p className="text-sm text-gray-600 mb-4 text-center">
-                Wishyure usome inkuru zose nta ads zirimo ukwezi kose.
+                Subscribe to read all articles ad-free for a whole month.
               </p>
               <div className="space-y-3">
                 {enabledPackages.map(([key, pkg]) => (
@@ -131,7 +131,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-bold text-gray-900">{pkg.label}</p>
-                        <p className="text-xs text-gray-500 mt-0.5">Soma inkuru zose nta ads</p>
+                        <p className="text-xs text-gray-500 mt-0.5">Read all articles ad-free</p>
                       </div>
                       <div className="text-right">
                         <p className="text-xl font-black text-[#e5b60d]">{pkg.price.toLocaleString()}</p>
@@ -142,19 +142,19 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                 ))}
               </div>
               <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                <p className="text-xs font-bold text-blue-700 mb-2">Iyo wishyuye ubona:</p>
+                <p className="text-xs font-bold text-blue-700 mb-2">When you subscribe you get:</p>
                 <ul className="space-y-1.5 text-xs text-blue-700">
                   <li className="flex items-start gap-2">
                     <span className="font-black text-[#e5b60d]">1.</span>
-                    <span>Verification Badge kuri App yacu ya UMUNSI MEDIA</span>
+                    <span>Verification Badge on our UMUNSI MEDIA App</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-black text-[#e5b60d]">2.</span>
-                    <span>Usoma inkuru zihariye ku buntu nta ads zirimo</span>
+                    <span>Read exclusive articles for free with no ads</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-black text-[#e5b60d]">3.</span>
-                    <span>Ubasha kuganira n&rsquo;abanyamakuru ba UMUNSI.COM</span>
+                    <span>Chat with UMUNSI.COM journalists</span>
                   </li>
                 </ul>
               </div>
@@ -164,8 +164,8 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
           {/* Step 2: Payment Method */}
           {step === "payment" && (
             <div>
-              <button onClick={() => setStep("packages")} className="text-xs text-gray-500 hover:text-gray-700 mb-3">&larr; Subira inyuma</button>
-              <p className="text-sm text-gray-600 mb-4 text-center">Hitamo nzira y'ishyura:</p>
+              <button onClick={() => setStep("packages")} className="text-xs text-gray-500 hover:text-gray-700 mb-3">&larr; Go back</button>
+              <p className="text-sm text-gray-600 mb-4 text-center">Choose a payment method:</p>
               <div className="space-y-3">
                 {config?.paymentMethods.mtn.enabled && (
                   <button
@@ -177,7 +177,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900">{config.paymentMethods.mtn.label}</p>
-                      {config.paymentMethods.mtn.comingSoon && <span className="text-xs text-orange-500 font-semibold">Baza vuba cyane!</span>}
+                      {config.paymentMethods.mtn.comingSoon && <span className="text-xs text-orange-500 font-semibold">Coming very soon!</span>}
                     </div>
                   </button>
                 )}
@@ -191,7 +191,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900">{config.paymentMethods.airtel.label}</p>
-                      {config.paymentMethods.airtel.comingSoon && <span className="text-xs text-orange-500 font-semibold">Baza vuba cyane!</span>}
+                      {config.paymentMethods.airtel.comingSoon && <span className="text-xs text-orange-500 font-semibold">Coming very soon!</span>}
                     </div>
                   </button>
                 )}
@@ -205,7 +205,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-gray-900">{config.paymentMethods.bank.label}</p>
-                      <span className="text-xs text-green-600 font-semibold">Biri ku murongo!</span>
+                      <span className="text-xs text-green-600 font-semibold">Available now!</span>
                     </div>
                   </button>
                 )}
@@ -216,27 +216,27 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
           {/* Step 3: Form */}
           {step === "form" && (
             <div>
-              <button onClick={() => setStep("payment")} className="text-xs text-gray-500 hover:text-gray-700 mb-3">&larr; Subira inyuma</button>
+              <button onClick={() => setStep("payment")} className="text-xs text-gray-500 hover:text-gray-700 mb-3">&larr; Go back</button>
               <p className="text-sm text-gray-600 mb-4 text-center">
-                Uzuza amakuru yawe. Twabayeje kuri email yawe ibyangobwa by'ishyura.
+                Fill in your details. We'll send payment instructions to your email.
               </p>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Amazina *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Name *</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} placeholder="Andika amazina yawe" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none text-sm" />
+                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} placeholder="Enter your name" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none text-sm" />
                   </div>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Email *</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={200} placeholder="email@urugendo.rw" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none text-sm" />
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={200} placeholder="email@example.com" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none text-sm" />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-600 mb-1">Telefoni *</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1">Phone *</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={20} placeholder="+250 7XX XXX XXX" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none text-sm" />
@@ -254,7 +254,7 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
                 disabled={loading}
                 className="w-full mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] disabled:opacity-60 text-white font-bold transition-colors text-sm"
               >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Kohereza...</> : "Emeza ishyura"}
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : "Confirm payment"}
               </button>
             </div>
           )}
@@ -265,12 +265,12 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
               <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-4">
                 <Smartphone className="w-8 h-8 text-orange-500" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Iyi nzira baza vuba cyane!</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">This method is coming very soon!</h3>
               <p className="text-sm text-gray-500 mb-4">
-                MTN Mobile Money na Airtel Money bizaba biri ku murongo vuba. Kuri none, hitamo Bank Account wishyure.
+                MTN Mobile Money and Airtel Money will be available soon. For now, choose Bank Account to pay.
               </p>
               <button onClick={() => setStep("payment")} className="px-6 py-2.5 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold text-sm transition-colors">
-                Hitamo izindi nzira
+                Choose another method
               </button>
             </div>
           )}
@@ -281,21 +281,21 @@ export function PaymentPopup({ open, onClose }: PaymentPopupProps) {
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Byakunze! Twabayeje kuri email yawe.</h3>
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Done! We've sent you an email.</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Reba email yawe ubone amakuru y'ishyura kuri Bank. Nyuma y'uko wishyuye, uzahabwa Verification Badge ku murongo wa Umunsi Media.
+                Check your email for the bank payment details. Once you've paid, you'll receive a Verification Badge on the Umunsi Media platform.
               </p>
               {bankInfo && (
                 <div className="bg-gray-50 rounded-xl p-4 text-left mb-4">
-                  <p className="text-xs font-bold text-gray-600 mb-2">Amakuru ya Bank:</p>
+                  <p className="text-xs font-bold text-gray-600 mb-2">Bank details:</p>
                   <p className="text-sm text-gray-700"><strong>Bank:</strong> {bankInfo.bankName}</p>
-                  <p className="text-sm text-gray-700"><strong>Konti:</strong> {bankInfo.accountName}</p>
-                  <p className="text-sm text-gray-700"><strong>Numero:</strong> {bankInfo.accountNumber}</p>
-                  <p className="text-sm text-gray-700"><strong>Amfaranga:</strong> {bankInfo.amount?.toLocaleString()} {bankInfo.currency}</p>
+                  <p className="text-sm text-gray-700"><strong>Account:</strong> {bankInfo.accountName}</p>
+                  <p className="text-sm text-gray-700"><strong>Number:</strong> {bankInfo.accountNumber}</p>
+                  <p className="text-sm text-gray-700"><strong>Amount:</strong> {bankInfo.amount?.toLocaleString()} {bankInfo.currency}</p>
                 </div>
               )}
               <button onClick={onClose} className="px-6 py-2.5 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold text-sm transition-colors">
-                Murakoze!
+                Thank you!
               </button>
             </div>
           )}

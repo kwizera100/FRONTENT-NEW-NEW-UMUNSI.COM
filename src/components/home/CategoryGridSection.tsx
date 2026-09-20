@@ -42,7 +42,7 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
             className="text-sm font-bold flex items-center gap-1 hover:text-[#e5b60d] transition-colors"
             style={{ color: accent }}
           >
-            Reba byose <ArrowRight className="w-4 h-4" />
+            View all <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -136,7 +136,7 @@ function NBCWorldSection({ title, slug, color, posts }: { title: string; slug: s
             className="text-sm font-bold flex items-center gap-1 hover:text-[#e5b60d] transition-colors"
             style={{ color }}
           >
-            Reba byose <ArrowRight className="w-4 h-4" />
+            View all <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
@@ -237,7 +237,7 @@ function InkuruNBCNewsHome({ title, slug, color, posts }: { title: string; slug:
             className="text-sm font-bold flex items-center gap-1 hover:text-[#e5b60d] transition-colors"
             style={{ color }}
           >
-            Reba byose <ArrowRight className="w-4 h-4" />
+            View all <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 

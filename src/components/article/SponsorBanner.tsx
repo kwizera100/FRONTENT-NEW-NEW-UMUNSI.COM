@@ -25,7 +25,7 @@ export function SponsorBanner({ adConfig, isPremium }: SponsorBannerProps) {
     return (
       <div className="mb-6 p-3 rounded-xl bg-gradient-to-r from-[#e5b60d]/10 to-[#c9a00c]/10 border border-[#e5b60d]/30 flex items-center gap-2">
         <Crown className="w-4 h-4 text-[#e5b60d] shrink-0" />
-        <p className="text-xs font-bold text-[#c9a00c]">PREMIUM ARTICLE — Nta Ads ziri muri iyi nkuru</p>
+        <p className="text-xs font-bold text-[#c9a00c]">PREMIUM ARTICLE — No Ads</p>
       </div>
     );
   }

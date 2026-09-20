@@ -17,27 +17,27 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   title: {
-    default: "Umunsi.com — Entertainment, Health & Social Life through Education",
-    template: "%s | Umunsi.com",
+    default: "Umunsi English — News, Entertainment, Health & Social Life",
+    template: "%s | Umunsi English",
   },
   description:
     "Entertainment, Health and Social Life through Education. Home of Umunsimedia.com students App",
   keywords: [
     "Umunsi",
-    "amakuru",
+    "news",
     "Rwanda",
-    "inkuru",
-    "imikino",
-    "ikoranabuhanga",
-    "imyidagaduro",
+    "stories",
+    "sports",
+    "technology",
+    "entertainment",
     "cinema",
     "health",
   ],
   authors: [{ name: "Umunsi.com" }],
   openGraph: {
     type: "website",
-    locale: "rw_RW",
-    siteName: "Umunsi.com",
+    locale: "en_US",
+    siteName: "Umunsi English",
   },
   twitter: {
     card: "summary_large_image",
@@ -64,7 +64,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="rw" className={`${inter.variable} ${poppins.variable}`}>
+    <html lang="en" className={`${inter.variable} ${poppins.variable}`}>
       <head>
         <script
           async

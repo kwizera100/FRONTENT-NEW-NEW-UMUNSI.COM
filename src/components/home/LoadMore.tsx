@@ -49,7 +49,7 @@ export function LoadMore({ initialPosts }: LoadMoreProps) {
             disabled={loading}
             className="px-8 py-3 bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold rounded-xl transition-colors disabled:opacity-60"
           >
-            {loading ? "Kurakura..." : "Reba inkuru zindi"}
+            {loading ? "Loading..." : "Load more articles"}
           </button>
         </div>
       )}

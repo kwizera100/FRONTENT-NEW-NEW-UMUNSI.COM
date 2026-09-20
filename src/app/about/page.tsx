@@ -21,17 +21,17 @@ export default function AboutPage() {
           <p className="text-ink-700 leading-relaxed text-lg">
             Umunsi.com ni urubuga rw&apos;icyamamare rukeneye gutanga amakuru y&apos;ukuri,
             mw&apos;imikino, ikoranabuhanga, imyidagaduro, n&apos;ibindi byinshi. Tugamije
-            kuba urubuga rwa mbere mu Rwanda mu gutanga inkuru z&apos;ubwiza bwishe.
+            to be Rwanda's leading source of quality journalism.
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 my-12">
           {[
-            { icon: Target, title: "Intego", desc: "Gutanga inkuru z'ukuri n'ubwiza bwishe" },
+            { icon: Target, title: "Mission", desc: "Delivering accurate, quality news" },
             { icon: Eye, title: "Ubwiza", desc: "Tukuze ubwiza mu byanditse no mu byerekanwe" },
             { icon: Heart, title: "Ubumwe", desc: "Tugamije kubaka umuryango w'abanyarwanda" },
-            { icon: Zap, title: "Umuvuduko", desc: "Tugaburira inkuru z'icyamamare buri munsi" },
-            { icon: Users, title: "Abanyarwanda", desc: "Inkuru z'Abanyarwanda ku Abanyarwanda" },
+            { icon: Zap, title: "Speed", desc: "We deliver breaking news every day" },
+            { icon: Users, title: "Rwandans", desc: "News by Rwandans for Rwandans" },
             { icon: Award, title: "Umwuga", desc: "Tukuze umwuga mu guandika amakuru" },
           ].map((value) => (
             <div

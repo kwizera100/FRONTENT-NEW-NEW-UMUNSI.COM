@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     openGraph: {
       type: "article",
-      locale: "rw_RW",
+      locale: "en_US",
       url,
       title: post.title,
       description,
@@ -180,7 +180,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 </span>
               ))}
               <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{formatDate(publishedDate)}</span>
-              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{mappedPost.readTime} min gusoma</span>
+              <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{mappedPost.readTime} min read</span>
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
               </div>
 
               <div className="bg-white rounded-2xl border border-gray-100 p-4 sm:p-6 lg:sticky lg:top-24">
-                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-4 sm:mb-5 font-display">Inkuru zizwi cyane</h3>
+                <h3 className="text-base sm:text-lg font-black text-gray-900 mb-4 sm:mb-5 font-display">Trending</h3>
                 <div className="space-y-1">
                   {popular.map((p, i) => (
                     <Link key={p.id} href={`/article/${p.slug}`} className="group flex gap-3 items-start py-3 border-b border-gray-50 last:border-0">
@@ -277,7 +277,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-8">
               <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
-              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru zerekeye</h2>
+              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Related articles</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {related.map((p) => (
@@ -293,7 +293,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex items-center gap-3 mb-8">
               <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
-              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru zishyashya</h2>
+              <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">More articles</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {moreArticles.map((p) => (

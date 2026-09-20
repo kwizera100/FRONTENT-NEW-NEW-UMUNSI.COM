@@ -41,14 +41,14 @@ export default function AdminPaymentSettingsPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (data.success) {
-        setMessage("Ibyo wishyuye byabitswe neza!");
+        setMessage("Payment settings saved successfully!");
         if (data.config) setConfig(data.config);
         setTimeout(() => setMessage(""), 4000);
       } else {
-        setMessage(data.error || "Habayemo ikibazo");
+        setMessage(data.error || "Something went wrong");
       }
     } catch {
-      setMessage("Habayemo ikibazo");
+      setMessage("Something went wrong");
     } finally {
       setSaving(false);
     }
@@ -81,7 +81,7 @@ export default function AdminPaymentSettingsPage() {
   }
 
   if (!config) {
-    return <div className="text-center py-20 text-gray-400">Ntibishoboye gushyira ibyo wishyuye.</div>;
+    return <div className="text-center py-20 text-gray-400">Could not load payment settings.</div>;
   }
 
   return (
@@ -102,7 +102,7 @@ export default function AdminPaymentSettingsPage() {
 
       {/* Packages */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
-        <h2 className="font-bold text-gray-900 mb-4">Packages z'ishyura (Prices)</h2>
+        <h2 className="font-bold text-gray-900 mb-4">Payment Packages (Prices)</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {["weekly", "monthly", "yearly"].map((key) => {
             const pkg = config.packages[key];
@@ -138,7 +138,7 @@ export default function AdminPaymentSettingsPage() {
 
       {/* Payment Methods */}
       <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
-        <h2 className="font-bold text-gray-900 mb-4">Inzira z'ishyura</h2>
+        <h2 className="font-bold text-gray-900 mb-4">Payment Methods</h2>
         <div className="space-y-4">
           {/* MTN */}
           <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl">
@@ -239,7 +239,7 @@ export default function AdminPaymentSettingsPage() {
         disabled={saving}
         className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] disabled:opacity-60 text-white font-bold transition-colors text-sm"
       >
-        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Bibika...</> : <><Save className="w-4 h-4" /> Bika ibyo wishyuye</>}
+        {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</> : <><Save className="w-4 h-4" /> Save payment settings</>}
       </button>
     </div>
   );

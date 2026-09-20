@@ -498,7 +498,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           <div>
             <h2 className="text-2xl font-black text-ink-900">{headerTitle}</h2>
             <p className="text-xs text-ink-400 mt-0.5">
-              {mode === "edit" ? "Hindura no kuvugurura inkuru" : "Andika inkuru nshya"}
+              {mode === "edit" ? "Edit and update the article" : "Write a new article"}
             </p>
           </div>
         </div>

@@ -38,11 +38,11 @@ export default function SearchPage() {
       <Header />
       <div className="px-4 sm:px-6 lg:px-8 py-10 lg:py-16 min-h-[60vh]">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" /> Garuka ku rubuga
+          <ArrowLeft className="w-4 h-4" /> Back to home
         </Link>
 
-        <h1 className="text-3xl lg:text-4xl font-black text-gray-900 mb-2 font-display">Shakisha inkuru</h1>
-        <p className="text-gray-400 mb-8">Shakisha inkuru zose za Umunsi.com</p>
+        <h1 className="text-3xl lg:text-4xl font-black text-gray-900 mb-2 font-display">Search articles</h1>
+        <p className="text-gray-400 mb-8">Search articles zose za Umunsi.com</p>
 
         <form onSubmit={handleSearch} className="relative max-w-2xl mb-10">
           <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
@@ -50,7 +50,7 @@ export default function SearchPage() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Andika ikintu ushaka..."
+            placeholder="Type what you're looking for..."
             className="w-full pl-14 pr-32 py-4 rounded-2xl border-2 border-gray-100 focus:border-[#e5b60d] outline-none text-lg"
             autoFocus
           />
@@ -59,11 +59,11 @@ export default function SearchPage() {
           </button>
         </form>
 
-        {loading && <p className="text-gray-400">Bishyirwaho...</p>}
+        {loading && <p className="text-gray-400">Searching...</p>}
 
         {searched && !loading && (
           <div>
-            <p className="text-gray-500 mb-6">{results.length} inkuru zabonetse ku murongo "{query}"</p>
+            <p className="text-gray-500 mb-6">{results.length} articles found for "{query}"</p>
             {results.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {results.map((post) => (

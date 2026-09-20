@@ -7,7 +7,7 @@ import { ImageUploader } from "@/components/admin/ImageUploader";
 export default function AdminSettingsPage() {
   const [siteName, setSiteName] = useState("Umunsi.com");
   const [siteDesc, setSiteDesc] = useState(
-    "Urubuga rw'inkuru z'icyamamare mu Rwanda no ku isi."
+    "Your trusted source for news, entertainment, and more."
   );
   const [siteUrl, setSiteUrl] = useState("https://umunsi.com");
   const [logoUrl, setLogoUrl] = useState("");
@@ -55,7 +55,7 @@ export default function AdminSettingsPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h2 className="text-2xl font-black text-ink-900">Igenamiterere</h2>
+        <h2 className="text-2xl font-black text-ink-900">Settings</h2>
         <p className="text-ink-400 text-sm mt-1">
           Hano ni ho ushobora guhindura amakuru y'urubuga.
         </p>
@@ -65,12 +65,12 @@ export default function AdminSettingsPage() {
       <div className="bg-white rounded-2xl border border-ink-100 p-6">
         <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
           <Globe className="w-5 h-5 text-brand-600" />
-          Amakuru y'urubuga
+          Site information
         </h3>
         <div className="space-y-4">
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              Izina ry'urubuga
+              Site name
             </label>
             <input
               type="text"
@@ -81,7 +81,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              Ibirango (Description)
+              Description
             </label>
             <textarea
               value={siteDesc}
@@ -92,7 +92,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              URL y'urubuga
+              Site URL
             </label>
             <input
               type="text"
@@ -120,12 +120,12 @@ export default function AdminSettingsPage() {
       <div className="bg-white rounded-2xl border border-ink-100 p-6">
         <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
           <Mail className="w-5 h-5 text-brand-600" />
-          Amakuru yo kwitumanaho
+          Contact information
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              Emeyili
+              Email
             </label>
             <input
               type="email"
@@ -136,7 +136,7 @@ export default function AdminSettingsPage() {
           </div>
           <div>
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              Telefoni
+              Phone
             </label>
             <input
               type="text"
@@ -147,7 +147,7 @@ export default function AdminSettingsPage() {
           </div>
           <div className="sm:col-span-2">
             <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-              Aderesi
+              Address
             </label>
             <input
               type="text"
@@ -163,7 +163,7 @@ export default function AdminSettingsPage() {
       <div className="bg-white rounded-2xl border border-ink-100 p-6">
         <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
           <Bell className="w-5 h-5 text-brand-600" />
-          Media ya sosiyete
+          Social media
         </h3>
         <div className="space-y-4">
           {[
@@ -326,7 +326,7 @@ export default function AdminSettingsPage() {
             if (!res.ok) {
               setSaveMsg(data.error || "Failed to save settings.");
             } else {
-              setSaveMsg("Igenamiterere cyabitswe neza!");
+              setSaveMsg("Settings saved successfully!");
             }
           } catch {
             setSaveMsg("Network error. Please try again.");
@@ -338,7 +338,7 @@ export default function AdminSettingsPage() {
         className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
       >
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-        {saving ? "Birimo..." : "Bika igenamiterere"}
+        {saving ? "Saving..." : "Save settings"}
       </button>
       {saveMsg && (
         <p className={`text-sm font-semibold text-center ${saveMsg.includes("error") || saveMsg.includes("Failed") ? "text-red-600" : "text-green-600"}`}>

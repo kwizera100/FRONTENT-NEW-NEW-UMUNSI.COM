@@ -70,7 +70,7 @@ export default function AdminMediaPage() {
       url: uploadedUrl,
       type: isYoutube ? "youtube" as const : "image" as const,
       caption: newCaption || "",
-      postTitle: "Media yongerewe n'admin",
+      postTitle: "Media added by admin",
     };
     setAllMedia([newMediaItem, ...allMedia]);
     setShowAdd(false);
@@ -106,7 +106,7 @@ export default function AdminMediaPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Shakisha media..."
+            placeholder="Search media..."
             className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none bg-white"
           />
         </div>

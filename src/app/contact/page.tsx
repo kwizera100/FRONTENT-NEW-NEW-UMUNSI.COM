@@ -39,7 +39,7 @@ export default function ContactPage() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
                 <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                  Amazina yawe
+                  Your name
                 </label>
                 <input
                   type="text"
@@ -47,7 +47,7 @@ export default function ContactPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   className="w-full px-4 py-3 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
-                  placeholder="Amazina yawe..."
+                  placeholder="Your name..."
                 />
               </div>
               <div>
@@ -133,7 +133,7 @@ export default function ContactPage() {
             <div className="bg-ink-900 rounded-2xl p-8 text-center text-white">
               <h3 className="font-bold text-lg mb-2">Dukurikire ku mbuga</h3>
               <p className="text-white/60 text-sm mb-4">
-                Bona inkuru z'icyamamare ku mbuga za sosiyete.
+                Get breaking news on social media.
               </p>
               <div className="flex justify-center gap-3">
                 {["Facebook", "Twitter", "Instagram", "YouTube"].map((s) => (

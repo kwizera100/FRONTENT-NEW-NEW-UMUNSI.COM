@@ -51,17 +51,17 @@ export const categories: Category[] = [
   {
     id: "cat-1",
     slug: "inkuru-nyamukuru",
-    name: "Inkuru Nyamukuru",
+    name: "Breaking News",
     nameEn: "Breaking News",
     color: "#dc2626",
     icon: "Flame",
-    description: "Inkuru z'ibyibutsa mu Rwanda no ku isi",
+    description: "Top stories in Rwanda and around the world",
     order: 1,
   },
   {
     id: "cat-2",
     slug: "amakuru",
-    name: "Amatangazo",
+    name: "News & Announcements",
     nameEn: "News & Announcements",
     color: "#2563eb",
     icon: "Megaphone",
@@ -71,7 +71,7 @@ export const categories: Category[] = [
   {
     id: "cat-3",
     slug: "imyidagaduro",
-    name: "Imyidagaduro",
+    name: "Entertainment",
     nameEn: "Entertainment",
     color: "#7c3aed",
     icon: "Music",
@@ -81,7 +81,7 @@ export const categories: Category[] = [
   {
     id: "cat-4",
     slug: "imikino",
-    name: "Imikino",
+    name: "Sports",
     nameEn: "Sports",
     color: "#059669",
     icon: "Trophy",
@@ -91,7 +91,7 @@ export const categories: Category[] = [
   {
     id: "cat-5",
     slug: "ikoranabuhanga",
-    name: "Ikoranabuhanga",
+    name: "Technology",
     nameEn: "Technology",
     color: "#0891b2",
     icon: "Cpu",
@@ -121,7 +121,7 @@ export const categories: Category[] = [
   {
     id: "cat-8",
     slug: "akazi",
-    name: "Akazi",
+    name: "Jobs",
     nameEn: "Jobs",
     color: "#ea580c",
     icon: "Briefcase",
@@ -131,7 +131,7 @@ export const categories: Category[] = [
   {
     id: "cat-9",
     slug: "hanze",
-    name: "Hanze",
+    name: "World",
     nameEn: "World / International",
     color: "#4f46e5",
     icon: "Globe",
@@ -141,11 +141,11 @@ export const categories: Category[] = [
   {
     id: "cat-10",
     slug: "inkuru-ku-rwanda",
-    name: "Inkuru ku Rwanda",
+    name: "Rwanda Stories",
     nameEn: "Rwanda Stories",
     color: "#0d9488",
     icon: "MapPin",
-    description: "Inkuru z'umuco, amateka, n'iterambere ry'u Rwanda",
+    description: "Stories of Rwandan culture, history, and development",
     order: 10,
   },
 ];
@@ -181,7 +181,7 @@ export const posts: Post[] = [
         id: "m2",
         url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         type: "youtube",
-        caption: "Igitekerezo cy'ikoranabuhanga",
+        caption: "Technology",
       },
     ],
     tags: ["ikoranabuhanga", "rwanda", "innovation"],

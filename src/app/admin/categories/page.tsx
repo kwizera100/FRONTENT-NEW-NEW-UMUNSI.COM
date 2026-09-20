@@ -30,9 +30,9 @@ export default function AdminCategoriesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-ink-900">Ibyiciro</h2>
+          <h2 className="text-2xl font-black text-ink-900">Categories</h2>
           <p className="text-ink-400 text-sm mt-1">
-            {cats.length} ibyiciro byose
+            {cats.length} total categories
           </p>
         </div>
         <button
@@ -40,7 +40,7 @@ export default function AdminCategoriesPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors"
         >
           <Plus className="w-5 h-5" />
-          Ongera icyiciro
+          Add category
         </button>
       </div>
 
@@ -48,7 +48,7 @@ export default function AdminCategoriesPage() {
       {loading && (
         <div className="text-center py-16">
           <Loader2 className="w-8 h-8 text-brand-500 animate-spin mx-auto" />
-          <p className="text-sm text-ink-400 mt-3">Birimo gukuramo ibyiciro...</p>
+          <p className="text-sm text-ink-400 mt-3">Loading categories...</p>
         </div>
       )}
 
@@ -82,7 +82,7 @@ export default function AdminCategoriesPage() {
               </p>
               <div className="flex items-center justify-between pt-3 border-t border-ink-50">
                 <span className="text-sm font-bold text-ink-700">
-                  {cat._count?.posts || cat._count?.articles || cat._count?.news || 0} inkuru
+                  {cat._count?.posts || cat._count?.articles || cat._count?.news || 0} articles
                 </span>
                 <div className="flex items-center gap-2">
                   <span
@@ -110,7 +110,7 @@ export default function AdminCategoriesPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-black text-ink-900 mb-5">
-              Ongera icyiciro gishya
+              Add category gishya
             </h3>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
@@ -141,7 +141,7 @@ export default function AdminCategoriesPage() {
               </div>
               <div>
                 <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                  Ibirango (Description)
+                  Description
                 </label>
                 <input
                   type="text"
@@ -153,7 +153,7 @@ export default function AdminCategoriesPage() {
               </div>
               <div>
                 <label className="text-sm font-bold text-ink-700 mb-1.5 block">
-                  Ibara
+                  Color
                 </label>
                 <div className="flex items-center gap-3">
                   <input
@@ -173,7 +173,7 @@ export default function AdminCategoriesPage() {
               <button
                 onClick={async () => {
                   if (!newName.trim()) {
-                    setAddError("Izina ry'icyiciro kirakenewe.");
+                    setAddError("Category name is required.");
                     return;
                   }
                   setAdding(true);
@@ -215,7 +215,7 @@ export default function AdminCategoriesPage() {
                 className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
                 {adding ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                {adding ? "Birimo..." : "Ongera icyiciro"}
+                {adding ? "Birimo..." : "Add category"}
               </button>
               {addError && (
                 <p className="text-sm text-red-600 font-semibold">{addError}</p>

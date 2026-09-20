@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-8 h-8 text-green-600" />
               </div>
-              <h2 className="text-2xl font-black text-ink-900">Email yoherejwe</h2>
+              <h2 className="text-2xl font-black text-ink-900">Email sent</h2>
               <p className="text-ink-500 text-sm">
                 Twebere kanda kuri link yatanzwe mu email wagenewe. Link izarangira vuba.
               </p>
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-2 text-brand-600 font-bold text-sm hover:text-brand-700"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Subira ku login
+                Back to login
               </Link>
             </div>
           ) : (
@@ -71,9 +71,9 @@ export default function ForgotPasswordPage() {
                 className="inline-flex items-center gap-1 text-sm font-semibold text-ink-500 hover:text-brand-600 mb-4"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Subira ku login
+                Back to login
               </Link>
-              <h2 className="text-2xl font-black text-ink-900 mb-2">Hindura ijambo ry&apos;ibanga</h2>
+              <h2 className="text-2xl font-black text-ink-900 mb-2">Reset your password</h2>
               <p className="text-ink-400 text-sm mb-6">
                 Andika email yawe maze uhawe ubutumwa bwo guhindura password.
               </p>

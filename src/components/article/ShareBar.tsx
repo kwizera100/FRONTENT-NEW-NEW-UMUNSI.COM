@@ -58,7 +58,7 @@ export function ShareBar({ title, slug }: ShareBarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-8 pb-6 border-b border-gray-100">
       <span className="text-sm font-bold text-gray-500 flex items-center gap-1.5 shrink-0">
-        <Share2 className="w-4 h-4" /> Sanga:
+        <Share2 className="w-4 h-4" /> Share:
       </span>
 
       <div className="flex items-center gap-2 flex-wrap">
@@ -69,7 +69,7 @@ export function ShareBar({ title, slug }: ShareBarProps) {
             target="_blank"
             rel="noopener noreferrer"
             className={`p-2 sm:px-3 sm:py-1.5 rounded-lg bg-gray-50 text-gray-700 text-sm font-semibold transition-all flex items-center gap-1.5 ${platform.color}`}
-            aria-label={`Sanga kuri ${platform.label}`}
+            aria-label={`Share on ${platform.label}`}
           >
             <platform.icon className="w-4 h-4" />
             <span className="hidden sm:inline">{platform.label}</span>
@@ -80,10 +80,10 @@ export function ShareBar({ title, slug }: ShareBarProps) {
       <button
         onClick={handleCopy}
         className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg bg-gray-50 hover:bg-[#e5b60d]/10 text-gray-700 hover:text-[#e5b60d] text-sm font-semibold transition-colors flex items-center gap-1.5"
-        aria-label="Kopi link"
+        aria-label="Copy link"
       >
         {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-        <span className="hidden sm:inline">{copied ? "Byakopiriwe!" : "Kopi link"}</span>
+        <span className="hidden sm:inline">{copied ? "Copied!" : "Copy link"}</span>
       </button>
 
       <button
@@ -93,10 +93,10 @@ export function ShareBar({ title, slug }: ShareBarProps) {
             ? "bg-[#e5b60d] text-white"
             : "bg-gray-50 hover:bg-[#e5b60d]/10 text-gray-700 hover:text-[#e5b60d]"
         }`}
-        aria-label="Bika"
+        aria-label="Save"
       >
         <Bookmark className={`w-4 h-4 ${bookmarked ? "fill-white" : ""}`} />
-        <span className="hidden sm:inline">{bookmarked ? "Byabitswe" : "Bika"}</span>
+        <span className="hidden sm:inline">{bookmarked ? "Saved" : "Save"}</span>
       </button>
     </div>
   );

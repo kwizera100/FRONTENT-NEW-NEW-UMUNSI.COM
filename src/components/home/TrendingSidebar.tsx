@@ -18,7 +18,7 @@ export function TrendingSidebar({ popular = [] }: { popular?: PopularPost[] }) {
         <div className="w-8 h-8 bg-brand-100 rounded-lg flex items-center justify-center">
           <TrendingUp className="w-5 h-5 text-brand-600" />
         </div>
-        <h3 className="text-lg font-black text-ink-900">Bizwi cyane</h3>
+        <h3 className="text-lg font-black text-ink-900">Trending</h3>
       </div>
 
       <div className="space-y-1">

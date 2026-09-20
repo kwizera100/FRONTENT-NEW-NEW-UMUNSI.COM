@@ -101,7 +101,7 @@ export default function AdminLoginPage() {
                   href="/admin/forgot-password"
                   className="text-xs font-semibold text-brand-600 hover:text-brand-700"
                 >
-                  Wibagiwe ijambo ry&apos;ibanga?
+                  Forgot your password?
                 </Link>
               </div>
             </div>

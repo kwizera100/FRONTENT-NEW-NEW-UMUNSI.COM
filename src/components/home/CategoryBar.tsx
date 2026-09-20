@@ -34,7 +34,7 @@ export function CategoryBar({ categories = [] }: { categories?: CategoryBarCateg
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-2 lg:gap-4 overflow-x-auto scrollbar-hide pb-1">
           <span className="text-xs font-bold text-ink-400 uppercase shrink-0 hidden lg:inline">
-            Ibyiciro:
+            Categories:
           </span>
           {ordered.map((cat) => (
             <Link

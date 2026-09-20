@@ -42,7 +42,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
         <div className="absolute top-0 left-0 right-0 h-1.5" style={{ backgroundColor: color }} />
         <div className="px-4 sm:px-6 lg:px-8">
           <Link href="/" className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition-colors mb-6">
-            <ArrowLeft className="w-4 h-4" /> Garuka ku rubuga
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl flex items-center justify-center text-white shadow-lg" style={{ backgroundColor: color }}>
@@ -51,7 +51,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
             <div>
               <h1 className="text-3xl lg:text-5xl font-black text-gray-900 font-display">{category.name}</h1>
               <p className="text-gray-500 text-lg mt-1">{category.description || ""}</p>
-              <p className="text-sm text-gray-400 mt-1">{mappedPosts.length} inkuru ziri muri iki cyiciro</p>
+              <p className="text-sm text-gray-400 mt-1">{mappedPosts.length} articles in this category</p>
             </div>
           </div>
         </div>
@@ -70,9 +70,9 @@ export default async function CategoryPage({ params }: { params: { slug: string 
               </div>
             ) : (
               <div className="text-center py-20">
-                <p className="text-xl text-gray-400">Nta nkuru ziboneka muri iki cyiciro byose.</p>
+                <p className="text-xl text-gray-400">No articles found in this category yet.</p>
                 <Link href="/" className="inline-flex items-center gap-2 mt-4 text-[#e5b60d] font-bold hover:text-[#c9a00c]">
-                  <ArrowLeft className="w-4 h-4" /> Garuka ku rubuga
+                  <ArrowLeft className="w-4 h-4" /> Back to home
                 </Link>
               </div>
             )}
@@ -89,7 +89,7 @@ function InkuruNBCNews({ posts, color }: { posts: any[]; color: string }) {
   if (posts.length === 0) {
     return (
       <section className="py-20 px-4 sm:px-6 lg:px-8 text-center">
-        <p className="text-xl text-gray-400">Nta nkuru ziboneka muri iki cyiciro byose.</p>
+        <p className="text-xl text-gray-400">No articles found in this category yet.</p>
       </section>
     );
   }

@@ -24,14 +24,14 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
           <div className="lg:col-span-3">
             <div className="flex items-center justify-between mb-4 pb-3 border-b-2" style={{ borderColor: color }}>
               <h2 className="text-2xl lg:text-3xl font-black tracking-tight font-display" style={{ color }}>
-                Imyidagaduro
+                Entertainment
               </h2>
               <Link
                 href="/category/imyidagaduro"
                 className="text-xs font-bold hover:text-[#e5b60d] transition-colors"
                 style={{ color }}
               >
-                Reba byose
+                View all
               </Link>
             </div>
             <div className="flex flex-col divide-y divide-gray-200">
@@ -84,7 +84,7 @@ export function EntertainmentSection({ entertainment, amatangazo }: Entertainmen
           <div className="lg:col-span-4">
             <div className="bg-white p-5 lg:p-6 rounded-xl shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 mb-5 pb-3 border-b-2 border-[#e5b60d]">
-                <h3 className="font-black text-xl text-gray-900 font-display">Amatangazo</h3>
+                <h3 className="font-black text-xl text-gray-900 font-display">Announcements</h3>
               </div>
               <div className="space-y-4">
                 {amatangazo.slice(0, 5).map((post, i) => (

@@ -177,9 +177,9 @@ export default function AdminPostsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-ink-900">Inkuru zose</h2>
+          <h2 className="text-2xl font-black text-ink-900">All Articles</h2>
           <p className="text-ink-400 text-sm mt-1">
-            {total.toLocaleString()} inkuru zose
+            {total.toLocaleString()} total articles
           </p>
         </div>
         <Link
@@ -187,7 +187,7 @@ export default function AdminPostsPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors"
         >
           <PenSquare className="w-5 h-5" />
-          Andika inkuru nshya
+          Write new article
         </Link>
       </div>
 
@@ -199,7 +199,7 @@ export default function AdminPostsPage() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Shakisha inkuru..."
+            placeholder="Search articles..."
             className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none bg-white"
           />
         </div>
@@ -210,7 +210,7 @@ export default function AdminPostsPage() {
             onChange={(e) => setFilterCat(e.target.value)}
             className="pl-10 pr-8 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none bg-white font-semibold text-sm cursor-pointer"
           >
-            <option value="all">Ibyiciro byose</option>
+            <option value="all">All categories</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.slug}>
                 {cat.name}
@@ -226,9 +226,7 @@ export default function AdminPostsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-ink-100 bg-ink-50/50">
-                <th className="text-left text-xs font-bold text-ink-500 uppercase tracking-wider px-5 py-3">
-                  Inkuru
-                </th>
+                <th className="text-left text-xs font-bold text-ink-500 uppercase tracking-wider px-5 py-3">Article</th>
                 <th className="text-left text-xs font-bold text-ink-500 uppercase tracking-wider px-5 py-3 hidden md:table-cell">
                   Icyiciro
                 </th>
@@ -251,7 +249,7 @@ export default function AdminPostsPage() {
                 <tr>
                   <td colSpan={6} className="text-center py-16">
                     <Loader2 className="w-8 h-8 text-brand-500 animate-spin mx-auto" />
-                    <p className="text-sm text-ink-400 mt-3">Birimo gukuramo inkuru...</p>
+                    <p className="text-sm text-ink-400 mt-3">Loading articles...</p>
                   </td>
                 </tr>
               ) : posts.length === 0 ? (
@@ -313,7 +311,7 @@ export default function AdminPostsPage() {
                         )}
                         {post.status === "PUBLISHED" ? (
                           <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
-                            Byasohotse
+                            Published
                           </span>
                         ) : (
                           <span className="text-xs font-bold text-ink-400 bg-ink-50 px-2 py-1 rounded-lg">
@@ -327,14 +325,14 @@ export default function AdminPostsPage() {
                         <Link
                           href={`/article/${post.slug}`}
                           className="p-2 rounded-lg hover:bg-ink-100 text-ink-500 hover:text-ink-900 transition-colors"
-                          title="Reba"
+                          title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link
                           href={`/admin/posts/${post.id}/edit`}
                           className="p-2 rounded-lg hover:bg-blue-50 text-ink-500 hover:text-blue-600 transition-colors"
-                          title="Hindura"
+                          title="Edit"
                         >
                           <PenSquare className="w-4 h-4" />
                         </Link>
@@ -353,7 +351,7 @@ export default function AdminPostsPage() {
                             onClick={() => handleDelete(post)}
                             disabled={deleting === post.id}
                             className="p-2 rounded-lg hover:bg-red-50 text-ink-500 hover:text-red-600 transition-colors disabled:opacity-50"
-                            title="Siba"
+                            title="Delete"
                           >
                             {deleting === post.id ? (
                               <Loader2 className="w-4 h-4 animate-spin" />
@@ -417,14 +415,14 @@ export default function AdminPostsPage() {
                 disabled={page === 1 || loading}
                 className="px-4 py-2 rounded-lg border border-ink-200 text-sm font-bold text-ink-700 hover:bg-ink-50 disabled:opacity-50 transition-colors"
               >
-                Ibanjirije
+                Previous
               </button>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages || loading}
                 className="px-4 py-2 rounded-lg border border-ink-200 text-sm font-bold text-ink-700 hover:bg-ink-50 disabled:opacity-50 transition-colors"
               >
-                Ikurikira
+                Next
               </button>
             </div>
           </div>

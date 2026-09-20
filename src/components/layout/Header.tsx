@@ -14,13 +14,13 @@ interface HeaderCategory {
 }
 
 const mainNav = [
-  { name: "Ahabanza", slug: "" },
-  { name: "Inkuru Nyamukuru", slug: "inkuru-nyamukuru" },
-  { name: "Imikino", slug: "imikino" },
-  { name: "Imyidagaduro", slug: "imyidagaduro" },
-  { name: "Ikoranabuhanga", slug: "ikoranabuhanga" },
-  { name: "Ubuzima", slug: "ubuzima" },
-  { name: "Amatangazo", slug: "amatangazo" },
+  { name: "Home", slug: "" },
+  { name: "Top Stories", slug: "inkuru-nyamukuru" },
+  { name: "Sports", slug: "imikino" },
+  { name: "Entertainment", slug: "imyidagaduro" },
+  { name: "Technology", slug: "ikoranabuhanga" },
+  { name: "Health", slug: "ubuzima" },
+  { name: "Announcements", slug: "amatangazo" },
 ];
 
 export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
@@ -101,7 +101,7 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
             {categories.length > 0 && (
               <div className="relative group">
                 <button className="px-3 py-2 text-sm font-bold text-gray-800 hover:text-[#e5b60d] transition-colors uppercase tracking-wide flex items-center gap-1">
-                  Ibindi <ChevronDown className="w-4 h-4" />
+                  More <ChevronDown className="w-4 h-4" />
                 </button>
                 <div className="absolute top-full left-0 bg-white shadow-xl border border-gray-100 rounded-xl min-w-[200px] py-2 hidden group-hover:block">
                   {categories
@@ -125,7 +125,7 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="p-2.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
-              aria-label="Shakisha"
+              aria-label="Search"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -147,7 +147,7 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
               <input
                 name="q"
                 type="text"
-                placeholder="Shakisha inkuru..."
+                placeholder="Search articles..."
                 className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-[#e5b60d]/30 focus:border-[#e5b60d] outline-none text-lg bg-gray-50"
                 autoFocus
               />

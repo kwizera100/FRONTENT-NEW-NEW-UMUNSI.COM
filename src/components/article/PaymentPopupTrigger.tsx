@@ -66,8 +66,8 @@ export function PaymentPopupTrigger({ adConfig, isPremium }: PaymentPopupTrigger
           className="w-full bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] text-white font-black py-4 px-6 rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 text-base sm:text-lg group"
         >
           <Crown className="w-6 h-6 group-hover:scale-110 transition-transform" />
-          SOMA INKURU NTA ADS ZIRIMO
-          <span className="text-xs font-normal opacity-90 hidden sm:block">— Wishyure usome inkuru zose nta ads!</span>
+          READ WITHOUT ADS
+          <span className="text-xs font-normal opacity-90 hidden sm:block">— Subscribe to read all articles ad-free!</span>
         </button>
       </div>
       <PaymentPopup open={showPopup} onClose={() => setShowPopup(false)} />

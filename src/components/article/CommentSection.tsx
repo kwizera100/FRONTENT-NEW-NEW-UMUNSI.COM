@@ -48,10 +48,10 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
         setSuccess(true);
         setName(""); setEmail(""); setPhone(""); setContent(""); setWebsite("");
       } else {
-        setError(data.error || data.details?.[0]?.message || "Habayemo ikibazo. Gerageza nyuma.");
+        setError(data.error || data.details?.[0]?.message || "Something went wrong. Try again later.");
       }
     } catch {
-      setError("Ntibishoboye kohereza. Gerageza nyuma.");
+      setError("Could not send. Try again later.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
         <span className="w-1.5 h-8 rounded-full bg-[#e5b60d]" />
         <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display flex items-center gap-2">
           <MessageCircle className="w-6 h-6 text-[#e5b60d]" />
-          Ibyifuzo by&rsquo;abasomyi
+          Reader Comments
         </h2>
       </div>
 
@@ -80,7 +80,7 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
                 <div>
                   <p className="font-bold text-gray-900 text-sm">{c.name}</p>
                   <p className="text-xs text-gray-400">
-                    {new Date(c.createdAt).toLocaleDateString("rw-RW", { year: "numeric", month: "long", day: "numeric" })}
+                    {new Date(c.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                   </p>
                 </div>
               </div>
@@ -95,9 +95,9 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
         <div className="mb-6 flex items-start gap-3 p-4 rounded-xl bg-green-50 border border-green-200">
           <CheckCircle className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-green-800 text-sm">Igitekerezo cyawe cyakiriwe neza cyane!</p>
+            <p className="font-bold text-green-800 text-sm">Your comment was received successfully!</p>
             <p className="text-green-700 text-sm mt-1">
-              Itsinda rya Umunsi.com rirakirekura kibonewe n&rsquo;abandi hano mu gihe gito (Ugaruke) urebe ibyo bagusubije. Komeza ube uwa mbere mu batanga ibitekerezo hano ku nkuru zacu.
+              The Umunsi.com team will review it and it will appear here shortly. Check back for replies. Keep being the first to comment on our stories.
             </p>
           </div>
         </div>
@@ -113,7 +113,7 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
 
       {/* Comment form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-8 shadow-sm">
-        <h3 className="text-lg font-bold text-gray-900 mb-4">Andika igitekerezo cyawe</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-4">Write your comment</h3>
 
         <div className="hidden" aria-hidden="true">
           <label>Website (do not fill)
@@ -124,39 +124,39 @@ export function CommentSection({ postId, postTitle }: CommentSectionProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              Amazina <span className="text-red-500">*</span>
+              Name <span className="text-red-500">*</span>
             </label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} placeholder="Andika amazina yawe" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm" />
+            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} placeholder="Enter your name" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm" />
           </div>
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
               Email <span className="text-red-500">*</span>
             </label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={200} placeholder="email@urugendo.rw" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm" />
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={200} placeholder="email@example.com" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm" />
           </div>
         </div>
 
         <div className="mb-4">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Telefoni <span className="text-red-500">*</span>
+            Phone <span className="text-red-500">*</span>
           </label>
           <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={20} placeholder="+250 7XX XXX XXX" className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm" />
         </div>
 
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Igitekerezo cyawe <span className="text-red-500">*</span>
+            Your comment <span className="text-red-500">*</span>
           </label>
-          <textarea value={content} onChange={(e) => setContent(e.target.value)} required minLength={3} maxLength={2000} rows={5} placeholder="Andika igitekerezo cyawe kuri iyi nkuru..." className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm resize-none" />
+          <textarea value={content} onChange={(e) => setContent(e.target.value)} required minLength={3} maxLength={2000} rows={5} placeholder="Write your comment on this article..." className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] focus:ring-2 focus:ring-[#e5b60d]/20 outline-none transition-all text-sm resize-none" />
           <p className="text-xs text-gray-400 mt-1">{content.length}/2000</p>
         </div>
 
         <button type="submit" disabled={loading} className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold transition-colors text-sm">
-          {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Kohereza...</>) : (<><Send className="w-4 h-4" /> Kohereza igitekerezo</>)}
+          {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>) : (<><Send className="w-4 h-4" /> Submit comment</>)}
         </button>
 
         <p className="text-xs text-gray-400 mt-4">
-          Igitekerezo cyawe kizemezwa n&rsquo;abaditsi mbere y&rsquo;uko cyagaragara. Ibyanditsse n&rsquo;ababotsi cyangwa spam ntibyemewe.
+          Your comment will be reviewed by moderators before it appears. Abusive or spam content is not allowed.
         </p>
       </form>
     </section>

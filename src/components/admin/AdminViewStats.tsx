@@ -103,11 +103,11 @@ export function AdminViewStats() {
   const maxViews = Math.max(1, ...(stats?.data?.map((d) => d.views) || []));
 
   const statCards = [
-    { label: "Uyu munsi", value: todayViews, icon: Eye, color: "bg-blue-500", change: changeFromYesterday },
-    { label: "Iryo hashize", value: yesterdayViews, icon: CalendarDays, color: "bg-emerald-500", change: 0 },
-    { label: "Iki cyumweru", value: thisWeekViews, icon: Users, color: "bg-violet-500", change: 0 },
-    { label: "Uku kwezi", value: thisMonthViews, icon: BarChart3, color: "bg-amber-500", change: 0 },
-    { label: "Ukwezi kwashize", value: lastMonthViews, icon: TrendingUp, color: "bg-rose-500", change: 0 },
+    { label: "Today", value: todayViews, icon: Eye, color: "bg-blue-500", change: changeFromYesterday },
+    { label: "Yesterday", value: yesterdayViews, icon: CalendarDays, color: "bg-emerald-500", change: 0 },
+    { label: "This week", value: thisWeekViews, icon: Users, color: "bg-violet-500", change: 0 },
+    { label: "This month", value: thisMonthViews, icon: BarChart3, color: "bg-amber-500", change: 0 },
+    { label: "Last month", value: lastMonthViews, icon: TrendingUp, color: "bg-rose-500", change: 0 },
     { label: "Lifetime", value: lifetimeViews, icon: TrendingUp, color: "bg-brand-600", change: 0 },
   ];
 
@@ -149,10 +149,10 @@ export function AdminViewStats() {
           <div>
             <h3 className="text-lg font-black flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-brand-400" />
-              Amafatiro y&apos;amaso
+              Views overview
             </h3>
             <p className="text-white/60 text-sm mt-1">
-              Reba uko amasambugiye kw&apos;inkuru zawe
+              Track views on your articles over time
             </p>
           </div>
           <div className="relative">
@@ -173,11 +173,11 @@ export function AdminViewStats() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="bg-white/10 rounded-xl p-4">
-            <p className="text-xs text-white/70 font-bold mb-1 uppercase tracking-wider">Uyu munsi</p>
+            <p className="text-xs text-white/70 font-bold mb-1 uppercase tracking-wider">Today</p>
             <p className="text-3xl font-black">{loading ? "..." : formatNumber(todayViews)}</p>
           </div>
           <div className="bg-white/10 rounded-xl p-4">
-            <p className="text-xs text-white/70 font-bold mb-1 uppercase tracking-wider">Iryo hashize</p>
+            <p className="text-xs text-white/70 font-bold mb-1 uppercase tracking-wider">Yesterday</p>
             <p className="text-3xl font-black">{loading ? "..." : formatNumber(yesterdayViews)}</p>
           </div>
           <div className="bg-brand-500/20 border border-brand-500/30 rounded-xl p-4">

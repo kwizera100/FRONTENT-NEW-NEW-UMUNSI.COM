@@ -18,7 +18,7 @@ export function BreakingNewsSection({ posts }: BreakingNewsSectionProps) {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3 mb-6">
           <span className="w-1.5 h-8 bg-red-600 rounded-full" />
-          <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Inkuru Nyamukuru</h2>
+          <h2 className="text-2xl lg:text-3xl font-black text-gray-900 font-display">Top Stories</h2>
           <span className="ml-auto px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full animate-pulse">LIVE</span>
         </div>
 

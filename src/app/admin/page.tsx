@@ -102,10 +102,10 @@ export default function AdminDashboardPage() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-black text-ink-900">
-              Murakaza neza, {userName}! 👋
+              Welcome, {userName}! 👋
             </h2>
             <p className="text-ink-400 text-sm mt-1">
-              Hano ni ho ushobora guandika no kureba inkuru zawe.
+              Here you can write and manage your articles.
             </p>
           </div>
           <Link
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors"
           >
             <PenSquare className="w-5 h-5" />
-            Andika inkuru nshya
+            Write new article
           </Link>
         </div>
 
@@ -123,21 +123,21 @@ export default function AdminDashboardPage() {
               <FileText className="w-6 h-6" />
             </div>
             <p className="text-2xl font-black text-ink-900">{authorPosts.length}</p>
-            <p className="text-sm text-ink-400 mt-1">Inkuru zawe zose</p>
+            <p className="text-sm text-ink-400 mt-1">All your articles</p>
           </div>
           <div className="bg-white rounded-2xl p-5 border border-ink-100">
             <div className="w-11 h-11 rounded-xl bg-green-500 flex items-center justify-center text-white mb-3">
               <Eye className="w-6 h-6" />
             </div>
             <p className="text-2xl font-black text-ink-900">{published.length}</p>
-            <p className="text-sm text-ink-400 mt-1">Byasohotse</p>
+            <p className="text-sm text-ink-400 mt-1">Published</p>
           </div>
           <div className="bg-white rounded-2xl p-5 border border-ink-100">
             <div className="w-11 h-11 rounded-xl bg-ink-400 flex items-center justify-center text-white mb-3">
               <PenSquare className="w-6 h-6" />
             </div>
             <p className="text-2xl font-black text-ink-900">{drafts.length}</p>
-            <p className="text-sm text-ink-400 mt-1">Zirimo kwandikwa</p>
+            <p className="text-sm text-ink-400 mt-1">In progress</p>
           </div>
         </div>
 
@@ -145,7 +145,7 @@ export default function AdminDashboardPage() {
           <div className="bg-white rounded-2xl p-6 border border-ink-100">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="w-5 h-5 text-brand-600" />
-              <span className="font-bold text-ink-900">Amafatiro y&apos;inkuru zawe</span>
+              <span className="font-bold text-ink-900">Your article views</span>
             </div>
             <p className="text-3xl font-black text-ink-900">{totalViews.toLocaleString()}</p>
           </div>
@@ -153,9 +153,9 @@ export default function AdminDashboardPage() {
 
         <div className="bg-white rounded-2xl border border-ink-100 overflow-hidden">
           <div className="flex items-center justify-between p-5 border-b border-ink-100">
-            <h3 className="font-bold text-ink-900">Inkuru zawe za vuba</h3>
+            <h3 className="font-bold text-ink-900">Your recent articles</h3>
             <Link href="/admin/posts" className="text-sm font-bold text-brand-600 hover:text-brand-700">
-              Reba zose
+              View all
             </Link>
           </div>
           <div className="divide-y divide-ink-50">
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {post.status === "PUBLISHED" ? (
-                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Byasohotse</span>
+                      <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Published</span>
                     ) : (
                       <span className="text-xs font-bold text-ink-400 bg-ink-50 px-2 py-1 rounded-lg">Draft</span>
                     )}
@@ -196,7 +196,7 @@ export default function AdminDashboardPage() {
             })}
             {authorPosts.length === 0 && (
               <div className="text-center py-12 text-ink-400 text-sm">
-                Nta nkuru mwaranditse. Kanda &quot;Andika inkuru nshya&quot; utangire.
+                Nta nkuru mwaranditse. Kanda &quot;Write new article&quot; utangire.
               </div>
             )}
           </div>
@@ -210,28 +210,28 @@ export default function AdminDashboardPage() {
 
   const statItems = [
     {
-      label: "Inkuru zose",
+      label: "All articles",
       value: stats?.totalPosts.toLocaleString() || "0",
       icon: FileText,
       color: "bg-blue-500",
       change: `${(stats?.totalPosts || 0) > 0 ? "+" : ""}${Math.round((stats?.totalPosts || 0) / 100)}%`,
     },
     {
-      label: "Byasohotse",
+      label: "Published",
       value: stats?.publishedCount.toLocaleString() || "0",
       icon: Eye,
       color: "bg-green-500",
       change: "Live",
     },
     {
-      label: "Amafoto (Media)",
+      label: "Images (Media)",
       value: stats?.totalPosts.toLocaleString() || "0",
       icon: Image,
       color: "bg-purple-500",
       change: "DB",
     },
     {
-      label: "Ibyiciro",
+      label: "Categories",
       value: (stats?.categoriesCount || 0).toString(),
       icon: FolderTree,
       color: "bg-brand-600",
@@ -244,10 +244,10 @@ export default function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-black text-ink-900">
-            Murakaza neza, Admin! 👋
+            Welcome, Admin! 👋
           </h2>
           <p className="text-ink-400 text-sm mt-1">
-            Hano ni ho ushobora gucunga inkuru, media, n&apos;ibyiciro bya Umunsi.com
+            Here you can manage Umunsi English articles, media, and categories
           </p>
         </div>
         <Link
@@ -255,7 +255,7 @@ export default function AdminDashboardPage() {
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl transition-colors shadow-sm"
         >
           <PenSquare className="w-5 h-5" />
-          Andika inkuru nshya
+          Write new article
         </Link>
       </div>
 
@@ -284,9 +284,9 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl border border-ink-100 overflow-hidden">
           <div className="flex items-center justify-between p-5 border-b border-ink-100">
-            <h3 className="font-bold text-ink-900">Inkuru za vuba</h3>
+            <h3 className="font-bold text-ink-900">Recent articles</h3>
             <Link href="/admin/posts" className="text-sm font-bold text-brand-600 hover:text-brand-700">
-              Reba zose
+              View all
             </Link>
           </div>
           <div className="divide-y divide-ink-50">
@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
                     <span className="text-xs font-bold text-brand-600 bg-brand-50 px-2 py-1 rounded-lg">Featured</span>
                   )}
                   {post.published ? (
-                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Byasohotse</span>
+                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">Published</span>
                   ) : (
                     <span className="text-xs font-bold text-ink-400 bg-ink-50 px-2 py-1 rounded-lg">Draft</span>
                   )}
@@ -324,7 +324,7 @@ export default function AdminDashboardPage() {
               </div>
             ))}
             {recentPosts.length === 0 && (
-              <div className="text-center py-12 text-ink-400 text-sm">Nta nkuru zabonetse.</div>
+              <div className="text-center py-12 text-ink-400 text-sm">No articles found.</div>
             )}
           </div>
         </div>
@@ -333,14 +333,14 @@ export default function AdminDashboardPage() {
           <div className="bg-white rounded-2xl border border-ink-100 p-6 shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <Eye className="w-5 h-5 text-purple-500" />
-              <span className="font-bold text-ink-900">Inkuru z&apos;icyamamare</span>
+              <span className="font-bold text-ink-900">Featured articles</span>
             </div>
             <p className="text-4xl font-black text-ink-900">{recentPosts.filter((p) => p.featured).length}</p>
             <p className="text-ink-400 text-sm mt-1">Ziri kuri homepage slider</p>
           </div>
 
           <div className="bg-white rounded-2xl border border-ink-100 p-6">
-            <h3 className="font-bold text-ink-900 mb-4">Ibyiciro</h3>
+            <h3 className="font-bold text-ink-900 mb-4">Categories</h3>
             <div className="space-y-2">
               {cats.filter((c) => c.isActive).slice(0, 6).map((cat) => (
                 <Link
@@ -352,7 +352,7 @@ export default function AdminDashboardPage() {
                     <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: cat.color || "#e5b60d" }} />
                     {cat.name}
                   </span>
-                  <span className="text-xs font-bold text-ink-400">{cat._count?.news || 0} inkuru</span>
+                  <span className="text-xs font-bold text-ink-400">{cat._count?.news || 0} articles</span>
                 </Link>
               ))}
             </div>
