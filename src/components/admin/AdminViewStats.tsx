@@ -190,7 +190,7 @@ export function AdminViewStats() {
           <div>
             <div className="flex items-center gap-2 text-white/80 text-sm font-bold mb-3">
               <CalendarDays className="w-4 h-4" />
-              <span>Imbarwa z&apos;amaso</span>
+              <span>Views breakdown</span>
             </div>
             <div className="flex items-end gap-1.5 h-32">
               {stats.data.map((item, idx) => {

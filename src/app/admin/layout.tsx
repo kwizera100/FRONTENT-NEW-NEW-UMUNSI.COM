@@ -92,7 +92,7 @@ export default function AdminLayout({
           </div>
           <div>
             <span className="font-black text-lg">Umunsi</span>
-            <span className="text-brand-500 font-black text-lg">.com</span>
+            <span className="text-brand-500 font-black text-lg"> English</span>
           </div>
         </div>
 
