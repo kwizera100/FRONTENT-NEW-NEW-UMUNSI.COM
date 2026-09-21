@@ -202,7 +202,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
                 </p>
               )}
 
-              <ArticleContent html={mappedPost.content || ""} />
+              <ArticleContent html={mappedPost.content || ""} isPremium={(mappedPost as any).isPremium} adConfig={(mappedPost as any).adConfig} />
 
               <ArticlePaywall postId={post.id} postTitle={post.title} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} />
 

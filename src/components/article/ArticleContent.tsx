@@ -11,6 +11,8 @@ declare global {
 
 interface ArticleContentProps {
   html: string;
+  isPremium?: boolean;
+  adConfig?: string | null;
 }
 
 const AD_CLIENT = "ca-pub-3584259871242471";
@@ -121,36 +123,67 @@ function createProfitableRateAd(): HTMLElement {
   return wrapper;
 }
 
-export function ArticleContent({ html }: ArticleContentProps) {
+function adToggles(adConfig?: string | null): { adsense: boolean; adsterra: boolean } {
+  if (!adConfig) return { adsense: true, adsterra: true };
+  try {
+    const parsed = typeof adConfig === "string" ? JSON.parse(adConfig) : adConfig;
+    return {
+      adsense: parsed?.showAdsense !== false,
+      adsterra: parsed?.showAdsterra !== false,
+    };
+  } catch {
+    return { adsense: true, adsterra: true };
+  }
+}
+
+function isSubscribedUser(): boolean {
+  try {
+    return localStorage.getItem("umunsi_subscribed") === "active";
+  } catch {
+    return false;
+  }
+}
+
+export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProps) {
   const normalizedHtml = formatArticleHtml(preprocessArticleHtml(html));
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
+    // No ads for premium articles or paid subscribers
+    if (isPremium || isSubscribedUser()) return;
+
+    const { adsense, adsterra } = adToggles(adConfig);
+    if (!adsense && !adsterra) return;
+
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
 
-    IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
-      if (paragraphs.length > afterParagraph) {
-        const target = paragraphs[afterParagraph];
-        const adEl = createFallbackAd(slot);
-        target.insertAdjacentElement("afterend", adEl);
-        pushAd();
-      }
-    });
+    if (adsense) {
+      IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
+        if (paragraphs.length > afterParagraph) {
+          const target = paragraphs[afterParagraph];
+          const adEl = createFallbackAd(slot);
+          target.insertAdjacentElement("afterend", adEl);
+          pushAd();
+        }
+      });
+    }
 
     // Insert ProfitableRateCPM ad after 4th paragraph
-    if (paragraphs.length > PROFITABLE_RATE_AD_AFTER_PARAGRAPH) {
+    if (adsterra && paragraphs.length > PROFITABLE_RATE_AD_AFTER_PARAGRAPH) {
       const target = paragraphs[PROFITABLE_RATE_AD_AFTER_PARAGRAPH];
       const adEl = createProfitableRateAd();
       target.insertAdjacentElement("afterend", adEl);
     }
 
-    const endAd = createFallbackAd(END_AD_SLOT);
-    container.appendChild(endAd);
-    pushAd();
-  }, [html]);
+    if (adsense) {
+      const endAd = createFallbackAd(END_AD_SLOT);
+      container.appendChild(endAd);
+      pushAd();
+    }
+  }, [html, isPremium, adConfig]);
 
   return (
     <div
