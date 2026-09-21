@@ -21,14 +21,8 @@ export function SponsorBanner({ adConfig, isPremium }: SponsorBannerProps) {
     }
   }
 
-  if (isPremium) {
-    return (
-      <div className="mb-6 p-3 rounded-xl bg-gradient-to-r from-[#e5b60d]/10 to-[#c9a00c]/10 border border-[#e5b60d]/30 flex items-center gap-2">
-        <Crown className="w-4 h-4 text-[#e5b60d] shrink-0" />
-        <p className="text-xs font-bold text-[#c9a00c]">PREMIUM ARTICLE — No Ads</p>
-      </div>
-    );
-  }
+  // Premium articles show no banner — just the clean article with no ads
+  if (isPremium) return null;
 
   if (!sponsor?.name) return null;
 
