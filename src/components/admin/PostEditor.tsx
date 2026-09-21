@@ -739,6 +739,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           </div>
 
           {/* Premium Article */}
+          {!isAuthorOnly && (
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="flex items-center justify-between cursor-pointer">
               <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
@@ -757,8 +758,10 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             </p>
           </div>
 
+          )}
+
           {/* Ad Controls */}
-          {!isPremium && (
+          {!isPremium && !isAuthorOnly && (
             <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
               <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
                 <Star className="w-4 h-4 text-brand-500" /> Ad Settings
@@ -787,6 +790,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           )}
 
           {/* Sponsor */}
+          {!isAuthorOnly && (
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
               <Star className="w-4 h-4 text-brand-500" /> Sponsored By
@@ -809,8 +813,10 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               className="w-full px-3 py-2 rounded-lg border border-ink-200 focus:border-brand-500 outline-none text-sm"
             />
           </div>
+          )}
 
           {/* Article Payment — Pay-per-article */}
+          {!isAuthorOnly && (
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="flex items-center justify-between cursor-pointer mb-3">
               <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
@@ -841,6 +847,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               </div>
             )}
           </div>
+          )}
 
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-3 block flex items-center gap-2">
