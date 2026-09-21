@@ -8,7 +8,6 @@ import { ArticleContent } from "@/components/article/ArticleContent";
 import { ArticleViewTracker } from "@/components/article/ArticleViewTracker";
 import { AuthorCard } from "@/components/article/AuthorCard";
 import { AuthorAvatar } from "@/components/article/AuthorAvatar";
-import { PaymentPopupTrigger } from "@/components/article/PaymentPopupTrigger";
 import { SponsorBanner } from "@/components/article/SponsorBanner";
 import { ArticlePaywall } from "@/components/article/ArticlePaywall";
 import { CommentSection } from "@/components/article/CommentSection";
@@ -204,11 +203,9 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
               <ArticleContent html={mappedPost.content || ""} isPremium={(mappedPost as any).isPremium} adConfig={(mappedPost as any).adConfig} />
 
-              <ArticlePaywall postId={post.id} postTitle={post.title} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} />
+              <ArticlePaywall postId={post.id} postTitle={post.title} postSlug={post.slug} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
 
               <SponsorBanner adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
-
-              <PaymentPopupTrigger adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
 
               <CommentSection postId={post.id} postTitle={post.title} />
 

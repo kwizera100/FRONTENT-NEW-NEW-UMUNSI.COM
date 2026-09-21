@@ -48,6 +48,9 @@ export interface ApiPost {
   featuredImage: string | null;
   status: string;
   isPremium: boolean;
+  isLocked?: boolean;
+  adConfig?: string | null;
+  articlePayment?: string | null;
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
@@ -158,6 +161,10 @@ export function mapApiPost(post: ApiPost) {
     },
     media: [],
     coCategoryIds: post.coCategoryIds || [],
+    isPremium: Boolean(post.isPremium),
+    isLocked: Boolean((post as any).isLocked),
+    adConfig: (post as any).adConfig || null,
+    articlePayment: (post as any).articlePayment || null,
     tags: Array.isArray(post.tags) ? post.tags : [],
     readTime: Math.max(3, Math.ceil((post.content || "").length / 1000)),
     coverImage: fixImageUrl(rawImage),
