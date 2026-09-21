@@ -744,17 +744,17 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
             <label className="flex items-center justify-between cursor-pointer">
               <span className="text-sm font-bold text-ink-700 flex items-center gap-2">
                 <Crown className="w-4 h-4 text-brand-500" />
-                Premium Article (No Ads)
+                Premium Article (Pay to Read)
               </span>
               <button
-                onClick={() => setIsPremium(!isPremium)}
+                onClick={() => { const v = !isPremium; setIsPremium(v); if (v) setRequirePayment(true); }}
                 className={`relative w-12 h-6 rounded-full transition-colors ${isPremium ? "bg-brand-600" : "bg-ink-200"}`}
               >
                 <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${isPremium ? "translate-x-6" : "translate-x-0.5"}`} />
               </button>
             </label>
             <p className="text-xs text-ink-400 mt-2">
-              Premium articles show no ads. Users pay to read without ads.
+              Premium articles are locked — readers pay via MTN MoMo then sign up at writer.umunsi.com to read.
             </p>
           </div>
 

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://eng.umunsi.com/api";
 
 export async function GET(req: NextRequest, { params }: { params: { slug: string } }) {
   try {
-    const res = await fetch(`${API_BASE}/posts/${params.slug}`, {
+    const accessRef = req.nextUrl.searchParams.get("accessRef");
+    const url = `${API_BASE}/posts/${params.slug}${accessRef ? `?accessRef=${encodeURIComponent(accessRef)}` : ""}`;
+    const res = await fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", Accept: "application/json" },
       next: { revalidate: 0 },
     });

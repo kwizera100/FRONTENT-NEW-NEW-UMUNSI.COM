@@ -1,253 +1,217 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Crown, Lock, CheckCircle, Loader2, Mail, Phone, User, AlertCircle, Smartphone, Building2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Crown, Lock, CheckCircle, Loader2, AlertCircle, Smartphone } from "lucide-react";
 
 interface ArticlePaywallProps {
   postId: string;
   postTitle: string;
   articlePayment?: string | null;
   adConfig?: string | null;
+  isPremium?: boolean;
+  postSlug?: string;
 }
 
-interface PaymentConfig {
-  paymentMethods: {
-    mtn: { enabled: boolean; label: string; comingSoon: boolean };
-    airtel: { enabled: boolean; label: string; comingSoon: boolean };
-    bank: {
-      enabled: boolean;
-      label: string;
-      comingSoon: boolean;
-      bankName: string;
-      accountName: string;
-      accountNumber: string;
-      swiftCode: string;
-    };
-  };
-}
+const DEFAULT_PRICE = 500;
 
-export function ArticlePaywall({ postId, postTitle, articlePayment, adConfig }: ArticlePaywallProps) {
-  const [payment, setPayment] = useState<{ requirePayment: boolean; price: number } | null>(null);
-  const [config, setConfig] = useState<PaymentConfig | null>(null);
-  const [hasAccess, setHasAccess] = useState(false);
-  const [showForm, setShowForm] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, postSlug }: ArticlePaywallProps) {
+  const [locked, setLocked] = useState(false);
+  const [price, setPrice] = useState(DEFAULT_PRICE);
   const [phone, setPhone] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = useState<"locked" | "paying" | "pending" | "signup" | "unlocked">("locked");
+  const [referenceId, setReferenceId] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [bankInfo, setBankInfo] = useState<any>(null);
-  const [comingSoon, setComingSoon] = useState(false);
+  const [signupUrl, setSignupUrl] = useState("https://writer.umunsi.com/signup");
+  const [unlockedHtml, setUnlockedHtml] = useState("");
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (articlePayment) {
-      try {
-        const parsed = typeof articlePayment === "string" ? JSON.parse(articlePayment) : articlePayment;
-        if (parsed?.requirePayment) {
-          setPayment({ requirePayment: true, price: Number(parsed.price) || 0 });
-        }
-      } catch {
-        // not JSON
-      }
-    }
-  }, [articlePayment]);
-
-  useEffect(() => {
-    if (!payment?.requirePayment) return;
-    // Check localStorage for global subscription access (paid users read ALL articles)
+    // Determine if this article is locked
+    let requires = Boolean(isPremium);
+    let p = DEFAULT_PRICE;
     try {
-      const globalAccess = localStorage.getItem("umunsi_subscribed");
-      if (globalAccess === "active") {
-        setHasAccess(true);
-        return;
+      if (articlePayment) {
+        const ap = JSON.parse(articlePayment);
+        if (ap?.requirePayment) requires = true;
+        if (ap?.price && Number(ap.price) > 0) p = Number(ap.price);
       }
-      // Check per-article access
-      const accessKey = `umunsi_article_access_${postId}`;
-      const access = localStorage.getItem(accessKey);
-      if (access === "granted") setHasAccess(true);
     } catch {}
-    // Fetch payment config
+    if (!requires) return;
+    setLocked(true);
+    setPrice(p);
+
     fetch("/api/payment/config")
       .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setConfig(data);
-      })
+      .then((d) => { if (d?.umunsiMediaSignupUrl) setSignupUrl(d.umunsiMediaSignupUrl); })
       .catch(() => {});
-  }, [payment, postId]);
 
-  if (!payment?.requirePayment || hasAccess) return null;
-
-  const handleSubmit = async () => {
-    if (!name.trim() || !email.trim() || !phone.trim()) {
-      setError("Fill in all fields: Name, Email, and Phone");
-      return;
+    // Returning reader — check stored access
+    const ref = localStorage.getItem(`umunsi_article_access_${postId}`);
+    if (ref) {
+      fetch(`/api/payment/mtn/access/${postId}?ref=${encodeURIComponent(ref)}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d?.hasAccess) unlockContent(ref);
+          else localStorage.removeItem(`umunsi_article_access_${postId}`);
+        })
+        .catch(() => {});
     }
-    setLoading(true);
-    setError("");
+
+    return () => { if (pollRef.current) clearInterval(pollRef.current); };
+  }, [postId, articlePayment, isPremium]);
+
+  const unlockContent = async (ref: string) => {
     try {
-      const res = await fetch("/api/payment/subscribe", {
+      const idOrSlug = postSlug || postId;
+      const res = await fetch(`/api/posts/${encodeURIComponent(idOrSlug)}?accessRef=${encodeURIComponent(ref)}`, {
+        headers: { Accept: "application/json" },
+        cache: "no-store",
+      });
+      const data = await res.json();
+      if (data?.content) {
+        setUnlockedHtml(data.content);
+        setStep("unlocked");
+      }
+    } catch {}
+  };
+
+  const startPayment = async () => {
+    if (!phone.trim()) { setError("Please enter your MTN number"); return; }
+    setError("");
+    setStep("paying");
+    try {
+      const res = await fetch("/api/payment/mtn/requesttopay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          package: "monthly", // fallback
-          paymentMethod: selectedMethod,
-          name,
-          email,
-          phone,
-          articleId: postId,
-          articleTitle: postTitle,
-          articlePrice: payment.price,
-        }),
+        body: JSON.stringify({ postId, msisdn: phone.trim(), amount: price }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (data.comingSoon) {
-        setComingSoon(true);
-      } else if (data.success) {
-        setBankInfo(data.bankInfo);
-        setSuccess(true);
-        try {
-          localStorage.setItem(`umunsi_article_access_${postId}`, "granted");
-          localStorage.setItem("umunsi_subscribed", "active");
-        } catch {}
-      } else {
-        setError(data.error || "Something went wrong. Try again later.");
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        setError(data.error || "Payment failed. Please try again.");
+        setStep("locked");
+        return;
       }
+      setReferenceId(data.referenceId);
+      setStep("pending");
+      // Poll status every 5s
+      pollRef.current = setInterval(async () => {
+        try {
+          const sr = await fetch(`/api/payment/mtn/status/${data.referenceId}`);
+          const sd = await sr.json();
+          if (sd.status === "SUCCESS") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            localStorage.setItem(`umunsi_article_access_${postId}`, data.referenceId);
+            setStep("signup");
+          } else if (sd.status === "FAILED") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setError("Payment was not completed. Please try again.");
+            setStep("locked");
+          }
+        } catch {}
+      }, 5000);
     } catch {
-      setError("Could not complete. Try again later.");
-    } finally {
-      setLoading(false);
+      setError("Something went wrong. Please try again.");
+      setStep("locked");
     }
   };
 
+  const cancelPending = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    setStep("locked");
+  };
+
+  if (!locked) return null;
+
+  // Unlocked — render the article content inline
+  if (step === "unlocked" && unlockedHtml) {
+    return (
+      <div
+        className="article-content prose prose-lg max-w-none"
+        dangerouslySetInnerHTML={{ __html: unlockedHtml }}
+      />
+    );
+  }
+
   return (
-    <div className="my-6">
-      <div className="bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] rounded-2xl shadow-xl overflow-hidden">
-        <div className="p-6 sm:p-8 text-white text-center">
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-8 h-8" />
-          </div>
-          <h3 className="text-xl sm:text-2xl font-black mb-2">This article costs {payment.price.toLocaleString()} RWF</h3>
-          <p className="text-sm text-white/90 mb-4">
-            Pay to read this article yose ukwezi kose, kandi ugire uburenganzira bwo kuyisoma igihe cyose wifuza.
-          </p>
-          <div className="bg-white/10 rounded-xl p-3 mb-4 text-left">
-            <p className="text-xs font-bold text-white mb-2">When you pay you get:</p>
-            <ul className="space-y-1 text-xs text-white/90">
-              <li className="flex items-start gap-2"><span className="font-black">1.</span> Verification Badge on our UMUNSI MEDIA App</li>
-              <li className="flex items-start gap-2"><span className="font-black">2.</span> Read exclusive articles for free with no ads</li>
-              <li className="flex items-start gap-2"><span className="font-black">3.</span> Chat with UMUNSI.COM journalists</li>
-            </ul>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white text-[#c9a00c] font-black text-sm hover:bg-gray-50 transition-colors"
-          >
-            <Crown className="w-4 h-4" />
-            Pay to read this article
-          </button>
+    <div className="my-8 rounded-2xl border-2 border-yellow-400 bg-gradient-to-b from-yellow-50 to-white p-6 sm:p-8">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center">
+          <Crown className="w-6 h-6 text-gray-900" />
+        </div>
+        <div>
+          <h3 className="font-black text-gray-900 text-lg">PREMIUM ARTICLE</h3>
+          <p className="text-sm text-gray-600">This article requires payment to read</p>
         </div>
       </div>
 
-      {/* Form Modal */}
-      {showForm && !success && !comingSoon && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowForm(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="sticky top-0 bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] text-white p-4 rounded-t-2xl flex items-center justify-between">
-              <h3 className="font-black flex items-center gap-2"><Crown className="w-5 h-5" /> Pay to read</h3>
-              <button onClick={() => setShowForm(false)} className="p-1 rounded-full hover:bg-white/20">×</button>
+      {step === "locked" && (
+        <div>
+          <p className="text-gray-700 mb-4">
+            Read the full article — pay <strong>{price} RWF</strong> with MTN Mobile Money.
+          </p>
+          {error && (
+            <div className="flex items-center gap-2 text-red-600 text-sm mb-3">
+              <AlertCircle className="w-4 h-4" /> {error}
             </div>
-            <div className="p-4">
-              {!selectedMethod ? (
-                <>
-                  <p className="text-sm text-gray-600 mb-4 text-center">Choose a payment method:</p>
-                  <div className="space-y-2">
-                    {config?.paymentMethods.mtn.enabled && (
-                      <button onClick={() => setSelectedMethod("mtn")} className="w-full text-left p-3 rounded-xl border-2 border-gray-200 hover:border-[#e5b60d]/50 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-yellow-400 flex items-center justify-center"><Smartphone className="w-4 h-4 text-white" /></div>
-                        <div className="flex-1"><p className="font-bold text-sm">{config.paymentMethods.mtn.label}</p>{config.paymentMethods.mtn.comingSoon && <span className="text-xs text-orange-500">Coming soon</span>}</div>
-                      </button>
-                    )}
-                    {config?.paymentMethods.airtel.enabled && (
-                      <button onClick={() => setSelectedMethod("airtel")} className="w-full text-left p-3 rounded-xl border-2 border-gray-200 hover:border-[#e5b60d]/50 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center"><Smartphone className="w-4 h-4 text-white" /></div>
-                        <div className="flex-1"><p className="font-bold text-sm">{config.paymentMethods.airtel.label}</p>{config.paymentMethods.airtel.comingSoon && <span className="text-xs text-orange-500">Coming soon</span>}</div>
-                      </button>
-                    )}
-                    {config?.paymentMethods.bank.enabled && (
-                      <button onClick={() => setSelectedMethod("bank")} className="w-full text-left p-3 rounded-xl border-2 border-gray-200 hover:border-[#e5b60d]/50 flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center"><Building2 className="w-4 h-4 text-white" /></div>
-                        <div className="flex-1"><p className="font-bold text-sm">{config.paymentMethods.bank.label}</p><span className="text-xs text-green-600">Available now!</span></div>
-                      </button>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <button onClick={() => setSelectedMethod("")} className="text-xs text-gray-500 mb-3">&larr; Go back</button>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Name *</label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder="Your name" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Email *</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} maxLength={200} placeholder="email@example.com" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-gray-600 mb-1">Phone *</label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={20} placeholder="+250 7XX XXX XXX" className="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm" />
-                      </div>
-                    </div>
-                  </div>
-                  {error && <div className="mt-3 flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200"><AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" /><p className="text-red-700 text-xs">{error}</p></div>}
-                  <button onClick={handleSubmit} disabled={loading} className="w-full mt-4 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] disabled:opacity-60 text-white font-bold transition-colors text-sm">
-                    {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</> : `Pay ${payment.price.toLocaleString()} RWF`}
-                  </button>
-                </>
-              )}
+          )}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 py-3">
+              <Smartphone className="w-5 h-5 text-gray-400" />
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="MTN number (078XXXXXXX)"
+                className="flex-1 outline-none text-sm"
+              />
             </div>
+            <button
+              onClick={startPayment}
+              className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <Lock className="w-4 h-4" /> Pay {price} RWF — Read Article
+            </button>
           </div>
         </div>
       )}
 
-      {/* Coming Soon */}
-      {comingSoon && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => { setComingSoon(false); setShowForm(false); }}>
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
-            <div className="w-14 h-14 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3"><Smartphone className="w-7 h-7 text-orange-500" /></div>
-            <h3 className="font-bold text-gray-900 mb-2">This method is coming very soon!</h3>
-            <p className="text-sm text-gray-500 mb-4">MTN na Airtel bizaba ku murongo vuba. Kuri none, hitamo Bank Account.</p>
-            <button onClick={() => { setComingSoon(false); setSelectedMethod(""); }} className="px-6 py-2.5 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold text-sm">Choose another method</button>
-          </div>
+      {step === "paying" && (
+        <div className="flex items-center justify-center gap-3 py-4 text-gray-700">
+          <Loader2 className="w-5 h-5 animate-spin" /> Sending payment request...
         </div>
       )}
 
-      {/* Success */}
-      {success && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-center">
-            <div className="w-14 h-14 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3"><CheckCircle className="w-7 h-7 text-green-600" /></div>
-            <h3 className="font-bold text-gray-900 mb-2">Thank you! Payment successful.</h3>
-            <p className="text-sm text-gray-500 mb-3">Twabayeje kuri email yawe amakuru. Ubu ushobora gusoma iyi nkuru igihe cyose wifuza.</p>
-            {bankInfo && (
-              <div className="bg-gray-50 rounded-xl p-3 text-left mb-3 text-xs">
-                <p><strong>Bank:</strong> {bankInfo.bankName}</p>
-                <p><strong>Account:</strong> {bankInfo.accountName}</p>
-                <p><strong>Number:</strong> {bankInfo.accountNumber}</p>
-                <p><strong>Amount:</strong> {bankInfo.amount?.toLocaleString()} {bankInfo.currency}</p>
-              </div>
-            )}
-            <button onClick={() => { setSuccess(false); setShowForm(false); setHasAccess(true); }} className="px-6 py-2.5 rounded-xl bg-[#e5b60d] hover:bg-[#c9a00c] text-white font-bold text-sm">Read article</button>
+      {step === "pending" && (
+        <div className="text-center py-4">
+          <Loader2 className="w-8 h-8 animate-spin text-yellow-500 mx-auto mb-3" />
+          <p className="font-bold text-gray-900 mb-1">Approve payment on your phone</p>
+          <p className="text-sm text-gray-600 mb-4">You will receive an MTN prompt — enter your PIN to confirm.</p>
+          <button onClick={cancelPending} className="text-sm text-gray-500 underline">Cancel</button>
+        </div>
+      )}
+
+      {step === "signup" && (
+        <div className="text-center py-4">
+          <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
+          <p className="font-black text-gray-900 text-lg mb-2">Payment successful!</p>
+          <p className="text-sm text-gray-600 mb-4">
+            Create your account at <strong>writer.umunsi.com</strong> to keep reading premium articles.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href={signupUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-6 rounded-xl transition-colors"
+            >
+              Create Account — writer.umunsi.com
+            </a>
+            <button
+              onClick={() => unlockContent(localStorage.getItem(`umunsi_article_access_${postId}`) || "")}
+              className="bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-colors"
+            >
+              Read Article Now
+            </button>
           </div>
         </div>
       )}
