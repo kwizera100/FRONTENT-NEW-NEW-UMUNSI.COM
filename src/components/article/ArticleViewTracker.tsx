@@ -69,8 +69,8 @@ export function ArticleViewTracker({ articleId }: ArticleViewTrackerProps) {
     const shouldTrack = !tracked || Date.now() - lastTrack > reTrackAfterMs;
 
     if (shouldTrack) {
-      // Track after 500ms — quick enough to catch most visitors
-      const timer = setTimeout(track, 500);
+      // Track immediately — no delay, catches even instant bounces
+      track();
 
       // Also track on page hide/unload as a safety net
       const onVisibilityChange = () => {
@@ -81,7 +81,6 @@ export function ArticleViewTracker({ articleId }: ArticleViewTrackerProps) {
       document.addEventListener("visibilitychange", onVisibilityChange);
 
       return () => {
-        clearTimeout(timer);
         document.removeEventListener("visibilitychange", onVisibilityChange);
       };
     }
