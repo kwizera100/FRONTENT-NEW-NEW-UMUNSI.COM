@@ -51,7 +51,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
             <div>
               <h1 className="text-3xl lg:text-5xl font-black text-gray-900 font-display">{category.name}</h1>
               <p className="text-gray-500 text-lg mt-1">{category.description || ""}</p>
-              <p className="text-sm text-gray-400 mt-1">{mappedPosts.length} articles in this category</p>
+              <p className="text-sm text-gray-400 mt-1">{category.postsCount ?? mappedPosts.length} articles in this category</p>
             </div>
           </div>
         </div>
