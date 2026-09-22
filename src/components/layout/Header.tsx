@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X, Search, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TopBanner } from "@/components/home/TopBanner";
 
 interface HeaderCategory {
   id: string;
@@ -35,7 +36,9 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   }, []);
 
   return (
-    <header
+    <>
+      <TopBanner />
+      <header
       className={cn(
         "sticky top-0 z-50 bg-white transition-all duration-300 border-b border-gray-200",
         scrolled ? "shadow-md" : ""
@@ -201,5 +204,6 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
         </div>
       )}
     </header>
+    </>
   );
 }

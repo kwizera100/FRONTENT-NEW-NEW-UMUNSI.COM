@@ -24,6 +24,11 @@ export default function AdminSettingsPage() {
   const [sponsoredBanner2Image, setSponsoredBanner2Image] = useState("");
   const [sponsoredBanner2Link, setSponsoredBanner2Link] = useState("/contact");
   const [sponsoredBanner2Title, setSponsoredBanner2Title] = useState("Sponsored");
+  const [topBannerImage, setTopBannerImage] = useState("");
+  const [topBannerLink, setTopBannerLink] = useState("");
+  const [topBannerEnabled, setTopBannerEnabled] = useState(true);
+  const [topBannerSaving, setTopBannerSaving] = useState(false);
+  const [topBannerMsg, setTopBannerMsg] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState("");
 
@@ -50,7 +55,52 @@ export default function AdminSettingsPage() {
         if (data.sponsoredBanner2Title) setSponsoredBanner2Title(data.sponsoredBanner2Title);
       })
       .catch(() => {});
+
+    // Load top leaderboard banner slot
+    fetch("/api/ads-banners")
+      .then((r) => r.json())
+      .then((data) => {
+        const s = data?.slots?.leaderboardTop970x120;
+        if (s) {
+          setTopBannerImage(s.imageUrl || "");
+          setTopBannerLink(s.targetUrl || "");
+          setTopBannerEnabled(s.enabled !== false);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  const saveTopBanner = async () => {
+    setTopBannerSaving(true);
+    setTopBannerMsg("");
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      // Fetch current slots, update only the leaderboard slot
+      const cur = await fetch("/api/ads-banners").then((r) => r.json()).catch(() => ({}));
+      const slots = { ...(cur?.slots || {}) };
+      slots.leaderboardTop970x120 = {
+        ...(slots.leaderboardTop970x120 || {}),
+        enabled: topBannerEnabled,
+        imageUrl: topBannerImage,
+        targetUrl: topBannerLink,
+        adCode: "",
+        altText: "Top Banner",
+        size: "970x120",
+        label: "Leaderboard Banner (Top)",
+      };
+      const res = await fetch("/api/admin/ads-banners", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ slots }),
+      });
+      const data = await res.json();
+      setTopBannerMsg(res.ok ? "Top banner saved!" : (data.error || "Failed to save"));
+    } catch {
+      setTopBannerMsg("Failed to save top banner.");
+    } finally {
+      setTopBannerSaving(false);
+    }
+  };
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -184,6 +234,68 @@ export default function AdminSettingsPage() {
               />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Top leaderboard banner — shows at very top of site */}
+      <div className="bg-white rounded-2xl border border-ink-100 p-6">
+        <h3 className="font-bold text-ink-900 mb-5 flex items-center gap-2">
+          <ImageIcon className="w-5 h-5 text-brand-600" />
+          Top Banner (970x120 — hejuru y'urubuga)
+        </h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-ink-900">Show top banner</p>
+              <p className="text-xs text-ink-400">Igaragara hejuru cyane, mbere ya navigation</p>
+            </div>
+            <button
+              onClick={() => setTopBannerEnabled(!topBannerEnabled)}
+              className={`relative w-12 h-6 rounded-full transition-colors ${topBannerEnabled ? "bg-brand-600" : "bg-ink-200"}`}
+            >
+              <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${topBannerEnabled ? "left-7" : "left-1"}`} />
+            </button>
+          </div>
+          <ImageUploader
+            compact
+            onUploadComplete={(url) => setTopBannerImage(url)}
+            onClose={() => {}}
+          />
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Banner Image URL</label>
+            <input
+              type="text"
+              value={topBannerImage}
+              onChange={(e) => setTopBannerImage(e.target.value)}
+              placeholder="https://... or /images/... (GIF, PNG, JPG, WebP)"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+            <p className="text-xs text-ink-400 mt-1">Recommended size: 970x120 (wide leaderboard, GIF supported).</p>
+          </div>
+          <div>
+            <label className="text-sm font-bold text-ink-700 mb-1.5 block">Click Link (optional)</label>
+            <input
+              type="text"
+              value={topBannerLink}
+              onChange={(e) => setTopBannerLink(e.target.value)}
+              placeholder="https://... or /contact"
+              className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none"
+            />
+          </div>
+          {topBannerImage && (
+            <div className="rounded-xl overflow-hidden border border-ink-200 bg-white">
+              <img src={topBannerImage} alt="Top banner preview" className="w-full h-auto max-h-[120px] object-contain mx-auto" />
+            </div>
+          )}
+          <button
+            onClick={saveTopBanner}
+            disabled={topBannerSaving}
+            className="w-full bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-bold py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            {topBannerSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {topBannerSaving ? "Bika..." : "Save Top Banner"}
+          </button>
+          {topBannerMsg && <p className={`text-sm ${topBannerMsg.includes("saved") ? "text-green-600" : "text-red-600"}`}>{topBannerMsg}</p>}
         </div>
       </div>
 
