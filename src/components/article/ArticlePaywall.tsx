@@ -102,7 +102,10 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, i
             setStep("signup");
           } else if (sd.status === "FAILED") {
             if (pollRef.current) clearInterval(pollRef.current);
-            setError("Payment was not completed. Please try again.");
+            const reason = sd.reason === "PAYEE_NOT_FOUND" || sd.reason === "PAYER_NOT_FOUND"
+              ? "MTN number not found — use your own MoMo number"
+              : sd.reason === "NOT_ENOUGH_FUNDS" ? "Not enough funds on your MoMo account" : "Payment was not completed. Please try again.";
+            setError(reason);
             setStep("locked");
           }
         } catch {}
