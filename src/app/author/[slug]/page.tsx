@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft, FileText, Calendar, PenLine } from "lucide-react";
+import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft, FileText, Calendar, Clock } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { ArticleCard } from "@/components/home/ArticleCard";
@@ -167,7 +167,7 @@ export default async function AuthorPage({ params }: Props) {
   const mappedPosts = posts.map((p) => mapApiPost(p));
 
   const memberSince = author.createdAt ? new Date(author.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "long" }) : null;
-  const articleCount = mappedPosts.length;
+  const articleCount = (author as any)._count?.posts ?? mappedPosts.length;
 
   const hasAnySocial = socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website || socialLinks.studentProfile || socialLinks.writerProfile;
 
@@ -176,160 +176,113 @@ export default async function AuthorPage({ params }: Props) {
       <Header categories={allCats} />
 
       <main>
-        {/* Author Hero */}
-        <div className="relative">
-          {/* Cover */}
-          <div className="relative h-56 sm:h-72 lg:h-96 overflow-hidden">
-            {coverImage ? (
-              <SmartImage src={coverImage} alt={name} fill sizes="100vw" className="object-cover" style={{ objectPosition: `center ${coverPosition}%` }} priority />
-            ) : (
-              <div className="w-full h-full" style={{ background: `linear-gradient(135deg, ${accent}, ${accent}88)` }} />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-          </div>
-
-          {/* Profile Section */}
-          <div className="px-4 sm:px-6 lg:px-8 -mt-20 sm:-mt-24 relative">
+        {/* Author Hero — CNN-style: left text, right portrait */}
+        <section className="py-10 lg:py-14">
+          <div className="px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
-              {/* Main profile card */}
-              <div className="bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden">
-                <div className="p-6 sm:p-8">
-                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-5 sm:gap-6">
-                    {/* Avatar */}
-                    <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden ring-4 ring-white shadow-xl shrink-0 -mt-16 sm:-mt-20">
-                      <AuthorAvatar
-                        src={avatar}
-                        name={name}
-                        color={accent}
-                        className="w-full h-full rounded-full"
-                        textClassName="text-5xl sm:text-6xl"
-                      />
-                    </div>
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+                {/* Left: name, role, bio */}
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-display text-gray-900 mb-2">
+                    {name}
+                  </h1>
+                  <p className="text-lg text-gray-600 mb-6">
+                    {author.role === 'ADMIN' ? 'Editor' : author.role === 'EDITOR' ? 'Editor' : 'Author'}, Umunsi.com
+                  </p>
 
-                    {/* Name + role */}
-                    <div className="flex-1 pb-2">
-                      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-display" style={{ color: accent }}>{name}</h1>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-white"
-                          style={{ backgroundColor: accent }}
-                        >
-                          <PenLine className="w-3 h-3" />
-                          Author at Umunsi.com
-                        </span>
-                        {memberSince && (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
-                            <Calendar className="w-3 h-3" />
-                            Since {memberSince}
-                          </span>
-                        )}
-                      </div>
+                  {/* Bio excerpt — always visible */}
+                  {bio && (
+                    <div className="max-w-xl">
+                      <p className="text-gray-700 text-base sm:text-lg leading-8 line-clamp-3">{bio}</p>
+                      {bio.length > 180 && (
+                        <details className="mt-2">
+                          <summary className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-bold cursor-pointer transition-colors select-none">
+                            Read Full Bio
+                          </summary>
+                          <p className="text-gray-700 text-base sm:text-lg leading-8 whitespace-pre-line mt-3">{bio}</p>
+                        </details>
+                      )}
                     </div>
+                  )}
 
-                    {/* Stats badge */}
-                    <div className="flex items-center gap-3 pb-2">
-                      <div
-                        className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl text-white shrink-0"
-                        style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
-                      >
-                        <FileText className="w-5 h-5 mb-1" />
-                        <span className="text-2xl font-black leading-none">{articleCount}</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wide mt-0.5">Articles</span>
-                      </div>
-                    </div>
+                  {/* Meta row */}
+                  <div className="flex flex-wrap items-center gap-3 mt-6">
+                    <span
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white"
+                      style={{ backgroundColor: accent }}
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                      {articleCount} {articleCount === 1 ? 'Article' : 'Articles'}
+                    </span>
+                    {memberSince && (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
+                        <Calendar className="w-3.5 h-3.5" />
+                        Since {memberSince}
+                      </span>
+                    )}
                   </div>
 
-                  {/* Bio - shown in profile card */}
-                  {bio && (
-                    <div className="mt-6 pt-6 border-t border-gray-100">
-                      <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">About</h2>
-                      <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100">
-                        <p className="text-gray-700 text-base sm:text-lg leading-8 whitespace-pre-line">
-                          {bio}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Social Links - grouped in a card */}
+                  {/* Social links */}
                   {hasAnySocial && (
-                    <div className="mt-6 pt-6 border-t border-gray-100">
-                      <h2 className="text-sm font-black uppercase tracking-wide text-gray-400 mb-3">Connect</h2>
-                      <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                        <div className="flex flex-wrap items-center gap-2.5">
-                          {/* Student platform */}
-                          {socialLinks.studentProfile && (
-                            <a
-                              href={socialLinks.studentProfile}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-all hover:shadow-md"
-                              title="Student profile"
-                            >
-                              <img src="/images/student-umunsi-logo.png" alt="Student" className="w-6 h-6 object-contain" />
-                              <span className="text-sm font-bold text-gray-700">Student</span>
-                            </a>
-                          )}
-                          {/* Writer platform */}
-                          {socialLinks.writerProfile && (
-                            <a
-                              href={socialLinks.writerProfile}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 shadow-sm transition-all hover:shadow-md"
-                              title="Writer profile"
-                            >
-                              <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-6 h-6 object-contain" />
-                              <span className="text-sm font-bold text-gray-700">Writer</span>
-                            </a>
-                          )}
-                          {/* Social icons */}
-                          {(socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website) && (
-                            <div className="flex items-center gap-2">
-                              {socialLinks.facebook && (
-                                <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#1877f2" }} title="Facebook">
-                                  <Facebook className="w-5 h-5" />
-                                </a>
-                              )}
-                              {socialLinks.twitter && (
-                                <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#000000" }} title="X (Twitter)">
-                                  <Twitter className="w-5 h-5" />
-                                </a>
-                              )}
-                              {socialLinks.linkedin && (
-                                <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: "#0a66c2" }} title="LinkedIn">
-                                  <Linkedin className="w-5 h-5" />
-                                </a>
-                              )}
-                              {socialLinks.instagram && (
-                                <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" }} title="Instagram">
-                                  <Instagram className="w-5 h-5" />
-                                </a>
-                              )}
-                              {socialLinks.website && (
-                                <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="w-11 h-11 rounded-xl flex items-center justify-center text-white transition-all hover:scale-110 hover:shadow-lg" style={{ backgroundColor: accent }} title="Website">
-                                  <Globe className="w-5 h-5" />
-                                </a>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                    <div className="flex flex-wrap items-center gap-2 mt-5">
+                      {socialLinks.facebook && (
+                        <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center text-white transition-all hover:scale-110" style={{ backgroundColor: "#1877f2" }} title="Facebook">
+                          <Facebook className="w-4 h-4" />
+                        </a>
+                      )}
+                      {socialLinks.twitter && (
+                        <a href={socialLinks.twitter} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center text-white transition-all hover:scale-110" style={{ backgroundColor: "#000" }} title="X">
+                          <Twitter className="w-4 h-4" />
+                        </a>
+                      )}
+                      {socialLinks.linkedin && (
+                        <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center text-white transition-all hover:scale-110" style={{ backgroundColor: "#0a66c2" }} title="LinkedIn">
+                          <Linkedin className="w-4 h-4" />
+                        </a>
+                      )}
+                      {socialLinks.instagram && (
+                        <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center text-white transition-all hover:scale-110" style={{ background: "linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)" }} title="Instagram">
+                          <Instagram className="w-4 h-4" />
+                        </a>
+                      )}
+                      {socialLinks.website && (
+                        <a href={socialLinks.website} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg flex items-center justify-center text-white transition-all hover:scale-110" style={{ backgroundColor: accent }} title="Website">
+                          <Globe className="w-4 h-4" />
+                        </a>
+                      )}
+                      {socialLinks.writerProfile && (
+                        <a href={socialLinks.writerProfile} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold transition-colors" title="Writer profile">
+                          <img src="/images/umunsimedia-logo.jpg" alt="Writer" className="w-4 h-4 object-contain" /> Writer
+                        </a>
+                      )}
                     </div>
                   )}
+                </div>
+
+                {/* Right: portrait */}
+                <div className="w-full lg:w-96 shrink-0">
+                  <div className="relative w-full aspect-[4/5] max-h-[480px] rounded-2xl overflow-hidden shadow-xl bg-gray-100">
+                    <AuthorAvatar
+                      src={avatar}
+                      name={name}
+                      color={accent}
+                      className="w-full h-full object-cover"
+                      textClassName="text-7xl"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Articles */}
-        <section className="py-10 lg:py-16">
+        {/* Articles — CNN-style horizontal rows */}
+        <section className="pb-10 lg:pb-16">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-3 mb-8">
                 <span className="w-1.5 h-10 rounded-full" style={{ backgroundColor: accent }} />
-                <h2 className="text-xl lg:text-2xl font-black font-display" style={{ color: accent }}>
+                <h2 className="text-xl lg:text-2xl font-black font-display text-gray-900">
                   Articles by {name}
                 </h2>
                 <span className="text-sm font-bold text-gray-400">({articleCount})</span>
@@ -338,9 +291,36 @@ export default async function AuthorPage({ params }: Props) {
               {mappedPosts.length === 0 ? (
                 <p className="text-gray-500 text-center py-12">No articles published yet.</p>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="divide-y divide-gray-100">
                   {mappedPosts.map((post) => (
-                    <ArticleCard key={post.id} post={post} />
+                    <Link
+                      key={post.id}
+                      href={`/article/${post.slug}`}
+                      className="group flex gap-4 sm:gap-6 py-5 first:pt-0 items-start"
+                    >
+                      <div className="relative w-28 h-20 sm:w-44 sm:h-28 shrink-0 overflow-hidden rounded-xl bg-gray-100">
+                        <SmartImage
+                          src={post.coverImage}
+                          alt={post.title}
+                          fill
+                          sizes="(max-width: 640px) 112px, 176px"
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold uppercase tracking-wide" style={{ color: post.category.color || accent }}>
+                          {post.category.name}
+                        </span>
+                        <h3 className="font-bold text-base sm:text-xl text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 mt-1 font-display">
+                          {post.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2 mt-1 hidden sm:block">{post.excerpt}</p>
+                        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}</span>
+                        </div>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}

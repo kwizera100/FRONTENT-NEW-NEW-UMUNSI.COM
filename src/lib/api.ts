@@ -102,6 +102,7 @@ export interface ApiCategory {
   createdAt: string;
   updatedAt: string;
   _count?: { news: number; posts: number; articles: number };
+  postsCount?: number;
 }
 
 interface PostsResponse {
@@ -332,6 +333,19 @@ export const api = {
   getAuthorByUsername: async (username: string) => {
     try {
       if (!username) return null;
+
+      // Public profile endpoint — returns _count.posts (real article count)
+      try {
+        const profileRes = await fetch(`${API_BASE}/users/profile/${username}`, {
+          headers: HEADERS,
+          next: { revalidate: 60 },
+        });
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          const profile = profileData.data || profileData.user || profileData;
+          if (profile && (profile.id || profile.username)) return profile;
+        }
+      } catch {}
 
       // Try to fetch single user by ID first (may require auth)
       try {
