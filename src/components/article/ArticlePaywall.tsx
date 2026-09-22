@@ -102,7 +102,10 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, i
             setStep("signup");
           } else if (sd.status === "FAILED") {
             if (pollRef.current) clearInterval(pollRef.current);
-            setError("Kwishyura ntibyagenze neza. Gerageza nanone.");
+            const reason = sd.reason === "PAYEE_NOT_FOUND" || sd.reason === "PAYER_NOT_FOUND"
+              ? "Numero ya MTN ntibashije kuboneka — shyiramo numero yawe ya MoMo ukoresheje"
+              : sd.reason === "NOT_ENOUGH_FUNDS" ? "Nta mafrwanda ahagije kuri konti yawe" : "Kwishyura ntibyagenze neza. Gerageza nanone.";
+            setError(reason);
             setStep("locked");
           }
         } catch {}
