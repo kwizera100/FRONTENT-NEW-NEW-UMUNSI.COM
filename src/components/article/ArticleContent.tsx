@@ -18,13 +18,12 @@ interface ArticleContentProps {
 const AD_CLIENT = "ca-pub-3584259871242471";
 
 const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
-  { afterParagraph: 2, slot: "6173432779" },
-  { afterParagraph: 4, slot: "8544566354" },
-  { afterParagraph: 6, slot: "7231484683" },
-  { afterParagraph: 8, slot: "5119226585" },
+  { afterParagraph: 3, slot: "7164639686" },
+  { afterParagraph: 5, slot: "3669081950" },
 ];
 
-const END_AD_SLOT = "1008591184";
+const BEFORE_CONTENT_SLOT = "2454493629";
+const END_AD_SLOT = "3669081950";
 
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
@@ -132,6 +131,11 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
     const paragraphs = container.querySelectorAll("p");
 
     if (adsense) {
+      // Before content
+      const topAd = createFallbackAd(BEFORE_CONTENT_SLOT);
+      container.insertAdjacentElement("afterbegin", topAd);
+      pushAd();
+
       IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
         if (paragraphs.length > afterParagraph) {
           const target = paragraphs[afterParagraph];
