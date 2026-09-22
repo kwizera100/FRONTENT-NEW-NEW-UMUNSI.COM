@@ -22,7 +22,7 @@ export const dynamicParams = true;
 
 const SITE_URL = "https://www.umunsi.com";
 
-type Props = { params: { slug: string } };
+type Props = { params: { slug: string }; searchParams?: { accessRef?: string } };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await api.getPostBySlug(params.slug);
@@ -71,11 +71,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
+export default async function ArticlePage({ params, searchParams }: Props) {
   // Retry the post fetch once on failure to avoid caching a 404 from a transient API error
   let post = null;
   for (let attempt = 0; attempt < 2 && !post; attempt++) {
-    post = await api.getPostBySlug(params.slug);
+    post = await api.getPostBySlug(params.slug, searchParams?.accessRef);
   }
 
   const [allCategories, trendingPosts, latestAll] = await Promise.all([
@@ -203,7 +203,7 @@ export default async function ArticlePage({ params }: { params: { slug: string }
 
               <ArticleContent html={mappedPost.content || ""} isPremium={(mappedPost as any).isPremium} adConfig={(mappedPost as any).adConfig} />
 
-              <ArticlePaywall postId={post.id} postTitle={post.title} postSlug={post.slug} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
+              <ArticlePaywall postId={post.id} postTitle={post.title} postSlug={post.slug} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} isLocked={(mappedPost as any).isLocked} />
 
               <SponsorBanner adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} />
 

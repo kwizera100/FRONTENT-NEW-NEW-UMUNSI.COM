@@ -191,13 +191,14 @@ export const api = {
       .then((r) => r.data || []);
   },
 
-  getPostBySlug: async (slug: string) => {
+  getPostBySlug: async (slug: string, accessRef?: string) => {
     try {
       if (!slug) return null;
       const cleanSlug = slug.split("?")[0].toLowerCase();
+      const qs = accessRef ? `?accessRef=${encodeURIComponent(accessRef)}` : "";
 
       // Try direct fetch first — this is the primary path and should work for all valid slugs
-      const res = await fetch(`${API_BASE}/posts/${cleanSlug}`, {
+      const res = await fetch(`${API_BASE}/posts/${cleanSlug}${qs}`, {
         headers: HEADERS,
         next: { revalidate: 300 },
       });

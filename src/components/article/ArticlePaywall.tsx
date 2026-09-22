@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Crown, Lock, CheckCircle, Loader2, AlertCircle, Smartphone } from "lucide-react";
+import { Crown, Lock, CheckCircle, Loader2, AlertCircle, Smartphone, UserPlus } from "lucide-react";
 
 interface ArticlePaywallProps {
   postId: string;
@@ -9,24 +9,32 @@ interface ArticlePaywallProps {
   articlePayment?: string | null;
   adConfig?: string | null;
   isPremium?: boolean;
+  isLocked?: boolean;
   postSlug?: string;
 }
 
 const DEFAULT_PRICE = 500;
 
-export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, postSlug }: ArticlePaywallProps) {
+export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, isLocked, postSlug }: ArticlePaywallProps) {
   const [locked, setLocked] = useState(false);
   const [price, setPrice] = useState(DEFAULT_PRICE);
   const [phone, setPhone] = useState("");
-  const [step, setStep] = useState<"locked" | "paying" | "pending" | "signup" | "unlocked">("locked");
-  const [referenceId, setReferenceId] = useState("");
+  const [step, setStep] = useState<"locked" | "paying" | "pending" | "signup">("locked");
   const [error, setError] = useState("");
   const [signupUrl, setSignupUrl] = useState("https://writer.umunsi.com/signup");
-  const [unlockedHtml, setUnlockedHtml] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const articleUrl = () => `/article/${postSlug || postId}`;
+
+  const unlockArticle = (ref: string) => {
+    // Reload the page server-side with accessRef → renders the ORIGINAL article (ArticleContent styling, image, comments)
+    window.location.href = `${articleUrl()}?accessRef=${encodeURIComponent(ref)}`;
+  };
+
   useEffect(() => {
-    // Determine if this article is locked
+    // If the backend already unlocked this post (accessRef in URL worked), don't show paywall
+    if (isLocked === false) return;
+
     let requires = Boolean(isPremium);
     let p = DEFAULT_PRICE;
     try {
@@ -37,43 +45,34 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, p
       }
     } catch {}
     if (!requires) return;
-    setLocked(true);
-    setPrice(p);
 
     fetch("/api/payment/config")
       .then((r) => r.json())
       .then((d) => { if (d?.umunsiMediaSignupUrl) setSignupUrl(d.umunsiMediaSignupUrl); })
       .catch(() => {});
 
-    // Returning reader — check stored access
+    // Returning reader — verify stored ref, then unlock by reloading with accessRef
     const ref = localStorage.getItem(`umunsi_article_access_${postId}`);
     if (ref) {
       fetch(`/api/payment/mtn/access/${postId}?ref=${encodeURIComponent(ref)}`)
         .then((r) => r.json())
         .then((d) => {
-          if (d?.hasAccess) unlockContent(ref);
-          else localStorage.removeItem(`umunsi_article_access_${postId}`);
+          if (d?.hasAccess) {
+            unlockArticle(ref);
+          } else {
+            localStorage.removeItem(`umunsi_article_access_${postId}`);
+            setLocked(true);
+            setPrice(p);
+          }
         })
-        .catch(() => {});
+        .catch(() => { setLocked(true); setPrice(p); });
+    } else {
+      setLocked(true);
+      setPrice(p);
     }
 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [postId, articlePayment, isPremium]);
-
-  const unlockContent = async (ref: string) => {
-    try {
-      const idOrSlug = postSlug || postId;
-      const res = await fetch(`/api/posts/${encodeURIComponent(idOrSlug)}?accessRef=${encodeURIComponent(ref)}`, {
-        headers: { Accept: "application/json" },
-        cache: "no-store",
-      });
-      const data = await res.json();
-      if (data?.content) {
-        setUnlockedHtml(data.content);
-        setStep("unlocked");
-      }
-    } catch {}
-  };
+  }, [postId, articlePayment, isPremium, isLocked]);
 
   const startPayment = async () => {
     if (!phone.trim()) { setError("Please enter your MTN number"); return; }
@@ -91,9 +90,8 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, p
         setStep("locked");
         return;
       }
-      setReferenceId(data.referenceId);
       setStep("pending");
-      // Poll status every 5s
+      // Poll status every 3s
       pollRef.current = setInterval(async () => {
         try {
           const sr = await fetch(`/api/payment/mtn/status/${data.referenceId}`);
@@ -108,7 +106,7 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, p
             setStep("locked");
           }
         } catch {}
-      }, 5000);
+      }, 3000);
     } catch {
       setError("Something went wrong. Please try again.");
       setStep("locked");
@@ -121,16 +119,6 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, p
   };
 
   if (!locked) return null;
-
-  // Unlocked — render the article content inline
-  if (step === "unlocked" && unlockedHtml) {
-    return (
-      <div
-        className="article-content prose prose-lg max-w-none"
-        dangerouslySetInnerHTML={{ __html: unlockedHtml }}
-      />
-    );
-  }
 
   return (
     <div className="my-8 rounded-2xl border-2 border-yellow-400 bg-gradient-to-b from-yellow-50 to-white p-6 sm:p-8">
@@ -195,19 +183,19 @@ export function ArticlePaywall({ postId, postTitle, articlePayment, isPremium, p
           <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-3" />
           <p className="font-black text-gray-900 text-lg mb-2">Payment successful!</p>
           <p className="text-sm text-gray-600 mb-4">
-            Create your account at <strong>writer.umunsi.com</strong> to keep reading premium articles.
+            Create your account at <strong>writer.umunsi.com</strong> — you will always be able to come back and read premium articles with your account.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <a
               href={signupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-6 rounded-xl transition-colors"
+              className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black py-3 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
             >
-              Create Account — writer.umunsi.com
+              <UserPlus className="w-4 h-4" /> Create Account — writer.umunsi.com
             </a>
             <button
-              onClick={() => unlockContent(localStorage.getItem(`umunsi_article_access_${postId}`) || "")}
+              onClick={() => unlockArticle(localStorage.getItem(`umunsi_article_access_${postId}`) || "")}
               className="bg-gray-900 hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-xl transition-colors"
             >
               Read Article Now
