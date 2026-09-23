@@ -158,6 +158,35 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     }
   }, [content]);
 
+  // Paste handler: convert pasted text (Notes, Word, etc.) into proper <p> paragraphs
+  // so paragraphing is preserved without huge gaps or div-soup.
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const text = e.clipboardData.getData("text/plain");
+    if (!text) return;
+
+    const escapeHtml = (s: string) =>
+      s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // Split on blank lines → paragraphs; single newlines → <br> inside the paragraph
+    const paragraphs = text
+      .split(/\r?\n\s*\r?\n/)
+      .map((block) => block.trim())
+      .filter(Boolean)
+      .map((block) => {
+        const inner = block
+          .split(/\r?\n/)
+          .map((line) => escapeHtml(line.trim()))
+          .filter((line) => line !== "")
+          .join("<br>");
+        return `<p>${inner}</p>`;
+      })
+      .join("");
+
+    document.execCommand("insertHTML", false, paragraphs);
+    setContent(editorRef.current?.innerHTML || "");
+  };
+
   useEffect(() => {
     if (initialPost?.content !== undefined) {
       setContent(decodeHtmlEntities(initialPost.content || ""));
@@ -615,6 +644,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               contentEditable
               suppressContentEditableWarning
               onInput={() => setContent(editorRef.current?.innerHTML || "")}
+              onPaste={handlePaste}
               onBlur={saveSelection}
               className="w-full min-h-[300px] p-3 rounded-xl border border-ink-200 bg-white text-ink-800 prose prose-base sm:prose-lg max-w-none focus:border-brand-500 outline-none
                 [&_p]:text-base [&_p]:leading-relaxed [&_p]:mb-4

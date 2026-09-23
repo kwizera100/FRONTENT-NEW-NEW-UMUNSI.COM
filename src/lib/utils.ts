@@ -183,15 +183,29 @@ export function formatArticleHtml(content: string): string {
   const trimmed = content.trim();
   if (!trimmed) return "";
 
+  // Normalize div-soup from pasted content: top-level <div> wrappers → <p>
+  // so pasted Notes/Word content keeps paragraphing without huge gaps.
+  let html = trimmed
+    .replace(/<div[^>]*>/gi, "<p>")
+    .replace(/<\/div>/gi, "</p>")
+    // Strip empty paragraphs and whitespace-only ones
+    .replace(/<p[^>]*>(\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    // Collapse 3+ consecutive <br> into paragraph break
+    .replace(/(<br\s*\/?>\s*){3,}/gi, "</p><p>")
+    // Strip inline styles that inject big margins/fonts from Word/Notes
+    .replace(/\sstyle="[^"]*"/gi, (m) =>
+      /(font-family|margin|padding|text-align|background|color|font-size|line-height)/i.test(m) ? "" : m
+    );
+
   // If the content already contains <p> tags, leave it as-is so
   // existing paragraph formatting is preserved.
-  if (/^\s*<\s*p[\s\/>]/i.test(trimmed) || /<\s*p[\s\/>]/i.test(trimmed)) {
-    return trimmed;
+  if (/^\s*<\s*p[\s\/>]/i.test(html) || /<\s*p[\s\/>]/i.test(html)) {
+    return html;
   }
 
   // Split by double newlines and wrap each text block in <p> tags.
   // Blocks that are purely embedded HTML (e.g. <figure>...</figure>) are left as-is.
-  return trimmed
+  return html
     .split(/\n\s*\n/)
     .flatMap((block) => {
       const text = block.trim();
