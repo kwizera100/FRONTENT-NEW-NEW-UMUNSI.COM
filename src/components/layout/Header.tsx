@@ -36,14 +36,13 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   }, []);
 
   return (
-    <>
-      <TopBanner />
-      <header
+    <header
       className={cn(
         "sticky top-0 z-50 bg-white transition-all duration-300 border-b border-gray-200",
         scrolled ? "shadow-md" : ""
       )}
     >
+      <TopBanner />
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 lg:h-24">
           {/* Logo */}
@@ -204,6 +203,5 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
         </div>
       )}
     </header>
-    </>
   );
 }
