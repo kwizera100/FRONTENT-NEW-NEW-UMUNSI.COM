@@ -46,8 +46,8 @@ export const metadata: Metadata = {
   },
   robots: { index: true, follow: true },
   icons: {
-    icon: "/favicon.svg",
-    apple: "/images/round-logo.png",
+    icon: "/images/umunsi-logo.jpg",
+    apple: "/images/umunsi-logo.jpg",
   },
   manifest: "/site.webmanifest",
 };

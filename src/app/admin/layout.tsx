@@ -87,9 +87,12 @@ export default function AdminLayout({
       >
         {/* Logo */}
         <div className="h-16 flex items-center gap-2 px-6 border-b border-white/10">
-          <div className="w-9 h-9 bg-gradient-to-br from-brand-500 to-brand-700 rounded-lg flex items-center justify-center font-black">
-            U
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/umunsi-logo.jpg"
+            alt="Umunsi.com"
+            className="w-9 h-9 rounded-lg object-cover"
+          />
           <div>
             <span className="font-black text-lg">Umunsi</span>
             <span className="text-brand-500 font-black text-lg">.com</span>
