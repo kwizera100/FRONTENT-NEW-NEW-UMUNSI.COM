@@ -32,6 +32,14 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  return upsertSettings(req);
+}
+
+export async function POST(req: NextRequest) {
+  return upsertSettings(req);
+}
+
+async function upsertSettings(req: NextRequest) {
   try {
     const body = await req.json();
     const authHeader = req.headers.get("authorization") || "";
