@@ -26,10 +26,6 @@ const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
 
 const END_AD_SLOT = "1008591184";
 
-const PROFITABLE_RATE_AD_AFTER_PARAGRAPH = 2;
-const PROFITABLE_RATE_SCRIPT_SRC = "https://pl18296255.profitableratecpmnetwork.com/533b579a4ffcc3c134a9961c1a434570/invoke.js";
-const PROFITABLE_RATE_CONTAINER_ID = "container-533b579a4ffcc3c134a9961c1a434570";
-
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
 function decodeHtmlEntities(raw: string): string {
@@ -98,31 +94,6 @@ function pushAd() {
   }
 }
 
-function createProfitableRateAd(): HTMLElement {
-  const wrapper = document.createElement("div");
-  wrapper.className = "my-6 sm:my-8";
-  wrapper.style.cssText = "text-align: center; min-height: 250px;";
-
-  const iframe = document.createElement("iframe");
-  iframe.style.cssText = "width:100%;border:0;overflow:hidden;display:block;";
-  iframe.setAttribute("scrolling", "no");
-  iframe.setAttribute("loading", "lazy");
-  iframe.setAttribute("title", "Advertisement");
-  iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0;padding:0}</style></head><body><div id="${PROFITABLE_RATE_CONTAINER_ID}"></div><script async data-cfasync="false" src="${PROFITABLE_RATE_SCRIPT_SRC}"><\/script></body></html>`;
-  iframe.onload = () => {
-    try {
-      const h = iframe.contentDocument?.body?.scrollHeight;
-      if (h && h > 0) iframe.style.height = `${h}px`;
-      else iframe.style.height = "250px";
-    } catch {
-      iframe.style.height = "250px";
-    }
-  };
-
-  wrapper.appendChild(iframe);
-  return wrapper;
-}
-
 function isAdminOrAuthorUser(): boolean {
   try {
     const userStr = localStorage.getItem("umunsi_admin_user");
@@ -165,8 +136,8 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
     // No ads for premium articles, paid subscribers, or logged-in admins/authors
     if (isPremium || isSubscribedUser() || isAdminOrAuthorUser()) return;
 
-    const { adsense, adsterra } = adToggles(adConfig);
-    if (!adsense && !adsterra) return;
+    const { adsense } = adToggles(adConfig);
+    if (!adsense) return;
 
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
@@ -180,16 +151,7 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
           pushAd();
         }
       });
-    }
 
-    // Insert ProfitableRate native banner after the third paragraph
-    if (adsterra && paragraphs.length > PROFITABLE_RATE_AD_AFTER_PARAGRAPH) {
-      const target = paragraphs[PROFITABLE_RATE_AD_AFTER_PARAGRAPH];
-      const adEl = createProfitableRateAd();
-      target.insertAdjacentElement("afterend", adEl);
-    }
-
-    if (adsense) {
       const endAd = createFallbackAd(END_AD_SLOT);
       container.appendChild(endAd);
       pushAd();
