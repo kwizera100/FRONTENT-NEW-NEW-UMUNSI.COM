@@ -34,6 +34,17 @@ interface Withdrawal {
   note: string;
 }
 
+interface TipAttempt {
+  referenceId: string;
+  postTitle: string;
+  msisdn: string;
+  amount: number;
+  authorShare: number;
+  status: string;
+  createdAt: string;
+  paidAt: string | null;
+}
+
 const rwf = (n: number) => `${Number(n || 0).toLocaleString()} RWF`;
 
 export default function AdminEarningsPage() {
@@ -41,6 +52,7 @@ export default function AdminEarningsPage() {
   const [loading, setLoading] = useState(true);
   const [earnings, setEarnings] = useState<any>(null);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [attempts, setAttempts] = useState<TipAttempt[]>([]);
   const [platform, setPlatform] = useState<any>(null);
   const [msisdn, setMsisdn] = useState("");
   const [withdrawing, setWithdrawing] = useState(false);
@@ -66,6 +78,11 @@ export default function AdminEarningsPage() {
       const res = await fetch("/api/tips/admin/summary", { headers, cache: "no-store" });
       const data = await res.json();
       if (data.success) setPlatform(data);
+    } catch {}
+    try {
+      const res = await fetch("/api/tips/admin/attempts", { headers, cache: "no-store" });
+      const data = await res.json();
+      if (data.success) setAttempts(data.attempts || []);
     } catch {}
     setLoading(false);
   };
@@ -259,6 +276,55 @@ export default function AdminEarningsPage() {
               </div>
             </div>
           )}
+
+          <div className="bg-white rounded-2xl border border-gray-100 p-5">
+            <h2 className="font-bold text-gray-900 mb-1">Payment Attempts</h2>
+            <p className="text-xs text-gray-400 mb-4">
+              Includes failed/unfinished payments — visible to admin only. Only SUCCESS counts as paid.
+            </p>
+            {attempts.length === 0 ? (
+              <p className="text-sm text-gray-400">No payment attempts yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs uppercase text-gray-400 border-b border-gray-100">
+                      <th className="py-2 pr-4">Article</th>
+                      <th className="py-2 pr-4">Phone</th>
+                      <th className="py-2 pr-4">Amount</th>
+                      <th className="py-2 pr-4">Status</th>
+                      <th className="py-2 pr-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {attempts.map((t) => (
+                      <tr key={t.referenceId} className="border-b border-gray-50">
+                        <td className="py-2 pr-4 max-w-xs truncate">{t.postTitle || "—"}</td>
+                        <td className="py-2 pr-4 font-mono text-xs">{t.msisdn}</td>
+                        <td className="py-2 pr-4">{rwf(t.amount)}</td>
+                        <td className="py-2 pr-4">
+                          <span
+                            className={`text-xs font-bold px-2 py-1 rounded-full ${
+                              t.status === "SUCCESS"
+                                ? "bg-green-50 text-green-700"
+                                : t.status === "FAILED"
+                                  ? "bg-red-50 text-red-600"
+                                  : "bg-amber-50 text-amber-700"
+                            }`}
+                          >
+                            {t.status}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-4 text-gray-500">
+                          {new Date(t.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
 
           <div className="bg-white rounded-2xl border border-gray-100 p-5">
             <h2 className="font-bold text-gray-900 mb-4">Withdrawal Requests</h2>
