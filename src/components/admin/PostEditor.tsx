@@ -275,7 +275,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then((r) => r.json())
-      .then((data) => {
+      .then((raw) => {
+        const data = Array.isArray(raw) ? raw : raw?.data || raw?.users;
         if (Array.isArray(data)) {
           setSystemUsers(data.map((u: any) => ({
             id: u.id,

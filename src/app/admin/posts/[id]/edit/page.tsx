@@ -20,14 +20,20 @@ export default function EditPostPage() {
       setError("");
       try {
         const token = localStorage.getItem("umunsi_admin_token");
-        const res = await fetch(`/api/posts/by-id/${id}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        });
-        const data = await res.json();
-        if (!res.ok) {
+        const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+        // /api/posts/:id works both via the Next.js proxy and when nginx routes /api directly to the backend
+        let res = await fetch(`/api/posts/${encodeURIComponent(id)}`, { headers, cache: "no-store" });
+        let data = await res.json().catch(() => ({}));
+        let loaded = res.ok ? (data.data ?? data) : null;
+        if (!loaded || !loaded.id) {
+          res = await fetch(`/api/posts/by-id/${encodeURIComponent(id)}`, { headers, cache: "no-store" });
+          data = await res.json().catch(() => ({}));
+          loaded = res.ok ? (data.data ?? data) : null;
+        }
+        if (!loaded || !loaded.id) {
           setError(data.error || "Failed to load article.");
         } else {
-          setPost(data);
+          setPost(loaded);
         }
       } catch {
         setError("Network error. Please try again.");
