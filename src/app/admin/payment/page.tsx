@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Crown, Save, Loader2, CheckCircle, Building2, Smartphone, Globe, ToggleLeft, ToggleRight } from "lucide-react";
+import { Crown, Save, Loader2, CheckCircle, Building2, Smartphone, Globe, ToggleLeft, ToggleRight, Coins } from "lucide-react";
 
 export default function AdminPaymentSettingsPage() {
   const [config, setConfig] = useState<any>(null);
@@ -70,6 +70,21 @@ export default function AdminPaymentSettingsPage() {
 
   const updateAdConfig = (field: string, value: any) => {
     setConfig((c: any) => ({ ...c, adConfig: { ...c.adConfig, [field]: value } }));
+  };
+
+  const updateTip = (field: string, value: any) => {
+    setConfig((c: any) => ({
+      ...c,
+      tipConfig: {
+        enabled: true,
+        price: 2000,
+        currency: "RWF",
+        authorPercent: 50,
+        minWithdraw: 7000,
+        ...(c.tipConfig || {}),
+        [field]: value,
+      },
+    }));
   };
 
   if (loading) {
@@ -217,6 +232,56 @@ export default function AdminPaymentSettingsPage() {
               {config.adConfig.defaultShowAds ? <ToggleRight className="w-6 h-6 text-green-500" /> : <ToggleLeft className="w-6 h-6 text-gray-300" />}
             </button>
           </label>
+        </div>
+      </div>
+
+      {/* Dutere Inkunga (Support Writer) */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-5 lg:p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-gray-900 flex items-center gap-2">
+            <Coins className="w-5 h-5 text-[#e5b60d]" /> Dutere Inkunga (Support Writer)
+          </h2>
+          <button onClick={() => updateTip("enabled", !(config.tipConfig?.enabled ?? true))}>
+            {(config.tipConfig?.enabled ?? true) ? (
+              <ToggleRight className="w-6 h-6 text-green-500" />
+            ) : (
+              <ToggleLeft className="w-6 h-6 text-gray-300" />
+            )}
+          </button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="border border-gray-200 rounded-xl p-4">
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Tip Price (RWF)</label>
+            <input
+              type="number"
+              value={config.tipConfig?.price ?? 2000}
+              onChange={(e) => updateTip("price", parseInt(e.target.value) || 0)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm"
+            />
+          </div>
+          <div className="border border-gray-200 rounded-xl p-4">
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Author Share (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={config.tipConfig?.authorPercent ?? 50}
+              onChange={(e) => updateTip("authorPercent", Math.min(100, Math.max(0, parseInt(e.target.value) || 0)))}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Platform gets {100 - (config.tipConfig?.authorPercent ?? 50)}%
+            </p>
+          </div>
+          <div className="border border-gray-200 rounded-xl p-4">
+            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Min Withdraw (RWF)</label>
+            <input
+              type="number"
+              value={config.tipConfig?.minWithdraw ?? 7000}
+              onChange={(e) => updateTip("minWithdraw", parseInt(e.target.value) || 0)}
+              className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-[#e5b60d] outline-none text-sm"
+            />
+          </div>
         </div>
       </div>
 

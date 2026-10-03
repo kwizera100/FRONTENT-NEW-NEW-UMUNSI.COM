@@ -202,7 +202,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
                 </p>
               )}
 
-              <ArticleContent html={mappedPost.content || ""} isPremium={(mappedPost as any).isPremium} adConfig={(mappedPost as any).adConfig} />
+              <ArticleContent html={mappedPost.content || ""} isPremium={(mappedPost as any).isPremium} adConfig={(mappedPost as any).adConfig} postId={post.id} />
 
               <ArticlePaywall postId={post.id} postTitle={post.title} postSlug={post.slug} articlePayment={(mappedPost as any).articlePayment} adConfig={(mappedPost as any).adConfig} isPremium={(mappedPost as any).isPremium} isLocked={(mappedPost as any).isLocked} />
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatArticleHtml, normalizeMediaUrl } from "@/lib/utils";
+import { TipModal } from "./TipModal";
 
 declare global {
   interface Window {
@@ -13,6 +14,7 @@ interface ArticleContentProps {
   html: string;
   isPremium?: boolean;
   adConfig?: string | null;
+  postId?: string;
 }
 
 const AD_CLIENT = "ca-pub-3584259871242471";
@@ -115,9 +117,25 @@ function isSubscribedUser(): boolean {
   }
 }
 
-export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProps) {
+export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleContentProps) {
   const normalizedHtml = formatArticleHtml(preprocessArticleHtml(html));
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showTipModal, setShowTipModal] = useState(false);
+
+  // Delegated click: "Support Writer" buttons inside the article HTML open the tip modal
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const onClick = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement).closest(".umunsi-tip-btn, [data-umunsi-tip-btn]");
+      if (el) {
+        e.preventDefault();
+        setShowTipModal(true);
+      }
+    };
+    container.addEventListener("click", onClick);
+    return () => container.removeEventListener("click", onClick);
+  }, [html]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -148,6 +166,7 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
   }, [html, isPremium, adConfig]);
 
   return (
+    <>
     <div
       ref={containerRef}
       className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-8 space-y-6
@@ -162,8 +181,17 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
         [&_a]:text-[#e5b60d] [&_a]:font-semibold [&_a]:underline [&_a]:hover:text-[#c9a00c]
         [&_.video-wrapper]:my-8 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
         [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full
-        [&_.umunsi-resizable-img]:!resize-none [&_.umunsi-resizable-img]:!border-0 [&_.umunsi-resizable-img]:!overflow-visible [&_.umunsi-resizable-img]:!block [&_.umunsi-resizable-img]:my-6"
+        [&_.umunsi-resizable-img]:!resize-none [&_.umunsi-resizable-img]:!border-0 [&_.umunsi-resizable-img]:!overflow-visible [&_.umunsi-resizable-img]:!block [&_.umunsi-resizable-img]:my-6
+        [&_.umunsi-tip-card]:my-6 [&_.umunsi-tip-card]:!mx-0 [&_.umunsi-tip-card]:w-full [&_.umunsi-tip-card]:flex [&_.umunsi-tip-card]:items-center [&_.umunsi-tip-card]:justify-between [&_.umunsi-tip-card]:gap-4 [&_.umunsi-tip-card]:flex-wrap [&_.umunsi-tip-card]:p-4 [&_.umunsi-tip-card]:border-2 [&_.umunsi-tip-card]:border-[#e5b60d] [&_.umunsi-tip-card]:rounded-2xl [&_.umunsi-tip-card]:bg-gradient-to-br [&_.umunsi-tip-card]:from-amber-50 [&_.umunsi-tip-card]:to-white
+        [&_.umunsi-tip-left]:flex [&_.umunsi-tip-left]:items-center [&_.umunsi-tip-left]:gap-3
+        [&_.umunsi-tip-badge]:bg-[#e5b60d] [&_.umunsi-tip-badge]:text-white [&_.umunsi-tip-badge]:font-black [&_.umunsi-tip-badge]:text-xs [&_.umunsi-tip-badge]:rounded-lg [&_.umunsi-tip-badge]:px-2.5 [&_.umunsi-tip-badge]:py-1.5
+        [&_.umunsi-tip-text]:flex [&_.umunsi-tip-text]:flex-col
+        [&_.umunsi-tip-title]:!text-base [&_.umunsi-tip-title]:!font-black [&_.umunsi-tip-title]:!text-gray-900
+        [&_.umunsi-tip-sub]:text-xs [&_.umunsi-tip-sub]:text-gray-500
+        [&_.umunsi-tip-btn]:bg-[#e5b60d] [&_.umunsi-tip-btn]:!text-white [&_.umunsi-tip-btn]:font-black [&_.umunsi-tip-btn]:text-sm [&_.umunsi-tip-btn]:rounded-xl [&_.umunsi-tip-btn]:px-5 [&_.umunsi-tip-btn]:py-2.5 [&_.umunsi-tip-btn]:cursor-pointer [&_.umunsi-tip-btn]:border-0 [&_.umunsi-tip-btn]:!no-underline [&_.umunsi-tip-btn]:hover:bg-[#c9a00c]"
       dangerouslySetInnerHTML={{ __html: normalizedHtml }}
     />
+    {showTipModal && postId && <TipModal postId={postId} onClose={() => setShowTipModal(false)} />}
+    </>
   );
 }

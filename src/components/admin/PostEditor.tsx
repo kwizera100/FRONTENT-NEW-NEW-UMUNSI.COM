@@ -367,6 +367,15 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     setIsYouTube(false);
   };
 
+  const insertTipCard = () => {
+    // figure/span survive formatArticleHtml (divs would be converted to <p>,
+    // inline styles are stripped) — styling lives in CSS classes instead.
+    const html = `<figure class="umunsi-tip-card" data-umunsi-tip="true" contenteditable="false"><span class="umunsi-tip-left"><span class="umunsi-tip-badge">RWF</span><span class="umunsi-tip-text"><strong class="umunsi-tip-title">Dutere Inkunga</strong><span class="umunsi-tip-sub">Support the writer of this article</span></span></span><button type="button" class="umunsi-tip-btn">Support Writer</button></figure><p></p>`;
+    restoreSelection();
+    document.execCommand("insertHTML", false, html);
+    setContent(editorRef.current?.innerHTML || "");
+  };
+
   const insertLinkIntoContent = (url: string, caption: string, preview: typeof linkPreview) => {
     if (!isValidUrl(url)) return;
     const domain = getLinkDomain(url);
@@ -667,6 +676,14 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
               >
                 <Youtube className="w-4 h-4" />
               </button>
+              <div className="w-px h-5 bg-ink-200 mx-1" />
+              <button
+                onClick={insertTipCard}
+                className="px-2 py-1 rounded-lg hover:bg-white text-[#e5b60d] transition-colors font-black text-xs"
+                title="Dutere Inkunga — Support Writer"
+              >
+                RWF
+              </button>
             </div>
 
             <div
@@ -686,7 +703,14 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-4 [&_h3]:mb-3
                 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-2
                 [&_.video-wrapper]:my-6 [&_.video-wrapper]:rounded-xl [&_.video-wrapper]:overflow-hidden
-                [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full"
+                [&_iframe]:border-0 [&_iframe]:w-full [&_iframe]:h-full
+                [&_.umunsi-tip-card]:my-6 [&_.umunsi-tip-card]:!mx-0 [&_.umunsi-tip-card]:w-full [&_.umunsi-tip-card]:flex [&_.umunsi-tip-card]:items-center [&_.umunsi-tip-card]:justify-between [&_.umunsi-tip-card]:gap-4 [&_.umunsi-tip-card]:flex-wrap [&_.umunsi-tip-card]:p-4 [&_.umunsi-tip-card]:border-2 [&_.umunsi-tip-card]:border-[#e5b60d] [&_.umunsi-tip-card]:rounded-2xl [&_.umunsi-tip-card]:bg-gradient-to-br [&_.umunsi-tip-card]:from-amber-50 [&_.umunsi-tip-card]:to-white
+                [&_.umunsi-tip-left]:flex [&_.umunsi-tip-left]:items-center [&_.umunsi-tip-left]:gap-3
+                [&_.umunsi-tip-badge]:bg-[#e5b60d] [&_.umunsi-tip-badge]:text-white [&_.umunsi-tip-badge]:font-black [&_.umunsi-tip-badge]:text-xs [&_.umunsi-tip-badge]:rounded-lg [&_.umunsi-tip-badge]:px-2.5 [&_.umunsi-tip-badge]:py-1.5
+                [&_.umunsi-tip-text]:flex [&_.umunsi-tip-text]:flex-col
+                [&_.umunsi-tip-title]:!text-base [&_.umunsi-tip-title]:!font-black [&_.umunsi-tip-title]:!text-gray-900
+                [&_.umunsi-tip-sub]:text-xs [&_.umunsi-tip-sub]:text-gray-500
+                [&_.umunsi-tip-btn]:bg-[#e5b60d] [&_.umunsi-tip-btn]:!text-white [&_.umunsi-tip-btn]:font-black [&_.umunsi-tip-btn]:text-sm [&_.umunsi-tip-btn]:rounded-xl [&_.umunsi-tip-btn]:px-5 [&_.umunsi-tip-btn]:py-2.5 [&_.umunsi-tip-btn]:cursor-pointer [&_.umunsi-tip-btn]:border-0"
             />
           </div>
         </div>

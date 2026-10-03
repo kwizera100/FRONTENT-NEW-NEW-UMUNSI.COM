@@ -17,6 +17,7 @@ import {
   Users,
   Crown,
   MessageCircle,
+  Coins,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/admin/categories", label: "Categories", icon: FolderTree },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/comments", label: "Comments", icon: MessageCircle },
+  { href: "/admin/earnings", label: "Earnings", icon: Coins },
   { href: "/admin/payment", label: "Payment & Ads", icon: Crown },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
@@ -68,7 +70,7 @@ export default function AdminLayout({
 
   const visibleNavItems = navItems.filter((item) => {
     if (userRole === "AUTHOR") {
-      return ["/admin", "/admin/posts", "/admin/posts/new"].includes(item.href);
+      return ["/admin", "/admin/posts", "/admin/posts/new", "/admin/earnings"].includes(item.href);
     }
     if (item.href === "/admin/users" || item.href === "/admin/settings" || item.href === "/admin/comments" || item.href === "/admin/payment") {
       return userRole === "ADMIN";

@@ -16,3 +16,5 @@ umunsi-backend-temp
 
 .vercel
 .env*
+
+.devin/
