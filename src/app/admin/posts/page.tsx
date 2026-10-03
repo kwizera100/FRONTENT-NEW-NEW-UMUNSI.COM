@@ -66,6 +66,20 @@ export default function AdminPostsPage() {
       .catch(() => {});
   }, [userRole]);
 
+  // Fetch categories for filter dropdown
+  useEffect(() => {
+    const token = localStorage.getItem("umunsi_admin_token");
+    fetch("/api/categories", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        const cats = Array.isArray(data) ? data : data?.categories;
+        if (Array.isArray(cats)) setCategories(cats);
+      })
+      .catch(() => {});
+  }, []);
+
   const handleAssignAuthor = async (postId: string) => {
     if (!assignAuthorId) return;
     setAssignLoading(true);

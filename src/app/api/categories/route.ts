@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const authHeader = req.headers.get("authorization") || "";
     const all: any[] = [];
     let page = 1;
     let totalPages = 1;
@@ -14,8 +15,12 @@ export async function GET() {
       url.searchParams.set("limit", "100");
 
       const res = await fetch(url.toString(), {
-        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36", Accept: "application/json" },
-        next: { revalidate: 600 },
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          Accept: "application/json",
+          ...(authHeader ? { Authorization: authHeader } : {}),
+        },
+        ...(authHeader ? { cache: "no-store" } : { next: { revalidate: 600 } }),
       });
       const data = await res.json();
       const cats = data.categories || data;

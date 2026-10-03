@@ -226,17 +226,25 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
   }, [initialPost]);
 
   useEffect(() => {
-    fetch("/api/categories")
+    const token = localStorage.getItem("umunsi_admin_token");
+    fetch("/api/categories", {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    })
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setApiCategories(data);
-          if (mode === "create") {
-            if (data.length > 0) setCategoryIds([data[0].slug]);
+        const cats = Array.isArray(data) ? data : data?.categories;
+        if (Array.isArray(cats)) {
+          setApiCategories(cats);
+          if (mode === "create" && cats.length > 0) {
+            setCategoryIds([cats[0].slug]);
           }
+        } else {
+          setSaveError("Failed to load categories. Please refresh the page.");
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        setSaveError("Failed to load categories. Please refresh the page.");
+      });
   }, [mode]);
 
   // Fetch system users for author selection
