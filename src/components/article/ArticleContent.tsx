@@ -94,17 +94,6 @@ function pushAd() {
   }
 }
 
-function isAdminOrAuthorUser(): boolean {
-  try {
-    const userStr = localStorage.getItem("umunsi_admin_user");
-    if (!userStr) return false;
-    const user = JSON.parse(userStr);
-    return ["ADMIN", "AUTHOR"].includes(String(user?.role || "").toUpperCase());
-  } catch {
-    return false;
-  }
-}
-
 function adToggles(adConfig?: string | null): { adsense: boolean; adsterra: boolean } {
   if (!adConfig) return { adsense: true, adsterra: true };
   try {
@@ -133,8 +122,8 @@ export function ArticleContent({ html, isPremium, adConfig }: ArticleContentProp
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // No ads for premium articles, paid subscribers, or logged-in admins/authors
-    if (isPremium || isSubscribedUser() || isAdminOrAuthorUser()) return;
+    // No ads for premium articles or paid subscribers
+    if (isPremium || isSubscribedUser()) return;
 
     const { adsense } = adToggles(adConfig);
     if (!adsense) return;

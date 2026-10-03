@@ -227,24 +227,45 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
 
   useEffect(() => {
     const token = localStorage.getItem("umunsi_admin_token");
-    fetch("/api/categories", {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-    })
-      .then((r) => r.json())
-      .then((data) => {
+    const loadCategories = async () => {
+      try {
+        const res = await fetch("/api/categories", {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await res.json();
         const cats = Array.isArray(data) ? data : data?.categories;
-        if (Array.isArray(cats)) {
+        if (Array.isArray(cats) && cats.length > 0) {
           setApiCategories(cats);
-          if (mode === "create" && cats.length > 0) {
+          if (mode === "create") {
             setCategoryIds([cats[0].slug]);
           }
-        } else {
-          setSaveError("Failed to load categories. Please refresh the page.");
+          return;
         }
-      })
-      .catch(() => {
-        setSaveError("Failed to load categories. Please refresh the page.");
-      });
+      } catch {}
+
+      // Fallback: fetch directly from backend API
+      try {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
+        const directRes = await fetch(`${apiBase}/categories?page=1&limit=100`, {
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        const directData = await directRes.json();
+        const directCats = directData.categories || directData;
+        if (Array.isArray(directCats) && directCats.length > 0) {
+          setApiCategories(directCats);
+          if (mode === "create") {
+            setCategoryIds([directCats[0].slug]);
+          }
+          return;
+        }
+      } catch {}
+
+      setSaveError("Failed to load categories. Please refresh the page.");
+    };
+    loadCategories();
   }, [mode]);
 
   // Fetch system users for author selection
