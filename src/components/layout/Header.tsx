@@ -38,7 +38,7 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 bg-white transition-all duration-300 border-b border-gray-200",
+        "relative z-50 bg-white transition-all duration-300 border-b border-gray-200",
         scrolled ? "shadow-md" : ""
       )}
     >
