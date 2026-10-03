@@ -41,13 +41,18 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
       headers,
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
       throw new Error(data.error || "Upload failed. Please try again.");
     }
 
-    return data.url as string;
+    // Next.js proxy returns { url }, direct backend returns { media: [{ url }] }
+    const url: string = data.url || data.media?.[0]?.url || data.data?.url || data.path || "";
+    if (!url) throw new Error("Upload failed. Please try again.");
+    // Backend returns relative paths like /uploads/media/x.jpg — same origin works on all sites
+    if (url.startsWith("/")) return `${window.location.origin}${url}`;
+    return url;
   };
 
   const handleFiles = async (files: FileList | null) => {
