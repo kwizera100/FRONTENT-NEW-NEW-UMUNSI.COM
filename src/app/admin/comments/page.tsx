@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MessageCircle, Trash2, CheckCircle, Send, Loader2, Mail, Phone, User } from "lucide-react";
+import { MessageCircle, Trash2, CheckCircle, Send, Loader2, Mail, Phone, User, FileText } from "lucide-react";
 
 interface Comment {
   id: string;
@@ -14,6 +14,8 @@ interface Comment {
   isApproved: boolean;
   isSpam: boolean;
   createdAt: string;
+  post?: { id: string; title: string; slug: string } | null;
+  news?: { id: string; title: string; slug: string } | null;
 }
 
 export default function AdminCommentsPage() {
@@ -170,6 +172,17 @@ export default function AdminCommentsPage() {
                       <Phone className="w-3 h-3" />
                       {c.phone}
                     </p>
+                    {(c.post || c.news) && (
+                      <a
+                        href={c.post ? `/article/${c.post.slug}` : c.news ? `/${c.news.slug}` : "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[#e5b60d] hover:text-[#c9a00c] font-semibold flex items-center gap-1.5 mt-0.5"
+                      >
+                        <FileText className="w-3 h-3" />
+                        {(c.post || c.news)?.title}
+                      </a>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-1">
