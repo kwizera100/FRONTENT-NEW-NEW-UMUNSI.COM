@@ -128,9 +128,30 @@ export default async function ArticlePage({ params, searchParams }: Props) {
     .slice(0, 6)
     .map(mapApiPost);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NewsArticle",
+    headline: post.title,
+    description: mappedPost.excerpt || post.title,
+    image: [coverImage],
+    datePublished: mappedPost.publishedAt,
+    dateModified: (post as any).updatedAt || mappedPost.publishedAt,
+    author: [{ "@type": "Person", name: authorName, url: `${SITE_URL}/author/${authorSlug}` }],
+    publisher: {
+      "@type": "Organization",
+      name: "Umunsi.com",
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/images/umunsi-logo.jpg` },
+    },
+    mainEntityOfPage: { "@type": "WebPage", "@id": `${SITE_URL}/article/${post.slug}` },
+  };
+
   return (
     <>
       <ArticleViewTracker articleId={post.id} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Header categories={categories} />
 
       <div className="relative bg-gray-900">

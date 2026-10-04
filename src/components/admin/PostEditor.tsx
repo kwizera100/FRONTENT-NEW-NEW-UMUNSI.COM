@@ -721,17 +721,8 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           </div>
 
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
-            <label className="text-sm font-bold text-ink-700 mb-2 flex items-center justify-between">
-              <span>Excerpt (Short Summary)</span>
-              <button
-                type="button"
-                onClick={generateSeo}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-colors"
-                title="Fill title (if empty) and summary from the article text"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                Generate SEO
-              </button>
+            <label className="text-sm font-bold text-ink-700 mb-2 block">
+              Excerpt (Short Summary)
             </label>
             <textarea
               value={excerpt}
@@ -820,6 +811,47 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                 [&_.umunsi-tip-sub]:text-xs [&_.umunsi-tip-sub]:text-gray-500
                 [&_.umunsi-tip-btn]:bg-[#e5b60d] [&_.umunsi-tip-btn]:!text-white [&_.umunsi-tip-btn]:font-black [&_.umunsi-tip-btn]:text-sm [&_.umunsi-tip-btn]:rounded-xl [&_.umunsi-tip-btn]:px-5 [&_.umunsi-tip-btn]:py-2.5 [&_.umunsi-tip-btn]:cursor-pointer [&_.umunsi-tip-btn]:border-0"
             />
+          </div>
+
+          {/* SEO card — what Google shows for this article */}
+          <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-sm font-bold text-ink-700">
+                SEO — Google Search
+              </label>
+              <button
+                type="button"
+                onClick={generateSeo}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-colors"
+                title="Fill SEO title and description from the article text"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Generate SEO
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-ink-500 mb-1 block">SEO Title (shown in Google)</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Title Google will show..."
+                  className="w-full px-3 py-2 rounded-lg border border-ink-200 text-sm font-semibold text-ink-800 focus:border-brand-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-ink-500 mb-1 block">SEO Summary (meta description)</label>
+                <textarea
+                  value={excerpt}
+                  onChange={(e) => setExcerpt(e.target.value)}
+                  placeholder="Short description Google shows under the title..."
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-ink-200 text-sm text-ink-800 focus:border-brand-500 outline-none resize-none"
+                />
+                <p className="text-[11px] text-ink-400 mt-1">{excerpt.length}/160 characters</p>
+              </div>
+            </div>
           </div>
         </div>
 
