@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 import { api } from "@/lib/api";
 
-const SITE_URL = "https://www.umunsi.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.umunsi.com";
 
 export const revalidate = 3600;
 

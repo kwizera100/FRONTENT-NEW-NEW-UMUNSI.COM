@@ -20,7 +20,7 @@ import type { Metadata } from "next";
 export const revalidate = 60;
 export const dynamicParams = true;
 
-const SITE_URL = "https://www.umunsi.com";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || "https://www.umunsi.com";
 
 type Props = { params: { slug: string }; searchParams?: { accessRef?: string } };
 
