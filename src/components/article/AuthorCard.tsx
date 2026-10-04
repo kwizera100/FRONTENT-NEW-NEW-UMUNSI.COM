@@ -13,7 +13,7 @@ export function AuthorCard({ author }: AuthorCardProps) {
   const socialLinks = author.socialLinks || {};
   const hasSocial = socialLinks.facebook || socialLinks.twitter || socialLinks.linkedin || socialLinks.instagram || socialLinks.website;
   const authorSlug = author.username || author.id;
-  const avatar = normalizeMediaUrl(author.avatar);
+  const avatar = author.avatar ? normalizeMediaUrl(author.avatar) : null;
 
   return (
     <div className="mt-8 lg:mt-12 rounded-2xl overflow-hidden border border-gray-200" style={{ borderTopColor: accent, borderTopWidth: "4px" }}>
