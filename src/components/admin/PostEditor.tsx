@@ -25,6 +25,7 @@ import {
   FolderOpen,
   CheckCircle2,
   Crown,
+  Sparkles,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
 import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl, isValidUrl, getLinkDomain, getLinkFavicon } from "@/lib/utils";
@@ -256,6 +257,33 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     if (!out.trim()) return;
     document.execCommand("insertHTML", false, out);
     setContent(editorRef.current?.innerHTML || "");
+  };
+
+  // SEO generator: fill title (when empty) + excerpt from the article content.
+  const generateSeo = () => {
+    const html = editorRef.current?.innerHTML || content || "";
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    const text = (tmp.innerText || "")
+      .replace(/ /g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (!text) return;
+
+    // Title: keep existing; if empty, take first heading or first ~65 chars
+    if (!title.trim()) {
+      const heading = tmp.querySelector("h1,h2,h3");
+      const headingText = (heading?.textContent || "").trim();
+      const firstLine = headingText || text.slice(0, 65);
+      setTitle(firstLine.length > 65 ? firstLine.slice(0, 65).replace(/\s+\S*$/, "") + "…" : firstLine);
+    }
+
+    // Excerpt: first ~160 chars, cut at sentence end then word boundary
+    let ex = text.slice(0, 160);
+    const lastStop = Math.max(ex.lastIndexOf(". "), ex.lastIndexOf("! "), ex.lastIndexOf("? "));
+    if (lastStop > 80) ex = ex.slice(0, lastStop + 1);
+    else if (ex.length === 160) ex = ex.replace(/\s+\S*$/, "") + "…";
+    setExcerpt(ex);
   };
 
   useEffect(() => {
@@ -693,8 +721,17 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           </div>
 
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
-            <label className="text-sm font-bold text-ink-700 mb-2 block">
-              Excerpt (Short Summary)
+            <label className="text-sm font-bold text-ink-700 mb-2 flex items-center justify-between">
+              <span>Excerpt (Short Summary)</span>
+              <button
+                type="button"
+                onClick={generateSeo}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition-colors"
+                title="Fill title (if empty) and summary from the article text"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Generate SEO
+              </button>
             </label>
             <textarea
               value={excerpt}
