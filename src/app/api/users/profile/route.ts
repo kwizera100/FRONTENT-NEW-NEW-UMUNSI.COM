@@ -51,11 +51,16 @@ export async function PUT(req: NextRequest) {
             email: existing.email,
             firstName: existing.firstName,
             lastName: existing.lastName,
-            role: existing.role,
-            isActive: existing.isActive,
             ...updateData, // override with new values
           };
         }
+        // Never send role/isActive — non-admin users get a 403 ("only admins can
+        // change roles") which silently rejected every author profile update.
+        delete fullData.role;
+        delete fullData.isActive;
+        delete fullData.isPremium;
+        delete fullData.isVerified;
+        delete fullData.premiumUntil;
       }
     } catch (e) {
       console.error("Failed to fetch existing user:", e);

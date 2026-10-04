@@ -158,32 +158,103 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
     }
   }, [content]);
 
-  // Paste handler: convert pasted text (Notes, Word, etc.) into proper <p> paragraphs
-  // so paragraphing is preserved without huge gaps or div-soup.
+  // Paste handler: keep paragraphing AND formatting (bold, italic, underline,
+  // links, headings, lists, images) when pasting from Word / Docs / web pages.
   const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const text = e.clipboardData.getData("text/plain");
-    if (!text) return;
-
     const escapeHtml = (s: string) =>
       s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const escapeAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 
-    // Split on blank lines → paragraphs; single newlines → <br> inside the paragraph
-    const paragraphs = text
-      .split(/\r?\n\s*\r?\n/)
-      .map((block) => block.trim())
-      .filter(Boolean)
-      .map((block) => {
-        const inner = block
-          .split(/\r?\n/)
-          .map((line) => escapeHtml(line.trim()))
-          .filter((line) => line !== "")
-          .join("<br>");
-        return `<p>${inner}</p>`;
-      })
-      .join("");
+    // --- Sanitize rich HTML (Word, Google Docs, web) keeping semantic tags ---
+    const BLOCK: Record<string, string> = {
+      P: "p", DIV: "p", SECTION: "p", ARTICLE: "p", PRE: "blockquote",
+      H1: "h2", H2: "h2", H3: "h3", H4: "h3", H5: "h3", H6: "h3",
+      BLOCKQUOTE: "blockquote", UL: "ul", OL: "ol", LI: "li",
+    };
+    const DROP = new Set(["STYLE", "SCRIPT", "META", "LINK", "TITLE", "XML", "HEAD", "NOSCRIPT", "TEMPLATE", "IFRAME"]);
 
-    document.execCommand("insertHTML", false, paragraphs);
+    const sanitizeChildren = (el: Element): string => {
+      let out = "";
+      el.childNodes.forEach((node) => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          out += escapeHtml(node.textContent || "");
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          out += sanitizeEl(node as HTMLElement);
+        }
+      });
+      return out;
+    };
+
+    const sanitizeEl = (el: HTMLElement): string => {
+      const tag = el.tagName;
+      if (DROP.has(tag) || tag.endsWith(":P")) return ""; // o:p Word tags
+      if (tag === "BR") return "<br>";
+      if (tag === "A") {
+        const href = el.getAttribute("href") || "";
+        const inner = sanitizeChildren(el).trim();
+        return inner ? `<a href="${escapeAttr(href)}">${inner}</a>` : "";
+      }
+      if (tag === "IMG") {
+        const src = el.getAttribute("src") || "";
+        if (!src || src.startsWith("data:") || src.startsWith("file:")) return "";
+        return `<img src="${escapeAttr(src)}" alt="">`;
+      }
+      if (tag === "B" || tag === "STRONG") return `<strong>${sanitizeChildren(el)}</strong>`;
+      if (tag === "I" || tag === "EM") return `<em>${sanitizeChildren(el)}</em>`;
+      if (tag === "U" || tag === "INS") return `<u>${sanitizeChildren(el)}</u>`;
+      if (tag === "S" || tag === "STRIKE" || tag === "DEL") return `<s>${sanitizeChildren(el)}</s>`;
+      if (tag === "FIGURE") {
+        const inner = sanitizeChildren(el);
+        return inner.trim() ? `<figure>${inner}</figure>` : "";
+      }
+      if (tag === "FIGCAPTION") {
+        const inner = sanitizeChildren(el);
+        return inner.trim() ? `<figcaption>${inner}</figcaption>` : "";
+      }
+      if (BLOCK[tag]) {
+        const inner = sanitizeChildren(el).trim();
+        return inner ? `<${BLOCK[tag]}>${inner}</${BLOCK[tag]}>` : "";
+      }
+      // Inline wrappers (span, font, mark, etc.) — preserve bold/italic/underline styling
+      let inner = sanitizeChildren(el);
+      if (!inner) return "";
+      const fw = el.style?.fontWeight || "";
+      const fs = el.style?.fontStyle || "";
+      const td = el.style?.textDecoration || "";
+      if (/(bold|[6-9]00)/.test(fw)) inner = `<strong>${inner}</strong>`;
+      if (/(italic|oblique)/.test(fs)) inner = `<em>${inner}</em>`;
+      if (/underline/.test(td)) inner = `<u>${inner}</u>`;
+      return inner;
+    };
+
+    const html = e.clipboardData.getData("text/html");
+    const text = e.clipboardData.getData("text/plain");
+    let out = "";
+
+    if (html) {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      out = sanitizeChildren(doc.body);
+      // If nothing block-level survived, wrap the inline result as a paragraph
+      if (out.trim() && !/^\s*<(p|h[1-6]|ul|ol|blockquote|figure|table)[\s>]/i.test(out)) {
+        out = `<p>${out}</p>`;
+      }
+    }
+
+    if (!out.trim() && text) {
+      // Plain text: blank lines → paragraphs; single newlines → paragraphs too
+      // (Word/Docs separate paragraphs with a single line break).
+      out = text
+        .split(/\r?\n\s*\r?\n/)
+        .flatMap((block) =>
+          block.split(/\r?\n/).map((l) => l.trim()).filter(Boolean)
+        )
+        .map((line) => `<p>${escapeHtml(line)}</p>`)
+        .join("");
+    }
+
+    if (!out.trim()) return;
+    document.execCommand("insertHTML", false, out);
     setContent(editorRef.current?.innerHTML || "");
   };
 
