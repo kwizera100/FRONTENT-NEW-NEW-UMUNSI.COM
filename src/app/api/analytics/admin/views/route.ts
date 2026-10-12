@@ -39,10 +39,16 @@ export async function GET(request: NextRequest) {
 
       if (dailyData.success && dailyData.data?.data) {
         const dailyItems = dailyData.data.data as Array<{ date: string; views: number }>;
-        const todayKey = new Date().toISOString().slice(0, 10);
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayKey = yesterday.toISOString().slice(0, 10);
+        // Backend keys are Africa/Kigali calendar days — match them here
+        const todayKey = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "Africa/Kigali",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date());
+        const [ty, tm, td] = todayKey.split("-").map(Number);
+        const yd = new Date(Date.UTC(ty, tm - 1, td - 1));
+        const yesterdayKey = `${yd.getUTCFullYear()}-${String(yd.getUTCMonth() + 1).padStart(2, "0")}-${String(yd.getUTCDate()).padStart(2, "0")}`;
         const monthPrefix = todayKey.slice(0, 7);
 
         const today = dailyItems.find((d) => d.date === todayKey)?.views ?? 0;

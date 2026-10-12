@@ -30,8 +30,15 @@ const RANGE_LABELS: Record<ViewRange, string> = {
   yearly: "Yearly",
 };
 
+const kigaliDayFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Africa/Kigali",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 function toDateKey(d = new Date()) {
-  return d.toISOString().slice(0, 10);
+  return kigaliDayFormatter.format(d);
 }
 
 function formatLabel(item: { date?: string; month?: string; year?: string }) {
