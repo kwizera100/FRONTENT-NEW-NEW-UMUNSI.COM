@@ -28,6 +28,10 @@ const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
 
 const END_AD_SLOT = "1008591184";
 
+const NETWORK_AD_CONTAINER_ID = "container-533b579a4ffcc3c134a9961c1a434570";
+const NETWORK_AD_SRC =
+  "https://pl18296255.profitableratecpmnetwork.com/533b579a4ffcc3c134a9961c1a434570/invoke.js";
+
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
 function decodeHtmlEntities(raw: string): string {
@@ -143,11 +147,23 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
     // No ads for premium articles or paid subscribers
     if (isPremium || isSubscribedUser()) return;
 
-    const { adsense } = adToggles(adConfig);
-    if (!adsense) return;
+    const { adsense, adsterra } = adToggles(adConfig);
+    if (!adsense && !adsterra) return;
 
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
+
+    if (adsterra && paragraphs.length > 1 && !document.getElementById(NETWORK_AD_CONTAINER_ID)) {
+      const adContainer = document.createElement("div");
+      adContainer.id = NETWORK_AD_CONTAINER_ID;
+      paragraphs[1].insertAdjacentElement("afterend", adContainer);
+
+      const s = document.createElement("script");
+      s.async = true;
+      s.setAttribute("data-cfasync", "false");
+      s.src = NETWORK_AD_SRC;
+      document.body.appendChild(s);
+    }
 
     if (adsense) {
       IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
