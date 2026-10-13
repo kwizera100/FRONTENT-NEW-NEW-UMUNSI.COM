@@ -147,22 +147,22 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
     // No ads for premium articles or paid subscribers
     if (isPremium || isSubscribedUser()) return;
 
-    const { adsense, adsterra } = adToggles(adConfig);
-    if (!adsense && !adsterra) return;
+    const { adsense } = adToggles(adConfig);
 
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
 
-    if (adsterra && paragraphs.length > 1 && !document.getElementById(NETWORK_AD_CONTAINER_ID)) {
-      const adContainer = document.createElement("div");
-      adContainer.id = NETWORK_AD_CONTAINER_ID;
-      paragraphs[1].insertAdjacentElement("afterend", adContainer);
-
+    // Network banner after paragraph 2 (script placed immediately before its container)
+    if (paragraphs.length > 1 && !document.getElementById(NETWORK_AD_CONTAINER_ID)) {
       const s = document.createElement("script");
       s.async = true;
       s.setAttribute("data-cfasync", "false");
       s.src = NETWORK_AD_SRC;
-      document.body.appendChild(s);
+      paragraphs[1].insertAdjacentElement("afterend", s);
+
+      const adContainer = document.createElement("div");
+      adContainer.id = NETWORK_AD_CONTAINER_ID;
+      s.insertAdjacentElement("afterend", adContainer);
     }
 
     if (adsense) {
