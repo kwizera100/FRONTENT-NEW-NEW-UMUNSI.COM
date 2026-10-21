@@ -28,10 +28,6 @@ const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
 
 const END_AD_SLOT = "1008591184";
 
-const NETWORK_AD_CONTAINER_ID = "container-533b579a4ffcc3c134a9961c1a434570";
-const NETWORK_AD_SRC =
-  "https://pl18296255.profitableratecpmnetwork.com/533b579a4ffcc3c134a9961c1a434570/invoke.js";
-
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
 function decodeHtmlEntities(raw: string): string {
@@ -151,19 +147,6 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
 
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
-
-    // Network banner after paragraph 2 (script placed immediately before its container)
-    if (paragraphs.length > 1 && !document.getElementById(NETWORK_AD_CONTAINER_ID)) {
-      const s = document.createElement("script");
-      s.async = true;
-      s.setAttribute("data-cfasync", "false");
-      s.src = NETWORK_AD_SRC;
-      paragraphs[1].insertAdjacentElement("afterend", s);
-
-      const adContainer = document.createElement("div");
-      adContainer.id = NETWORK_AD_CONTAINER_ID;
-      s.insertAdjacentElement("afterend", adContainer);
-    }
 
     if (adsense) {
       IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
