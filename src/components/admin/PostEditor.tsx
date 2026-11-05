@@ -28,8 +28,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { ImageUploader } from "./ImageUploader";
+import { isVideoUrl } from "@/lib/upload-client";
 import { getYouTubeId, getYouTubeThumb, formatArticleHtml, normalizeArticleMediaUrls, normalizeMediaUrl, isValidUrl, getLinkDomain, getLinkFavicon } from "@/lib/utils";
 import type { ApiCategory } from "@/lib/api";
+
+function buildVideoFigure(src: string, figcaption: string): string {
+  return `<figure>\n  <div class="video-wrapper" contenteditable="false" style="border-radius:0.75rem;overflow:hidden;margin:1rem 0;background:#000;">\n    <video src="${src}" controls playsinline preload="metadata" style="width:100%;height:auto;display:block;"></video>\n  </div>\n${figcaption}</figure>`;
+}
 
 function decodeHtmlEntities(raw: string): string {
   return raw
@@ -453,7 +458,9 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
       const safeUrl = normalizeMediaUrl(url);
       const safeCaption = (caption || "").replace(/"/g, "&quot;");
       const figcaption = caption.trim() ? `  <figcaption>${caption}</figcaption>\n` : "";
-      html = `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="${safeCaption}" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n${figcaption}</figure>`;
+      html = isVideoUrl(safeUrl)
+        ? buildVideoFigure(safeUrl, figcaption)
+        : `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="${safeCaption}" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n${figcaption}</figure>`;
     }
     if (!html) return;
     restoreSelection();
@@ -919,6 +926,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                   }}
                   onClose={() => setShowCoverUploader(false)}
                   compact
+                  allowVideo={false}
                 />
               </div>
             ) : (
@@ -1229,6 +1237,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
                     const html = urls
                       .map((url) => {
                         const safeUrl = normalizeMediaUrl(url);
+                        if (isVideoUrl(safeUrl)) return buildVideoFigure(safeUrl, "");
                         return `<figure>\n  <div class="umunsi-resizable-img" contenteditable="false" style="resize: both; overflow: hidden; max-width: 100%; width: 100%; display: inline-block; border-radius: 0.75rem; min-width: 120px; min-height: 80px;">\n    <img src="${safeUrl}" alt="" style="width: 100%; height: auto; display: block; border-radius: 0.75rem;" />\n  </div>\n</figure>`;
                       })
                       .join("\n\n");

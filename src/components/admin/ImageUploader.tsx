@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, Loader2, X, Image as ImageIcon, Link2, CheckCircle2 } from "lucide-react";
+import { Upload, Loader2, X, Image as ImageIcon, Link2, CheckCircle2, Video } from "lucide-react";
+import { uploadMediaFile, isVideoFile } from "@/lib/upload-client";
 
 interface ImageUploaderProps {
   onUploadComplete?: (url: string) => void;
@@ -10,61 +11,33 @@ interface ImageUploaderProps {
   showUrlOption?: boolean;
   compact?: boolean;
   multiple?: boolean;
+  /** Allow video files in addition to images (default true). */
+  allowVideo?: boolean;
 }
 
-export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, showUrlOption = true, compact = false, multiple = false }: ImageUploaderProps) {
+export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, showUrlOption = true, compact = false, multiple = false, allowVideo = true }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
   const [preview, setPreview] = useState("");
+  const [previewIsVideo, setPreviewIsVideo] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [mode, setMode] = useState<"upload" | "url">("upload");
   const [urlInput, setUrlInput] = useState("");
 
-  const uploadFile = async (file: File): Promise<string | null> => {
-    if (!file.type.startsWith("image/")) {
-      throw new Error(`Unsupported file type: ${file.name || file.type}`);
-    }
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const token = typeof window !== "undefined" ? localStorage.getItem("umunsi_admin_token") : "";
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-      headers,
-    });
-
-    const data = await res.json().catch(() => ({}));
-
-    if (!res.ok) {
-      throw new Error(data.error || "Upload failed. Please try again.");
-    }
-
-    // Next.js proxy returns { url }, direct backend returns { media: [{ url }] }
-    const url: string = data.url || data.media?.[0]?.url || data.data?.url || data.path || "";
-    if (!url) throw new Error("Upload failed. Please try again.");
-    // Backend returns relative paths like /uploads/media/x.jpg — same origin works on all sites
-    if (url.startsWith("/")) return `${window.location.origin}${url}`;
-    return url;
-  };
+  const accept = allowVideo ? "image/*,video/*" : "image/*";
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setError("");
     setUploading(true);
+    setProgress(0);
 
     const fileList = Array.from(files);
     if (fileList.length === 1) {
-      const reader = new FileReader();
-      reader.onload = (e) => setPreview(e.target?.result as string);
-      reader.readAsDataURL(fileList[0]);
+      setPreviewIsVideo(isVideoFile(fileList[0]));
+      setPreview(URL.createObjectURL(fileList[0]));
     } else {
       setPreview("");
     }
@@ -72,9 +45,14 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
     const urls: string[] = [];
     const errors: string[] = [];
 
-    for (const file of fileList) {
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      if (!allowVideo && isVideoFile(file)) {
+        errors.push(`Videos are not allowed here: ${file.name}`);
+        continue;
+      }
       try {
-        const url = await uploadFile(file);
+        const url = await uploadMediaFile(file, (p) => setProgress(Math.round(((i + p / 100) / fileList.length) * 100)));
         if (url) urls.push(url);
       } catch (err) {
         errors.push(err instanceof Error ? err.message : "Upload failed");
@@ -119,7 +97,7 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
             className="flex-1 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
           >
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-            {uploading ? "Uploading..." : "Upload Image"}
+            {uploading ? `Uploading... ${progress}%` : allowVideo ? "Upload Image / Video" : "Upload Image"}
           </button>
           {onClose && (
             <button
@@ -134,7 +112,7 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept={accept}
           multiple={multiple}
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
@@ -162,7 +140,7 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
               mode === "url" ? "bg-white text-brand-600 shadow-sm" : "text-ink-400"
             }`}
           >
-            <Link2 className="w-4 h-4" /> Image URL
+            <Link2 className="w-4 h-4" /> Media URL
           </button>
         </div>
       )}
@@ -187,7 +165,7 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={accept}
               multiple={multiple}
               className="hidden"
               onChange={(e) => handleFiles(e.target.files)}
@@ -196,30 +174,37 @@ export function ImageUploader({ onUploadComplete, onUploadMultiple, onClose, sho
             {uploading ? (
               <div className="flex flex-col items-center gap-3">
                 <Loader2 className="w-10 h-10 text-brand-500 animate-spin" />
-                <p className="text-sm font-semibold text-ink-600">Uploading image...</p>
+                <p className="text-sm font-semibold text-ink-600">Uploading {previewIsVideo ? "video" : "media"}... {progress}%</p>
+                <div className="w-full max-w-xs h-2 bg-ink-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-brand-500 transition-all" style={{ width: `${progress}%` }} />
+                </div>
               </div>
             ) : preview ? (
               <div className="flex flex-col items-center gap-3">
-                <div className="relative w-32 h-32 rounded-xl overflow-hidden">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                <div className="relative w-32 h-32 rounded-xl overflow-hidden bg-ink-900">
+                  {previewIsVideo ? (
+                    <video src={preview} muted className="w-full h-full object-cover" />
+                  ) : (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                  )}
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                     <CheckCircle2 className="w-8 h-8 text-white drop-shadow-lg" />
                   </div>
                 </div>
-                <p className="text-sm font-semibold text-green-600">Image uploaded successfully!</p>
+                <p className="text-sm font-semibold text-green-600">{previewIsVideo ? "Video" : "Image"} uploaded successfully!</p>
               </div>
             ) : (
               <div className="flex flex-col items-center gap-3">
                 <div className="w-14 h-14 rounded-2xl bg-brand-50 flex items-center justify-center">
-                  <Upload className="w-7 h-7 text-brand-600" />
+                  {allowVideo ? <Video className="w-7 h-7 text-brand-600" /> : <Upload className="w-7 h-7 text-brand-600" />}
                 </div>
                 <div>
                   <p className="font-bold text-ink-700 text-sm">
-                    Drag an image here or click to select
+                    {allowVideo ? "Drag an image or video here or click to select" : "Drag an image here or click to select"}
                   </p>
                   <p className="text-xs text-ink-400 mt-1">
-                    Any image type — no size limit
+                    {allowVideo ? "Photos and videos — stored on Cloudflare R2" : "Any image type — no size limit"}
                   </p>
                 </div>
               </div>

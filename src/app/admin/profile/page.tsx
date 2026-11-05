@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, Save, Download, Palette, Facebook, Twitter, Linkedin, Instagram, Globe, Loader2, Check } from "lucide-react";
 import { normalizeMediaUrl } from "@/lib/utils";
+import { uploadMediaFile } from "@/lib/upload-client";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 const SERVER_BASE = "https://api.umunsi.com";
@@ -141,29 +142,7 @@ export default function ProfilePage() {
     setError("");
 
     try {
-      const token = localStorage.getItem("umunsi_admin_token") || "";
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      if (!res.ok) {
-        let errMsg = "Upload failed";
-        try {
-          const err = await res.json();
-          errMsg = err.error || errMsg;
-        } catch {}
-        throw new Error(errMsg);
-      }
-
-      const data = await res.json();
-      const url = data.url;
+      const url = await uploadMediaFile(file);
 
       if (type === "avatar") {
         setAvatarUrl(url);
