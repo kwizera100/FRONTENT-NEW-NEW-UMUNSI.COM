@@ -1,4 +1,4 @@
-import { api, mapApiPost, type ApiCategory } from "@/lib/api";
+import { api, mapApiPost, type ApiCategory, type ApiPost } from "@/lib/api";
 import { DEFAULT_IMAGE_FALLBACK } from "@/lib/utils";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -17,6 +17,12 @@ function hasRealImage(post: { coverImage: string }): boolean {
   return post.coverImage !== DEFAULT_IMAGE_FALLBACK;
 }
 
+// Listing cards never render the article body; dropping it keeps the full
+// HTML/RSC payload small (it was ~400KB with bodies included).
+function mapListPost(post: ApiPost) {
+  return { ...mapApiPost(post), content: "" };
+}
+
 export default async function HomePage() {
   const [featuredPosts, trendingPosts, categories] = await Promise.all([
     api.getFeaturedPosts(7),
@@ -24,8 +30,8 @@ export default async function HomePage() {
     api.getCategories(),
   ]);
 
-  const featured = featuredPosts.map(mapApiPost).filter(hasRealImage);
-  const popular = trendingPosts.map(mapApiPost).filter(hasRealImage);
+  const featured = featuredPosts.map(mapListPost).filter(hasRealImage);
+  const popular = trendingPosts.map(mapListPost).filter(hasRealImage);
 
   const orderedSlugs = [
     "inkuru-nyamukuru",
@@ -56,7 +62,7 @@ export default async function HomePage() {
 
   // Map and filter out posts whose coverImage is the fallback
   const categoryPostsWithImages = categoryPosts.map((posts) =>
-    posts.map(mapApiPost).filter(hasRealImage)
+    posts.map(mapListPost).filter(hasRealImage)
   );
 
   return (

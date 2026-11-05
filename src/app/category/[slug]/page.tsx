@@ -26,7 +26,7 @@ export default async function CategoryPage({ params }: { params: { slug: string 
 
   if (!category) notFound();
 
-  const mappedPosts = categoryPosts.map(mapApiPost).filter(hasRealImage);
+  const mappedPosts = categoryPosts.map((p) => ({ ...mapApiPost(p), content: "" })).filter(hasRealImage);
   const color = category.color || "#f43f5e";
 
   const isInkuru = params.slug === "inkuru-nyamukuru";
