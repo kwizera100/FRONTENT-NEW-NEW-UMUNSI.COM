@@ -7,8 +7,9 @@ import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 import { HomepageViewTracker } from "@/components/article/HomepageViewTracker";
 
+// ISR: the homepage is served from the CDN cache and re-generated in the
+// background at most once a minute, instead of hitting the backend per visit.
 export const revalidate = 60;
-export const dynamic = "force-dynamic";
 
 // Filter out posts whose coverImage resolves to the fallback (either no
 // featuredImage or a broken old WordPress URL that gets replaced).
@@ -50,7 +51,7 @@ export default async function HomePage() {
   const allDisplayCategories = [...orderedCategories, ...remainingCategories];
 
   const categoryPosts = await Promise.all(
-    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 12))
+    allDisplayCategories.map((cat) => api.getPostsByCategory(cat.slug, 12, 1, allCats))
   );
 
   // Map and filter out posts whose coverImage is the fallback

@@ -89,7 +89,7 @@ export default async function ArticlePage({ params, searchParams }: Props) {
 
   if (!post) notFound();
 
-  const latestPosts = await api.getPostsByCategory(post.category?.slug || "", 8);
+  const latestPosts = await api.getPostsByCategory(post.category?.slug || "", 8, 1, categories);
 
   const mappedPost = mapApiPost(post);
   const coverImage = mappedPost.coverImage;

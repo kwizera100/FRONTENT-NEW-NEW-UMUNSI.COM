@@ -7,6 +7,10 @@ const HEADERS: HeadersInit = {
   "Accept": "application/json",
 };
 
+// Public API reads are cached in Next's data cache for 60s so page renders
+// don't hit the VPS backend on every request (it is the main slowness source).
+const PUBLIC_REVALIDATE_SECONDS = 60;
+
 async function fetchAPI<T = any>(endpoint: string, params?: Record<string, string | number | undefined>): Promise<T> {
   const url = new URL(`${API_BASE}${endpoint}`);
   if (params) {
@@ -20,7 +24,7 @@ async function fetchAPI<T = any>(endpoint: string, params?: Record<string, strin
   try {
     const res = await fetch(url.toString(), {
       headers: HEADERS,
-      cache: "no-store",
+      next: { revalidate: PUBLIC_REVALIDATE_SECONDS },
     });
 
     if (!res.ok) {
@@ -181,8 +185,8 @@ export const api = {
     fetchAPI<PostsResponse>("/posts", { status: "PUBLISHED", limit, page, sortBy: "createdAt", sortOrder: "desc" })
       .then((r) => r.data || []),
 
-  getPostsByCategory: async (categorySlug: string, limit = 20, page = 1) => {
-    const categories = await api.getCategories();
+  getPostsByCategory: async (categorySlug: string, limit = 20, page = 1, knownCategories?: ApiCategory[]) => {
+    const categories = knownCategories ?? (await api.getCategories());
     const cat = (categories as ApiCategory[]).find(
       (c) => c.slug.toLowerCase() === categorySlug.toLowerCase() ||
             c.name.toLowerCase() === categorySlug.toLowerCase()
