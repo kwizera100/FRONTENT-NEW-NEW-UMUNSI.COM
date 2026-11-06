@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Users, Plus, X, Mail, Shield, Loader2, Trash2, Copy, CheckCircle2, Save } from "lucide-react";
+import { Users, Plus, X, Mail, Shield, Loader2, Trash2, Copy, CheckCircle2, Save, Pencil, Send } from "lucide-react";
 
 interface User {
   id: string;
@@ -11,6 +11,7 @@ interface User {
   username?: string;
   email: string;
   role?: string;
+  canPublish?: boolean;
   createdAt?: string;
   isPremium?: boolean;
   isActive?: boolean;
@@ -32,6 +33,13 @@ export default function AdminUsersPage() {
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [editingRoleValue, setEditingRoleValue] = useState("");
   const [updatingRole, setUpdatingRole] = useState(false);
+  const [editUser, setEditUser] = useState<User | null>(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
+  const [editCanPublish, setEditCanPublish] = useState(false);
+  const [savingUser, setSavingUser] = useState(false);
+  const [userError, setUserError] = useState("");
 
   useEffect(() => {
     fetchUsers();
@@ -118,6 +126,49 @@ export default function AdminUsersPage() {
     setEditingRoleValue("");
   };
 
+  const openEditUser = (user: User) => {
+    setEditUser(user);
+    setEditFirstName(user.firstName || "");
+    setEditLastName(user.lastName || "");
+    setEditUsername(user.username || "");
+    setEditCanPublish(Boolean(user.canPublish));
+    setUserError("");
+  };
+
+  const saveUser = async () => {
+    if (!editUser) return;
+    setSavingUser(true);
+    setUserError("");
+    try {
+      const token = localStorage.getItem("umunsi_admin_token");
+      const res = await fetch(`/api/users/${editUser.id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          email: editUser.email,
+          username: editUsername.trim() || editUser.username,
+          firstName: editFirstName.trim(),
+          lastName: editLastName.trim(),
+          canPublish: editCanPublish,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setUserError(data.error || "Failed to update user");
+      } else {
+        setUsers(users.map((u) => (u.id === editUser.id ? { ...u, firstName: editFirstName.trim(), lastName: editLastName.trim(), username: editUsername.trim() || u.username, canPublish: editCanPublish } : u)));
+        setEditUser(null);
+      }
+    } catch {
+      setUserError("Failed to update user");
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
   const saveRole = async (user: User) => {
     setUpdatingRole(true);
     try {
@@ -197,6 +248,7 @@ export default function AdminUsersPage() {
                 <th className="text-left px-5 py-3 text-xs font-bold text-ink-400 uppercase">Email</th>
                 <th className="text-left px-5 py-3 text-xs font-bold text-ink-400 uppercase">Role</th>
                 <th className="text-left px-5 py-3 text-xs font-bold text-ink-400 uppercase">Created</th>
+                <th className="text-left px-5 py-3 text-xs font-bold text-ink-400 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -261,11 +313,27 @@ export default function AdminUsersPage() {
                   <td className="px-5 py-4 text-sm text-ink-400">
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "—"}
                   </td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-2">
+                      {user.canPublish && (
+                        <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg bg-green-50 text-green-600" title="Can publish articles">
+                          <Send className="w-3 h-3" /> Publish
+                        </span>
+                      )}
+                      <button
+                        onClick={() => openEditUser(user)}
+                        className="p-1.5 rounded-lg bg-ink-100 hover:bg-ink-200 text-ink-600 transition-colors"
+                        title="Edit name & publishing permission"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {users.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={4} className="text-center py-12 text-ink-400 text-sm">
+                  <td colSpan={5} className="text-center py-12 text-ink-400 text-sm">
                     No users found. Add a new user to get started.
                   </td>
                 </tr>
@@ -325,6 +393,88 @@ export default function AdminUsersPage() {
                 className="px-5 py-2.5 bg-ink-100 hover:bg-ink-200 text-ink-700 font-bold rounded-xl text-sm transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit user modal */}
+      {editUser && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => setEditUser(null)}
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-xl font-black text-ink-900">Edit User</h3>
+              <button onClick={() => setEditUser(null)} className="p-2 rounded-lg hover:bg-ink-100">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {userError && (
+              <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl font-semibold mb-4">
+                {userError}
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">First name</label>
+                  <input
+                    type="text"
+                    value={editFirstName}
+                    onChange={(e) => setEditFirstName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-bold text-ink-700 mb-1.5 block">Last name</label>
+                  <input
+                    type="text"
+                    value={editLastName}
+                    onChange={(e) => setEditLastName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-ink-700 mb-1.5 block">Username</label>
+                <input
+                  type="text"
+                  value={editUsername}
+                  onChange={(e) => setEditUsername(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-ink-200 focus:border-brand-500 outline-none text-sm"
+                />
+                <p className="text-xs text-ink-400 mt-1">Public name shown on articles = First + Last name.</p>
+              </div>
+
+              <label className="flex items-start gap-3 p-4 bg-ink-50 rounded-xl cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editCanPublish}
+                  onChange={(e) => setEditCanPublish(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-brand-600"
+                />
+                <span>
+                  <span className="text-sm font-bold text-ink-800 block">Can publish articles</span>
+                  <span className="text-xs text-ink-400">Grants this author the ability to edit their own articles and release them (Publish). Everything else stays the same.</span>
+                </span>
+              </label>
+
+              <button
+                onClick={saveUser}
+                disabled={savingUser || !editFirstName.trim() || !editLastName.trim()}
+                className="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+              >
+                {savingUser ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                Save Changes
               </button>
             </div>
           </div>

@@ -57,6 +57,17 @@ function getAdminUserRole(): string {
   }
 }
 
+function getAdminUserCanPublish(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const userStr = localStorage.getItem("umunsi_admin_user");
+    if (!userStr) return false;
+    return JSON.parse(userStr)?.canPublish === true;
+  } catch {
+    return false;
+  }
+}
+
 interface PostEditorProps {
   mode: "create" | "edit";
   postId?: string;
@@ -82,7 +93,12 @@ interface PostEditorProps {
 export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProps) {
   const router = useRouter();
   const [userRole, setUserRole] = useState<string>("ADMIN");
+  const [canPublish, setCanPublish] = useState<boolean>(false);
   const isAuthorOnly = userRole === "AUTHOR";
+  // Authors granted "canPublish" by an admin may edit their own posts and
+  // release them; everyone else with AUTHOR role stays read-only in edit mode.
+  const isRestrictedAuthor = isAuthorOnly && !canPublish;
+  const canRelease = !isAuthorOnly || canPublish;
   const [title, setTitle] = useState(initialPost?.title || "");
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || "");
   const [content, setContent] = useState(decodeHtmlEntities(initialPost?.content || ""));
@@ -155,6 +171,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
 
   useEffect(() => {
     setUserRole(getAdminUserRole());
+    setCanPublish(getAdminUserCanPublish());
   }, []);
 
   useEffect(() => {
@@ -677,17 +694,17 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
           </div>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          {isAuthorOnly && mode === "edit" ? null : (
+          {isRestrictedAuthor && mode === "edit" ? null : (
             <button
               onClick={() => handleSave(false)}
-              disabled={saving || (isAuthorOnly && mode === "edit")}
+              disabled={saving || (isRestrictedAuthor && mode === "edit")}
               className="flex-1 sm:flex-initial px-4 py-2.5 bg-white border border-ink-200 hover:bg-ink-50 text-ink-800 font-bold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 text-sm shadow-sm"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               Save Draft
             </button>
           )}
-          {!isAuthorOnly && (
+          {canRelease && (
             <button
               onClick={() => handleSave(true)}
               disabled={saving}
@@ -700,7 +717,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         </div>
       </div>
 
-      {isAuthorOnly && mode === "edit" && (
+      {isRestrictedAuthor && mode === "edit" && (
         <div className="bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl text-sm font-semibold">
           Ntabwo wandika cyangwa wahindura iyi nkuru. Igihe gisigaye iri mu draft, ikeneye kurebwa no kwemejwa n'umukuru.
         </div>
@@ -712,7 +729,7 @@ export function PostEditor({ mode, postId, initialPost, onSave }: PostEditorProp
         </div>
       )}
 
-      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isAuthorOnly && mode === "edit" ? "pointer-events-none opacity-60 select-none" : ""}`}>
+      <div className={`grid grid-cols-1 lg:grid-cols-3 gap-6 ${isRestrictedAuthor && mode === "edit" ? "pointer-events-none opacity-60 select-none" : ""}`}>
         <div className="lg:col-span-2 space-y-5">
           <div className="bg-white rounded-2xl border border-ink-100 shadow-sm p-5">
             <label className="text-sm font-bold text-ink-700 mb-2 block flex items-center gap-2">
