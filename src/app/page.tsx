@@ -6,6 +6,7 @@ import { HeroFeaturedSection } from "@/components/home/HeroFeaturedSection";
 import { EntertainmentSection } from "@/components/home/EntertainmentSection";
 import { CategoryGridSection } from "@/components/home/CategoryGridSection";
 import { HomepageViewTracker } from "@/components/article/HomepageViewTracker";
+import { AdUnit } from "@/components/ads/AdUnit";
 
 // ISR: the homepage is served from the CDN cache and re-generated in the
 // background at most once a minute, instead of hitting the backend per visit.
@@ -73,6 +74,10 @@ export default async function HomePage() {
       <main>
         <HeroFeaturedSection featured={featured} popular={popular} />
 
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <AdUnit slot="8544566354" />
+        </div>
+
         {allDisplayCategories.map((cat, i) => {
           const posts = categoryPostsWithImages[i];
           if (posts.length === 0) return null;
@@ -106,16 +111,26 @@ export default async function HomePage() {
           }
 
           return (
-            <CategoryGridSection
-              key={cat.id}
-              title={cat.name}
-              slug={cat.slug}
-              color={cat.color}
-              posts={posts}
-            />
+            <div key={cat.id}>
+              <CategoryGridSection
+                title={cat.name}
+                slug={cat.slug}
+                color={cat.color}
+                posts={posts}
+              />
+              {i === 1 && (
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <AdUnit slot="7231484683" />
+                </div>
+              )}
+            </div>
           );
         })}
       </main>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <AdUnit slot="1008591184" />
+      </div>
 
       <Footer />
     </>
