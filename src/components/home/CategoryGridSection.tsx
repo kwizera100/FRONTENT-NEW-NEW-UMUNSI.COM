@@ -3,6 +3,7 @@ import { ArrowRight, Clock } from "lucide-react";
 import type { Post } from "@/lib/data";
 import { formatTimeAgo } from "@/lib/utils";
 import { SmartImage } from "@/components/home/SmartImage";
+import { AdSenseInline } from "@/components/ads/AdSenseInline";
 
 interface CategoryGridSectionProps {
   title: string;
@@ -333,6 +334,10 @@ function InkuruNBCNewsHome({ title, slug, color, posts }: { title: string; slug:
               </Link>
             )}
           </div>
+        </div>
+
+        <div className="mt-6">
+          <AdSenseInline slot="5694241340" />
         </div>
       </div>
     </section>
