@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import Link from "next/link";
 import { Facebook, Twitter, Linkedin, Instagram, Globe, ArrowLeft, FileText, Calendar, Clock } from "lucide-react";
 import { Header } from "@/components/layout/Header";

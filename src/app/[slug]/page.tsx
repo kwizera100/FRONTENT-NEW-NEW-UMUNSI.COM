@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { notFound, redirect } from "next/navigation";
 import { api } from "@/lib/api";
 

@@ -4,7 +4,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { R2_BUCKET, MAX_UPLOAD_BYTES, buildObjectKey, getR2Client, isAllowedMediaType, isR2Configured, publicUrlForKey } from "@/lib/r2";
 import { verifyUploadToken } from "@/lib/upload-auth";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 // Returns a short-lived signed URL so the browser can PUT the file straight to
 // Cloudflare R2 (bypasses the Vercel request body limit — needed for videos).

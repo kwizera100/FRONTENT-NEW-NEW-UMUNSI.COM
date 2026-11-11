@@ -3,7 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { R2_BUCKET, buildObjectKey, getR2Client, isAllowedMediaType, isR2Configured, publicUrlForKey } from "@/lib/r2";
 import { verifyUploadToken } from "@/lib/upload-auth";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://api.umunsi.com/api";
 const SERVER_BASE = "https://api.umunsi.com";
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       const key = buildObjectKey(file.name || "upload", file.type);
-      const bytes = Buffer.from(await file.arrayBuffer());
+      const bytes = new Uint8Array(await file.arrayBuffer());
       await getR2Client().send(
         new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: bytes, ContentType: file.type, CacheControl: "public, max-age=31536000, immutable" })
       );

@@ -35,11 +35,32 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react"],
   },
+  async headers() {
+    return [
+      // Public content: CDN-cacheable so Cloudflare/Vercel serve most page
+      // views without executing server code. HTML revalidates every minute.
+      {
+        source: "/article/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
+        ],
+      },
+      {
+        source: "/category/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
+        ],
+      },
+      {
+        source: "/author/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=300, stale-while-revalidate=600" },
+        ],
+      },
+    ];
+  },
   typescript: {
     ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDirs: ["umunsi-backend"],
   },
 };
 

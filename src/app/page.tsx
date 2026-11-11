@@ -1,3 +1,5 @@
+export const runtime = "edge";
+
 import { api, mapApiPost, type ApiCategory, type ApiPost } from "@/lib/api";
 import { DEFAULT_IMAGE_FALLBACK } from "@/lib/utils";
 import { Header } from "@/components/layout/Header";
