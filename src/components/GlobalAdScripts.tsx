@@ -3,11 +3,6 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 
-const AD_SCRIPTS: string[] = [
-  // Adsterra Social Bar
-  "https://bicea.org/14/8bbdaf0eb5f4fa429c2183dbad47a65a",
-];
-
 const ADSENSE_SRC =
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3584259871242471";
 
@@ -28,14 +23,6 @@ export function GlobalAdScripts() {
     adsense.src = ADSENSE_SRC;
     adsense.crossOrigin = "anonymous";
     document.head.appendChild(adsense);
-
-    AD_SCRIPTS.forEach((src) => {
-      if (document.querySelector(`script[src="${src}"]`)) return;
-      const s = document.createElement("script");
-      s.async = true;
-      s.src = src;
-      document.body.appendChild(s);
-    });
   }, [pathname]);
 
   return null;

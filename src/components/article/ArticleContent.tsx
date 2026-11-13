@@ -96,16 +96,13 @@ function pushAd() {
   }
 }
 
-function adToggles(adConfig?: string | null): { adsense: boolean; adsterra: boolean } {
-  if (!adConfig) return { adsense: true, adsterra: true };
+function showAdsense(adConfig?: string | null): boolean {
+  if (!adConfig) return true;
   try {
     const parsed = typeof adConfig === "string" ? JSON.parse(adConfig) : adConfig;
-    return {
-      adsense: parsed?.showAdsense !== false,
-      adsterra: parsed?.showAdsterra !== false,
-    };
+    return parsed?.showAdsense !== false;
   } catch {
-    return { adsense: true, adsterra: true };
+    return true;
   }
 }
 
@@ -143,7 +140,7 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
     // No ads for premium articles or paid subscribers
     if (isPremium || isSubscribedUser()) return;
 
-    const { adsense, adsterra } = adToggles(adConfig);
+    const adsense = showAdsense(adConfig);
 
     const container = containerRef.current;
     const paragraphs = container.querySelectorAll("p");
@@ -161,20 +158,6 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
       const endAd = createFallbackAd(END_AD_SLOT);
       container.appendChild(endAd);
       pushAd();
-    }
-
-    // Adsterra native banner after paragraph 3
-    if (adsterra && paragraphs.length > 3 && !container.querySelector("#container-533b579a4ffcc3c134a9961c1a434570")) {
-      const target = paragraphs[3];
-      const adDiv = document.createElement("div");
-      adDiv.id = "container-533b579a4ffcc3c134a9961c1a434570";
-      adDiv.style.margin = "1.5rem 0";
-      target.insertAdjacentElement("afterend", adDiv);
-      const s = document.createElement("script");
-      s.async = true;
-      s.setAttribute("data-cfasync", "false");
-      s.src = "https://bauval.org/21/533b579a4ffcc3c134a9961c1a434570";
-      adDiv.parentNode?.insertBefore(s, adDiv.nextSibling);
     }
   }, [html, isPremium, adConfig]);
 
