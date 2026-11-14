@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Post } from "@/lib/data";
 import { SmartImage } from "@/components/home/SmartImage";
 import { SponsoredAdSection } from "@/components/home/SponsoredAdSection";
+import { BigHeroSlider } from "@/components/home/BigHeroSlider";
 
 interface HeroFeaturedSectionProps {
   featured: Post[];
@@ -11,42 +12,20 @@ interface HeroFeaturedSectionProps {
 export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionProps) {
   if (featured.length === 0) return null;
 
-  const main = featured[0];
-  const secondary = featured[1];
-  const fillCards = featured.slice(2, 4);
-  const cards = featured.slice(4, 8);
+  const slides = featured.slice(0, 3);
+  const secondary = featured[3];
+  const fillCards = featured.slice(4, 7);
+  const cards = featured.slice(7, 11);
   const topStories = popular.slice(0, 6);
 
   return (
     <section className="py-6 lg:py-8 bg-white">
       <div className="px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Two-image hero — big left, smaller right + fill cards (magazine style) */}
+        {/* Auto-sliding big image left, smaller feature + cards right */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* BIG feature — left, title below the image */}
+          {/* BIG auto-slider — left, title below the image */}
           <div className="lg:col-span-8">
-            <Link href={`/article/${main.slug}`} className="group block">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
-                <SmartImage
-                  src={main.coverImage}
-                  alt={main.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  priority
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute top-4 left-4">
-                  <span
-                    className="px-3 py-1.5 rounded text-xs font-bold text-white uppercase tracking-wider"
-                    style={{ backgroundColor: main.category.color || "#e5b60d" }}
-                  >
-                    {main.category.name}
-                  </span>
-                </div>
-              </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-4">
-                {main.title}
-              </h1>
-            </Link>
+            <BigHeroSlider posts={slides} />
           </div>
 
           {/* Smaller feature + fill cards — right */}

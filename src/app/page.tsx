@@ -46,7 +46,7 @@ function mapListPost(post: ApiPost) {
 
 export default async function HomePage() {
   const [featuredPosts, trendingPosts, categories] = await Promise.all([
-    api.getFeaturedPosts(7),
+    api.getFeaturedPosts(12),
     api.getTrendingPosts(8),
     api.getCategories(),
   ]);
