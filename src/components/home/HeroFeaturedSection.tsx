@@ -33,7 +33,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
     return out;
   };
 
-  const fillCards = pick([...featured.slice(4), ...popular], 3);
+  const fillCards = pick([...featured.slice(4), ...popular], 2);
   const cards = pick([...featured.slice(7), ...popular], 4);
 
   return (
@@ -59,14 +59,6 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
                     priority
                     className="object-cover group-hover:scale-105 transition-transform duration-700"
                   />
-                  <div className="absolute top-3 left-3">
-                    <span
-                      className="px-2.5 py-1 rounded text-[11px] font-bold text-white uppercase tracking-wider"
-                      style={{ backgroundColor: secondary.category.color || "#e5b60d" }}
-                    >
-                      {secondary.category.name}
-                    </span>
-                  </div>
                 </div>
                 <h2 className="text-lg lg:text-xl font-black text-gray-900 leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-3">
                   {secondary.title}
@@ -113,13 +105,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
                       className="object-cover group-hover:scale-110 transition-transform duration-500"
                     />
                   </div>
-                  <span
-                    className="text-xs font-bold uppercase tracking-wide"
-                    style={{ color: post.category.color || "#e5b60d" }}
-                  >
-                    {post.category.name}
-                  </span>
-                  <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 mt-1 font-display">
+                  <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
                     {post.title}
                   </h3>
                 </Link>

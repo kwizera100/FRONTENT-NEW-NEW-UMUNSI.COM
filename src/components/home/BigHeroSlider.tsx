@@ -47,14 +47,6 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
             />
           </div>
         ))}
-        <div className="absolute top-4 left-4 z-10">
-          <span
-            className="px-3 py-1.5 rounded text-xs font-bold text-white uppercase tracking-wider"
-            style={{ backgroundColor: current.category.color || "#e5b60d" }}
-          >
-            {current.category.name}
-          </span>
-        </div>
       </div>
       <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display mt-4 min-h-[2.4em]">
         {current.title}
