@@ -12,47 +12,81 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
   if (featured.length === 0) return null;
 
   const main = featured[0];
-  const cards = featured.slice(1, 5);
+  const secondary = featured[1];
+  const cards = featured.slice(secondary ? 2 : 1, 6);
   const topStories = popular.slice(0, 6);
 
   return (
     <section className="py-6 lg:py-8 bg-white">
       <div className="px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Main top story - ABC News style */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 lg:grid-rows-2 gap-6">
-          <div className="order-1 lg:order-1 lg:col-span-4 lg:row-start-1">
-            <Link href={`/article/${main.slug}`} className="group block">
+        {/* Two-image hero — big left, smaller right (magazine style) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[480px]">
+          {/* BIG feature — left */}
+          <Link
+            href={`/article/${main.slug}`}
+            className="group relative block lg:col-span-8 rounded-2xl overflow-hidden"
+          >
+            <div className="relative aspect-[16/10] lg:aspect-auto lg:h-full w-full">
+              <SmartImage
+                src={main.coverImage}
+                alt={main.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 66vw"
+                priority
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
               <span
                 className="inline-block px-3 py-1 rounded text-xs font-bold text-white uppercase tracking-wider mb-3"
                 style={{ backgroundColor: main.category.color || "#e5b60d" }}
               >
                 {main.category.name}
               </span>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mb-3">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
                 {main.title}
               </h1>
-              <p className="text-gray-600 text-base lg:text-lg line-clamp-3">{main.excerpt}</p>
-            </Link>
-          </div>
+              <p className="text-white/80 text-sm lg:text-base mt-2 line-clamp-2 hidden sm:block">
+                {main.excerpt}
+              </p>
+            </div>
+          </Link>
 
-          <div className="order-3 lg:order-3 lg:col-span-4 lg:row-start-2 h-48 lg:h-full min-h-[180px]">
-            <SponsoredAdSection variant="vertical" />
-          </div>
-
-          <div className="order-2 lg:order-2 lg:col-span-8 lg:row-span-2">
-            <Link href={`/article/${main.slug}`} className="group block">
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl">
+          {/* Smaller feature — right */}
+          {secondary ? (
+            <Link
+              href={`/article/${secondary.slug}`}
+              className="group relative block lg:col-span-4 rounded-2xl overflow-hidden"
+            >
+              <div className="relative aspect-[16/10] lg:aspect-auto lg:h-full w-full">
                 <SmartImage
-                  src={main.coverImage}
-                    alt={main.title}
+                  src={secondary.coverImage}
+                  alt={secondary.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  sizes="(max-width: 1024px) 100vw, 33vw"
                   priority
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6">
+                <span
+                  className="inline-block px-2.5 py-1 rounded text-[11px] font-bold text-white uppercase tracking-wider mb-2"
+                  style={{ backgroundColor: secondary.category.color || "#e5b60d" }}
+                >
+                  {secondary.category.name}
+                </span>
+                <h2 className="text-lg lg:text-xl font-black text-white leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
+                  {secondary.title}
+                </h2>
+              </div>
             </Link>
-          </div>
+          ) : (
+            <div className="lg:col-span-4 h-full min-h-[180px]">
+              <SponsoredAdSection variant="vertical" />
+            </div>
+          )}
         </div>
 
         {/* 4 cards + Top Stories */}
