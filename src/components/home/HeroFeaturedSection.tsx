@@ -14,9 +14,27 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
 
   const slides = featured.slice(0, 3);
   const secondary = featured[3];
-  const fillCards = featured.slice(4, 7);
-  const cards = featured.slice(7, 11);
   const topStories = popular.slice(0, 6);
+
+  // Fill pools pull from featured first, then popular — guarantees the
+  // right column and card row never sit empty when featured runs short.
+  const usedIds = new Set(slides.map((p) => p.id));
+  if (secondary) usedIds.add(secondary.id);
+
+  const pick = (pool: Post[], count: number) => {
+    const out: Post[] = [];
+    for (const p of pool) {
+      if (out.length >= count) break;
+      if (!usedIds.has(p.id)) {
+        usedIds.add(p.id);
+        out.push(p);
+      }
+    }
+    return out;
+  };
+
+  const fillCards = pick([...featured.slice(4), ...popular], 3);
+  const cards = pick([...featured.slice(7), ...popular], 4);
 
   return (
     <section className="py-6 lg:py-8 bg-white">

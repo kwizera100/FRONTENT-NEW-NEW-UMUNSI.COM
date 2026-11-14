@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
+import { useEffect, useState } from "react";
 import type { Post } from "@/lib/data";
 import { SmartImage } from "@/components/home/SmartImage";
 
@@ -10,68 +9,56 @@ interface BigHeroSliderProps {
   posts: Post[];
 }
 
-// Auto-rotating hero — slides the whole card (image + title below) through
-// the top featured posts. No arrows, no dots: just a clean continuous slide.
+// Auto-rotating hero — crossfades the big image through the top featured
+// posts every 5s. No arrows, no dots: just a clean continuous slide.
 export function BigHeroSlider({ posts }: BigHeroSliderProps) {
-  const [emblaRef] = useEmblaCarousel({ loop: true, align: "start" }, [
-    Autoplay({ delay: 5000, stopOnInteraction: false, stopOnMouseEnter: false }),
-  ]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (posts.length < 2) return;
+    const timer = setInterval(() => {
+      setIndex((i) => (i + 1) % posts.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [posts.length]);
 
   if (posts.length === 0) return null;
 
-  if (posts.length === 1) {
-    const post = posts[0];
-    return (
-      <Link href={`/article/${post.slug}`} className="group block">
-        <SlideImage post={post} />
-        <SlideTitle post={post} />
-      </Link>
-    );
-  }
+  const current = posts[index] ?? posts[0];
 
   return (
-    <div ref={emblaRef} className="overflow-hidden">
-      <div className="flex">
-        {posts.map((post) => (
-          <div key={post.id} className="flex-[0_0_100%] min-w-0">
-            <Link href={`/article/${post.slug}`} className="group block">
-              <SlideImage post={post} />
-              <SlideTitle post={post} />
-            </Link>
+    <Link href={`/article/${current.slug}`} className="group block">
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gray-100">
+        {posts.map((post, i) => (
+          <div
+            key={post.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              i === index ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden={i !== index}
+          >
+            <SmartImage
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              sizes="(max-width: 1024px) 100vw, 66vw"
+              priority={i === 0}
+              className="object-cover group-hover:scale-105 transition-transform duration-700"
+            />
           </div>
         ))}
+        <div className="absolute top-4 left-4 z-10">
+          <span
+            className="px-3 py-1.5 rounded text-xs font-bold text-white uppercase tracking-wider"
+            style={{ backgroundColor: current.category.color || "#e5b60d" }}
+          >
+            {current.category.name}
+          </span>
+        </div>
       </div>
-    </div>
-  );
-}
-
-function SlideImage({ post }: { post: Post }) {
-  return (
-    <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
-      <SmartImage
-        src={post.coverImage}
-        alt={post.title}
-        fill
-        sizes="(max-width: 1024px) 100vw, 66vw"
-        priority
-        className="object-cover group-hover:scale-105 transition-transform duration-700"
-      />
-      <div className="absolute top-4 left-4">
-        <span
-          className="px-3 py-1.5 rounded text-xs font-bold text-white uppercase tracking-wider"
-          style={{ backgroundColor: post.category.color || "#e5b60d" }}
-        >
-          {post.category.name}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function SlideTitle({ post }: { post: Post }) {
-  return (
-    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display mt-4 min-h-[2.5em] sm:min-h-[2.2em]">
-      {post.title}
-    </h1>
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display mt-4 min-h-[2.4em]">
+        {current.title}
+      </h1>
+    </Link>
   );
 }
