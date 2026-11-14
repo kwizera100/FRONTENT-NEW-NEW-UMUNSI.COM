@@ -2,10 +2,19 @@
 
 import Link from "next/link";
 import { Shield, FileText, Phone } from "lucide-react";
+import { AdSenseInline } from "@/components/ads/AdSenseInline";
 
 export function Footer() {
   return (
     <footer className="bg-[#1a1a1a] text-white mt-16">
+      {/* Site-wide ad — every public page fires at least one ad request so
+          AdSense page views track real visitors (skipped for subscribers) */}
+      <div className="px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="max-w-4xl mx-auto">
+          <AdSenseInline slot="5694241340" />
+        </div>
+      </div>
+      {/* Main footer */}
       {/* Main footer */}
       <div className="px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
