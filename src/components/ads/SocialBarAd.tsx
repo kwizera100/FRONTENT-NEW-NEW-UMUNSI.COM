@@ -10,12 +10,10 @@ declare global {
 }
 
 const AD_CLIENT = "ca-pub-3584259871242471";
-// Slot for the social-bar-style popup unit. Reusing an existing responsive
-// slot — swap this for a dedicated "Social Bar" ad unit ID from AdSense for
-// clean reporting.
-const SOCIAL_BAR_SLOT = "5694241340";
+// Dedicated social-bar popup unit (AdSense unit "GFFGVB").
+const SOCIAL_BAR_SLOT = "5671764426";
 const DISMISS_KEY = "umunsi_socialbar_closed";
-const SHOW_DELAY_MS = 4000;
+const SHOW_DELAY_MS = 5000;
 
 // Floating notification-style ad card (Adsterra "social bar" equivalent) —
 // bottom-right on desktop, bottom-centered on mobile, dismissible per session.
