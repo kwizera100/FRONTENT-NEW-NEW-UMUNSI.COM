@@ -3,6 +3,7 @@ import type { Post } from "@/lib/data";
 import { SmartImage } from "@/components/home/SmartImage";
 import { SponsoredAdSection } from "@/components/home/SponsoredAdSection";
 import { BigHeroSlider } from "@/components/home/BigHeroSlider";
+import { AdSenseInline } from "@/components/ads/AdSenseInline";
 
 interface HeroFeaturedSectionProps {
   featured: Post[];
@@ -89,6 +90,11 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
             ))}
           </div>
         </div>
+
+        {/* AdSense unit directly under the hero — the only other homepage
+            units sit far down the page, so mobile visitors scrolling
+            briefly would never see an ad */}
+        <AdSenseInline slot="5694241340" className="w-full min-h-[90px]" />
 
         {/* 4 cards + Top Stories */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

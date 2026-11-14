@@ -10,30 +10,23 @@ const ADSENSE_SRC =
 
 export function GlobalAdScripts() {
   const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
-    // Never load ads inside the admin dashboard
-    if (pathname?.startsWith("/admin")) {
-      setEnabled(false);
-      return;
-    }
-
     // Never load ads for paid subscribers on public pages
     try {
-      if (localStorage.getItem("umunsi_subscribed") === "active") {
-        setEnabled(false);
-        return;
-      }
+      if (localStorage.getItem("umunsi_subscribed") === "active") return;
     } catch {}
-
     setEnabled(true);
-  }, [pathname]);
+  }, []);
 
-  // next/script dedupes by src across client-side navigations and starts
-  // fetching right after hydration — the previous manual appendChild ran
-  // later and could insert a duplicate script tag on every route change.
-  if (!enabled) return null;
+  // Never load ads inside the admin dashboard (known at render time)
+  if (isAdmin) return null;
+
+  // The <Script> renders on first paint — it must NOT wait for the enabled
+  // effect, or mobile devices request adsbygoogle.js only after full
+  // hydration and units sit empty for seconds.
   return (
     <>
       <Script
@@ -41,7 +34,7 @@ export function GlobalAdScripts() {
         strategy="afterInteractive"
         crossOrigin="anonymous"
       />
-      <SocialBarAd />
+      {enabled && <SocialBarAd />}
     </>
   );
 }
