@@ -220,11 +220,8 @@ function NBCWorldSection({ title, slug, color, posts }: { title: string; slug: s
 }
 
 function InkuruNBCNewsHome({ title, slug, color, posts }: { title: string; slug: string; color: string; posts: Post[] }) {
-  const leftTop = posts[1];
-  const leftBottom = posts[4];
-  const center = posts[0];
-  const rightTop = posts[2];
-  const rightBottom = posts[3];
+  const main = posts[0];
+  const cards = posts.slice(1, 9);
 
   return (
     <section className="py-8 lg:py-10 bg-white border-t border-gray-100">
@@ -242,97 +239,65 @@ function InkuruNBCNewsHome({ title, slug, color, posts }: { title: string; slug:
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-6">
-          {/* LEFT COLUMN */}
-          <div className="lg:col-span-3 flex flex-col gap-6">
-            {leftTop && (
-              <Link href={`/article/${leftTop.slug}`} className="group block">
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg mb-3">
-                  <SmartImage
-                    src={leftTop.coverImage}
-                    alt={leftTop.title}
-                    fill
-                    sizes="(max-width: 1024px) 100vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <h3 className="text-lg lg:text-xl font-black text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-tight line-clamp-3 font-display">
-                  {leftTop.title}
-                </h3>
-                <p className="text-gray-600 text-sm mt-2 line-clamp-2">{leftTop.excerpt}</p>
-              </Link>
-            )}
-
-            {leftBottom && (
-              <div className="pt-5 border-t border-gray-200">
-                <Link href={`/article/${leftBottom.slug}`} className="group block">
-                  <h3 className="text-base lg:text-lg font-black text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
-                    {leftBottom.title}
-                  </h3>
-                  <p className="text-gray-600 text-sm mt-1 line-clamp-2">{leftBottom.excerpt}</p>
-                </Link>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          {/* LEFT HALF — single large featured story */}
+          <Link href={`/article/${main.slug}`} className="group block">
+            <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl mb-4">
+              <SmartImage
+                src={main.coverImage}
+                alt={main.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                className="object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute top-4 left-4">
+                <span
+                  className="px-3 py-1.5 rounded-full text-xs font-bold text-white uppercase"
+                  style={{ backgroundColor: color }}
+                >
+                  {title}
+                </span>
               </div>
-            )}
-          </div>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
+              {main.title}
+            </h3>
+            <p className="text-gray-700 text-base mt-3 line-clamp-3">{main.excerpt}</p>
+            <span className="text-xs text-gray-500 mt-3 flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatTimeAgo(main.publishedAt)}
+            </span>
+          </Link>
 
-          {/* CENTER COLUMN */}
-          <div className="lg:col-span-6">
-            <Link href={`/article/${center.slug}`} className="group block">
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-4">
-                <SmartImage
-                  src={center.coverImage}
-                  alt={center.title}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  priority
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
-                {center.title}
-              </h1>
-              <p className="text-gray-700 text-base lg:text-lg mt-3 line-clamp-3">{center.excerpt}</p>
-            </Link>
-          </div>
-
-          {/* RIGHT COLUMN */}
-          <div className="lg:col-span-3 flex flex-col gap-6">
-            {rightTop && (
-              <Link href={`/article/${rightTop.slug}`} className="group block pb-6 border-b border-gray-200">
-                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg mb-3">
+          {/* RIGHT HALF — compact newspaper-style cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
+            {cards.map((post) => (
+              <Link
+                key={post.id}
+                href={`/article/${post.slug}`}
+                className="group flex gap-3 items-start p-3 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-md transition-all"
+              >
+                <div className="relative w-24 h-20 shrink-0 overflow-hidden rounded-lg">
                   <SmartImage
-                    src={rightTop.coverImage}
-                    alt={rightTop.title}
+                    src={post.coverImage}
+                    alt={post.title}
                     fill
-                    sizes="(max-width: 1024px) 100vw, 25vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <h3 className="text-lg font-black text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
-                  {rightTop.title}
-                </h3>
-                <p className="text-gray-600 text-sm mt-1 line-clamp-2">{rightTop.excerpt}</p>
-              </Link>
-            )}
-
-            {rightBottom && (
-              <Link href={`/article/${rightBottom.slug}`} className="group flex gap-3 items-start">
-                <div className="relative w-20 h-14 shrink-0 overflow-hidden rounded-lg">
-                  <SmartImage
-                    src={rightBottom.coverImage}
-                    alt={rightBottom.title}
-                    fill
-                    sizes="80px"
+                    sizes="96px"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
-                    {rightBottom.title}
-                  </h3>
+                  <h4 className="font-bold text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
+                    {post.title}
+                  </h4>
+                  <span className="text-[11px] text-gray-500 mt-1.5 flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {formatTimeAgo(post.publishedAt)}
+                  </span>
                 </div>
               </Link>
-            )}
+            ))}
           </div>
         </div>
 
