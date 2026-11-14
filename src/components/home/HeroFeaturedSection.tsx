@@ -13,80 +13,92 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
 
   const main = featured[0];
   const secondary = featured[1];
-  const cards = featured.slice(secondary ? 2 : 1, 6);
+  const fillCards = featured.slice(2, 4);
+  const cards = featured.slice(4, 8);
   const topStories = popular.slice(0, 6);
 
   return (
     <section className="py-6 lg:py-8 bg-white">
       <div className="px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Two-image hero — big left, smaller right (magazine style) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[480px]">
-          {/* BIG feature — left */}
-          <Link
-            href={`/article/${main.slug}`}
-            className="group relative block lg:col-span-8 rounded-2xl overflow-hidden"
-          >
-            <div className="relative aspect-[16/10] lg:aspect-auto lg:h-full w-full">
-              <SmartImage
-                src={main.coverImage}
-                alt={main.title}
-                fill
-                sizes="(max-width: 1024px) 100vw, 66vw"
-                priority
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-5 lg:p-8">
-              <span
-                className="inline-block px-3 py-1 rounded text-xs font-bold text-white uppercase tracking-wider mb-3"
-                style={{ backgroundColor: main.category.color || "#e5b60d" }}
-              >
-                {main.category.name}
-              </span>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
-                {main.title}
-              </h1>
-              <p className="text-white/80 text-sm lg:text-base mt-2 line-clamp-2 hidden sm:block">
-                {main.excerpt}
-              </p>
-            </div>
-          </Link>
-
-          {/* Smaller feature — right */}
-          {secondary ? (
-            <Link
-              href={`/article/${secondary.slug}`}
-              className="group relative block lg:col-span-4 rounded-2xl overflow-hidden"
-            >
-              <div className="relative aspect-[16/10] lg:aspect-auto lg:h-full w-full">
+        {/* Two-image hero — big left, smaller right + fill cards (magazine style) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* BIG feature — left, title below the image */}
+          <div className="lg:col-span-8">
+            <Link href={`/article/${main.slug}`} className="group block">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
                 <SmartImage
-                  src={secondary.coverImage}
-                  alt={secondary.title}
+                  src={main.coverImage}
+                  alt={main.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 33vw"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
                   priority
                   className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
+                <div className="absolute top-4 left-4">
+                  <span
+                    className="px-3 py-1.5 rounded text-xs font-bold text-white uppercase tracking-wider"
+                    style={{ backgroundColor: main.category.color || "#e5b60d" }}
+                  >
+                    {main.category.name}
+                  </span>
+                </div>
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 lg:p-6">
-                <span
-                  className="inline-block px-2.5 py-1 rounded text-[11px] font-bold text-white uppercase tracking-wider mb-2"
-                  style={{ backgroundColor: secondary.category.color || "#e5b60d" }}
-                >
-                  {secondary.category.name}
-                </span>
-                <h2 className="text-lg lg:text-xl font-black text-white leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-4">
+                {main.title}
+              </h1>
+            </Link>
+          </div>
+
+          {/* Smaller feature + fill cards — right */}
+          <div className="lg:col-span-4 flex flex-col gap-5">
+            {secondary && (
+              <Link href={`/article/${secondary.slug}`} className="group block">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl">
+                  <SmartImage
+                    src={secondary.coverImage}
+                    alt={secondary.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    priority
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                  <div className="absolute top-3 left-3">
+                    <span
+                      className="px-2.5 py-1 rounded text-[11px] font-bold text-white uppercase tracking-wider"
+                      style={{ backgroundColor: secondary.category.color || "#e5b60d" }}
+                    >
+                      {secondary.category.name}
+                    </span>
+                  </div>
+                </div>
+                <h2 className="text-lg lg:text-xl font-black text-gray-900 leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-3">
                   {secondary.title}
                 </h2>
-              </div>
-            </Link>
-          ) : (
-            <div className="lg:col-span-4 h-full min-h-[180px]">
-              <SponsoredAdSection variant="vertical" />
-            </div>
-          )}
+              </Link>
+            )}
+
+            {/* Compact fill cards to close the empty space */}
+            {fillCards.map((post) => (
+              <Link
+                key={post.id}
+                href={`/article/${post.slug}`}
+                className="group flex gap-3 items-center p-3 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
+              >
+                <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-lg">
+                  <SmartImage
+                    src={post.coverImage}
+                    alt={post.title}
+                    fill
+                    sizes="80px"
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <h4 className="flex-1 min-w-0 font-bold text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-2 font-display">
+                  {post.title}
+                </h4>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* 4 cards + Top Stories */}
