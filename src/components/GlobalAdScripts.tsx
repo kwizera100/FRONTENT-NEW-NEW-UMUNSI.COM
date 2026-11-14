@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 import { usePathname } from "next/navigation";
+import { SocialBarAd } from "@/components/ads/SocialBarAd";
 
 const ADSENSE_SRC =
   "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3584259871242471";
@@ -34,10 +35,13 @@ export function GlobalAdScripts() {
   // later and could insert a duplicate script tag on every route change.
   if (!enabled) return null;
   return (
-    <Script
-      src={ADSENSE_SRC}
-      strategy="afterInteractive"
-      crossOrigin="anonymous"
-    />
+    <>
+      <Script
+        src={ADSENSE_SRC}
+        strategy="afterInteractive"
+        crossOrigin="anonymous"
+      />
+      <SocialBarAd />
+    </>
   );
 }
