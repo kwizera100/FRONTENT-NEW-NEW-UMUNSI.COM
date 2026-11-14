@@ -40,6 +40,12 @@ const nextConfig = {
       // Public content: CDN-cacheable so Cloudflare/Vercel serve most page
       // views without executing server code. HTML revalidates every minute.
       {
+        source: "/",
+        headers: [
+          { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
+        ],
+      },
+      {
         source: "/article/:path*",
         headers: [
           { key: "Cache-Control", value: "public, s-maxage=60, stale-while-revalidate=300" },
