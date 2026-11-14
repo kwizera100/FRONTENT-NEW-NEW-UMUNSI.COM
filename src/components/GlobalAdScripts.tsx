@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Script from "next/script";
 import { usePathname } from "next/navigation";
 
 const ADSENSE_SRC =
@@ -8,22 +9,35 @@ const ADSENSE_SRC =
 
 export function GlobalAdScripts() {
   const pathname = usePathname();
+  const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     // Never load ads inside the admin dashboard
-    if (pathname?.startsWith("/admin")) return;
+    if (pathname?.startsWith("/admin")) {
+      setEnabled(false);
+      return;
+    }
 
     // Never load ads for paid subscribers on public pages
     try {
-      if (localStorage.getItem("umunsi_subscribed") === "active") return;
+      if (localStorage.getItem("umunsi_subscribed") === "active") {
+        setEnabled(false);
+        return;
+      }
     } catch {}
 
-    const adsense = document.createElement("script");
-    adsense.async = true;
-    adsense.src = ADSENSE_SRC;
-    adsense.crossOrigin = "anonymous";
-    document.head.appendChild(adsense);
+    setEnabled(true);
   }, [pathname]);
 
-  return null;
+  // next/script dedupes by src across client-side navigations and starts
+  // fetching right after hydration — the previous manual appendChild ran
+  // later and could insert a duplicate script tag on every route change.
+  if (!enabled) return null;
+  return (
+    <Script
+      src={ADSENSE_SRC}
+      strategy="afterInteractive"
+      crossOrigin="anonymous"
+    />
+  );
 }

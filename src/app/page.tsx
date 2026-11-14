@@ -19,10 +19,29 @@ function hasRealImage(post: { coverImage: string }): boolean {
   return post.coverImage !== DEFAULT_IMAGE_FALLBACK;
 }
 
-// Listing cards never render the article body; dropping it keeps the full
-// HTML/RSC payload small (it was ~400KB with bodies included).
+// Listing cards only need a handful of fields; stripping the rest (body,
+// author bio/socials, adConfig, tags, media…) keeps the RSC payload small.
 function mapListPost(post: ApiPost) {
-  return { ...mapApiPost(post), content: "" };
+  const p = mapApiPost(post);
+  return {
+    id: p.id,
+    slug: p.slug,
+    title: p.title,
+    excerpt: p.excerpt,
+    content: "",
+    featured: p.featured,
+    published: p.published,
+    views: p.views,
+    publishedAt: p.publishedAt,
+    createdAt: p.createdAt,
+    category: p.category,
+    author: { id: p.author.id, username: p.author.username, name: p.author.name },
+    media: [],
+    tags: [],
+    readTime: p.readTime,
+    coverImage: p.coverImage,
+    isPremium: p.isPremium,
+  };
 }
 
 export default async function HomePage() {
