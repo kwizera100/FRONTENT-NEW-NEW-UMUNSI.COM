@@ -82,27 +82,15 @@ function createFallbackAd(slot: string): HTMLElement {
 
   const adIns = document.createElement("ins");
   adIns.className = "adsbygoogle";
-  adIns.style.cssText = "display:block; width:100%; min-height:250px;";
+  // No fixed height on the ins — a rigid min-height makes AdSense return
+  // "unfilled" when its chosen creative doesn't fit that exact size.
+  adIns.style.cssText = "display:block; width:100%;";
   adIns.setAttribute("data-ad-client", AD_CLIENT);
   adIns.setAttribute("data-ad-slot", slot);
   adIns.setAttribute("data-ad-format", "auto");
   adIns.setAttribute("data-full-width-responsive", "true");
 
   wrapper.appendChild(adIns);
-
-  // Hide the placeholder entirely when AdSense has no ad to serve
-  // (data-ad-status="unfilled") so readers don't see an empty box.
-  const observer = new MutationObserver(() => {
-    const status = adIns.getAttribute("data-ad-status");
-    if (status === "unfilled") {
-      wrapper.style.display = "none";
-      observer.disconnect();
-    } else if (status === "filled") {
-      observer.disconnect();
-    }
-  });
-  observer.observe(adIns, { attributes: true, attributeFilter: ["data-ad-status"] });
-
   return wrapper;
 }
 
@@ -173,13 +161,20 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
           const target = paragraphs[afterParagraph];
           const adEl = createFallbackAd(slot);
           target.insertAdjacentElement("afterend", adEl);
-          pushAd();
         }
       });
 
       const endAd = createFallbackAd(END_AD_SLOT);
       container.appendChild(endAd);
-      pushAd();
+
+      // Push after layout settles — measuring width before the browser has
+      // laid out the new ins elements can make AdSense mark them unfilled.
+      requestAnimationFrame(() => {
+        IN_CONTENT_ADS.forEach(({ afterParagraph }) => {
+          if (paragraphs.length > afterParagraph) pushAd();
+        });
+        pushAd();
+      });
     }
   }, [html, isPremium, adConfig]);
 
