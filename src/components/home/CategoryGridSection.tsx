@@ -121,9 +121,10 @@ export function CategoryGridSection({ title, slug, color, posts }: CategoryGridS
 }
 
 function NBCWorldSection({ title, slug, color, posts }: { title: string; slug: string; color: string; posts: Post[] }) {
-  const left = posts.slice(1, 5);
-  const center = posts[0];
-  const right = posts.slice(5, 8);
+  const main = posts[0];
+  const secondary = posts[1];
+  const fillCards = posts.slice(2, 5);
+  const rowCards = posts.slice(5, 9);
 
   return (
     <section className="py-8 lg:py-10 bg-white border-t border-gray-100">
@@ -141,62 +142,53 @@ function NBCWorldSection({ title, slug, color, posts }: { title: string; slug: s
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-          {/* LEFT - list with small images */}
-          <div className="lg:col-span-3 flex flex-col divide-y divide-gray-200">
-            {left.map((post, i) => (
-              <Link
-                key={post.id}
-                href={`/article/${post.slug}`}
-                className={`group flex gap-4 items-start py-4 first:pt-0`}
-              >
-                <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-lg">
-                  <SmartImage
-                    src={post.coverImage}
-                    alt={post.title}
-                    fill
-                    sizes="80px"
-                    className="object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
-                    {post.title}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* CENTER - large article */}
-          <div className="lg:col-span-6">
-            <Link href={`/article/${center.slug}`} className="group block">
-              <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl mb-4">
+        {/* Two image features: big left, smaller right + fill cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* BIG feature — left, title below the image */}
+          <div className="lg:col-span-8">
+            <Link href={`/article/${main.slug}`} className="group block">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
                 <SmartImage
-                  src={center.coverImage}
-                  alt={center.title}
+                  src={main.coverImage}
+                  alt={main.title}
                   fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  sizes="(max-width: 1024px) 100vw, 66vw"
                   priority
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
                 />
               </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display">
-                {center.title}
-              </h1>
-              <p className="text-gray-700 text-base lg:text-lg mt-3 line-clamp-3">{center.excerpt}</p>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display mt-4">
+                {main.title}
+              </h3>
             </Link>
           </div>
 
-          {/* RIGHT - 3 stacked image+title */}
-          <div className="lg:col-span-3 flex flex-col divide-y divide-gray-200">
-            {right.map((post, i) => (
+          {/* Smaller feature + fill cards — right */}
+          <div className="lg:col-span-4 flex flex-col gap-5">
+            {secondary && (
+              <Link href={`/article/${secondary.slug}`} className="group block">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl">
+                  <SmartImage
+                    src={secondary.coverImage}
+                    alt={secondary.title}
+                    fill
+                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  />
+                </div>
+                <h4 className="text-base lg:text-lg font-black text-gray-900 leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-3">
+                  {secondary.title}
+                </h4>
+              </Link>
+            )}
+
+            {fillCards.map((post) => (
               <Link
                 key={post.id}
                 href={`/article/${post.slug}`}
-                className="group flex gap-4 items-start py-4 first:pt-0"
+                className="group flex gap-3 items-center p-3 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
               >
-                <div className="relative w-20 h-20 shrink-0 overflow-hidden rounded-lg">
+                <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-lg">
                   <SmartImage
                     src={post.coverImage}
                     alt={post.title}
@@ -205,15 +197,39 @@ function NBCWorldSection({ title, slug, color, posts }: { title: string; slug: s
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-3 font-display">
-                    {post.title}
-                  </h3>
-                </div>
+                <h4 className="flex-1 min-w-0 font-bold text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-2 font-display">
+                  {post.title}
+                </h4>
               </Link>
             ))}
           </div>
         </div>
+
+        {/* Bottom row — remaining posts as compact cards */}
+        {rowCards.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mt-8">
+            {rowCards.map((post) => (
+              <Link key={post.id} href={`/article/${post.slug}`} className="group block">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg mb-3">
+                  <SmartImage
+                    src={post.coverImage}
+                    alt={post.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 20vw"
+                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                </div>
+                <h4 className="font-bold text-sm lg:text-base text-gray-900 group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display">
+                  {post.title}
+                </h4>
+                <span className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatTimeAgo(post.publishedAt)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
