@@ -21,6 +21,8 @@ export function SocialBarAd() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    // Desktop only — the notification-style popup is disabled on mobile
+    if (window.matchMedia("(max-width: 767px)").matches) return;
     try {
       if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
     } catch {}
