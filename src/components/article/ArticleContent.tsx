@@ -69,10 +69,14 @@ function preprocessArticleHtml(html: string): string {
 function createFallbackAd(slot: string): HTMLElement {
   const wrapper = document.createElement("div");
   wrapper.className = "my-6 sm:my-8";
-  wrapper.style.cssText = "text-align: center; min-height: 250px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 1rem;";
+  wrapper.setAttribute("data-umunsi-ad", "1");
+  // Plain block layout — AdSense's responsive measurement fails inside
+  // display:flex parents, returning "unfilled" so the ad never renders.
+  wrapper.style.cssText = "display: block; text-align: center; min-height: 250px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem;";
 
   const label = document.createElement("span");
   label.className = "text-xs font-bold text-gray-400 uppercase mb-3";
+  label.style.cssText = "display: block;";
   label.textContent = "Advertisement";
   wrapper.appendChild(label);
 
@@ -157,6 +161,10 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
     const adsense = showAdsense(adConfig);
 
     const container = containerRef.current;
+    // Idempotent: drop ad wrappers injected by a previous effect run —
+    // React can also wipe DOM inserted into dangerouslySetInnerHTML on
+    // re-render, which left slots duplicated or gone entirely.
+    container.querySelectorAll("[data-umunsi-ad]").forEach((el) => el.remove());
     const paragraphs = container.querySelectorAll("p");
 
     if (adsense) {
