@@ -46,8 +46,8 @@ export async function GET() {
     .map((p) => {
       const loc = `${SITE_URL}/article/${p.slug}`;
       const pubDate = p.publishedAt
-        ? new Date(p.publishedAt).toUTCString()
-        : new Date().toUTCString();
+        ? new Date(p.publishedAt).toISOString()
+        : new Date().toISOString();
       return `  <url>
     <loc>${escapeXml(loc)}</loc>
     <news:news>
