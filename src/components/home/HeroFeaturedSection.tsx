@@ -35,7 +35,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
   };
 
   const leftCards = pick([...featured.slice(4), ...popular], 3);
-  const fillCards = pick([...featured.slice(7), ...popular], 2);
+  const fillCards = pick([...featured.slice(7), ...popular], 3);
   const cards = pick([...featured.slice(10), ...popular], 4);
 
   const CompactCard = ({ post, titleClass }: { post: Post; titleClass: string }) => (
@@ -43,7 +43,7 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
       href={`/article/${post.slug}`}
       className="group block p-2.5 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
     >
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg mb-2">
+      <div className="relative aspect-[16/10] w-full overflow-hidden rounded-lg mb-2">
         <SmartImage
           src={post.coverImage}
           alt={post.title}
@@ -68,15 +68,16 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
             <BigHeroSlider posts={slides} />
           </div>
 
-          {/* Compact article cards — left of the big image */}
-          <div className="lg:col-span-3 lg:order-1 flex flex-col gap-4">
+          {/* Compact article cards — left of the big image,
+              spread to fill the slider's full height (no empty space) */}
+          <div className="lg:col-span-3 lg:order-1 flex flex-col gap-4 lg:justify-between">
             {leftCards.map((post) => (
               <CompactCard key={post.id} post={post} titleClass="text-sm" />
             ))}
           </div>
 
-          {/* Smaller feature + fill cards — right */}
-          <div className="lg:col-span-3 lg:order-3 flex flex-col gap-4">
+          {/* Smaller feature + fill cards — right, spread to fill height */}
+          <div className="lg:col-span-3 lg:order-3 flex flex-col gap-4 lg:justify-between">
             {secondary && (
               <Link href={`/article/${secondary.slug}`} className="group block">
                 <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-gray-950">
