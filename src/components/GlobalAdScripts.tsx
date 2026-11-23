@@ -10,14 +10,19 @@ const ADSENSE_SRC =
 
 export function GlobalAdScripts() {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin") ?? false;
+  const isAdminPath = (p: string) =>
+    p.startsWith("/admin") || p.startsWith("/writer") || p.startsWith("/dashboard");
+  const isAdmin =
+    (pathname ? isAdminPath(pathname) : false) ||
+    (typeof window !== "undefined" && isAdminPath(window.location.pathname));
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     // Never show ads inside the admin dashboard — check the real browser
     // path because usePathname() can be null during prerender.
     try {
-      if (window.location.pathname.startsWith("/admin")) return;
+      const p = window.location.pathname;
+      if (p.startsWith("/admin") || p.startsWith("/writer") || p.startsWith("/dashboard")) return;
     } catch {}
 
     // Never load ads for paid subscribers on public pages
