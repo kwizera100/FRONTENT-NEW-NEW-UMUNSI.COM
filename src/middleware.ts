@@ -5,7 +5,7 @@ import type { NextRequest } from "next/server";
 // listed, so Googlebot/AdsBot-Google/Bingbot/WhatsApp/Telegram previews pass.
 // Mirrors the nginx rule on api.umunsi.com.
 const BAD_BOT_RE =
-  /(sqlmap|nikto|nmap|masscan|zgrab|nuclei|wpscan|acunetix|nessus|openvas|dirbuster|gobuster|wfuzz|hydra|metasploit|gptbot|chatgpt-user|claudebot|claude-web|ccbot|bytespider|amazonbot|diffbot|imagesiftbot|timpibot|omgili|dataforseo|scrapy|python-requests|python-urllib|go-http-client|libwww|httpclient|httpie|curl\/|wget\/)/i;
+  /(sqlmap|nikto|nmap|masscan|zgrab|nuclei|wpscan|acunetix|nessus|openvas|dirbuster|gobuster|wfuzz|hydra|metasploit|gptbot|chatgpt-user|claudebot|claude-web|ccbot|bytespider|amazonbot|diffbot|imagesiftbot|timpibot|omgili|dataforseo|scrapy|python-requests|python-urllib|go-http-client|libwww|httpclient|httpie|curl\/|wget\/|ahrefsbot|semrushbot|mj12bot|dotbot|petalbot|blexbot|serpstatbot|megaindex|seokicks|linkdex|majestic|gnowit|barkrowler|zoominfobot|headlesschrome|phantomjs|puppeteer|playwright|selenium)/i;
 
 export function middleware(request: NextRequest) {
   const ua = request.headers.get("user-agent") || "";
