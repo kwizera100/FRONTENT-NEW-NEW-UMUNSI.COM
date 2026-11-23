@@ -63,9 +63,11 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
       <div className="px-4 sm:px-6 lg:px-8 space-y-8">
         {/* Cards | BIG slider in the middle | smaller feature + cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* BIG auto-slider — center, title below the image */}
+          {/* BIG auto-slider — center, title below the image,
+              slim AdSense unit tucked under the headline */}
           <div className="lg:col-span-6 lg:order-2">
             <BigHeroSlider posts={slides} />
+            <AdSenseInline slot="9591528835" className="w-full mt-2" />
           </div>
 
           {/* Compact article cards — left of the big image,
