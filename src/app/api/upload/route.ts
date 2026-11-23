@@ -37,7 +37,27 @@ export async function POST(req: NextRequest) {
       await getR2Client().send(
         new PutObjectCommand({ Bucket: R2_BUCKET, Key: key, Body: bytes, ContentType: file.type, CacheControl: "public, max-age=31536000, immutable" })
       );
-      return NextResponse.json({ url: publicUrlForKey(key), key, storage: "r2" });
+      const url = publicUrlForKey(key);
+      // Register the file in the media library so uploads persist in the
+      // admin gallery — fire-and-forget; upload still succeeds if this fails.
+      try {
+        await fetch(`${API_BASE}/media/register`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: authHeader,
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          },
+          body: JSON.stringify({
+            url,
+            filename: key,
+            originalName: file.name || "upload",
+            mimeType: file.type,
+            size: bytes.length,
+          }),
+        });
+      } catch {}
+      return NextResponse.json({ url, key, storage: "r2" });
     }
 
     return legacyBackendUpload(file, authHeader);

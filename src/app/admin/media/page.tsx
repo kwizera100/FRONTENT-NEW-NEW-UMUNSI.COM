@@ -34,7 +34,7 @@ export default function AdminMediaPage() {
   useEffect(() => {
     fetch("/api/posts?status=PUBLISHED&limit=100&sortBy=publishedAt&sortOrder=desc")
       .then((r) => r.json())
-      .then((data) => {
+      .then(async (data) => {
         const posts: ApiPost[] = data.data || [];
         const media: { id: string; url: string; type: "image" | "youtube"; caption: string; postTitle: string }[] = [];
         posts.forEach((p) => {
@@ -49,6 +49,27 @@ export default function AdminMediaPage() {
             });
           }
         });
+        // Merge the media library — files uploaded to R2 are registered
+        // there so they persist in the gallery for reuse.
+        try {
+          const token = localStorage.getItem("umunsi_admin_token") || "";
+          const lib = await fetch("/api/media", {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+          }).then((r) => (r.ok ? r.json() : []));
+          const libList: any[] = Array.isArray(lib) ? lib : lib.media || lib.data || [];
+          const seen = new Set(media.map((m) => m.url));
+          for (const f of libList) {
+            if (!f?.url || seen.has(f.url)) continue;
+            seen.add(f.url);
+            media.unshift({
+              id: `lib-${f.id || f.url}`,
+              url: f.url,
+              type: "image",
+              caption: f.originalName || f.filename || "Upload",
+              postTitle: "Uploaded media",
+            });
+          }
+        } catch {}
         setAllMedia(media);
       })
       .catch(() => {})
