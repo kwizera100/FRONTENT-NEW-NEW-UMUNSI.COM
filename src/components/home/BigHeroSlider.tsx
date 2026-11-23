@@ -56,7 +56,7 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
           </div>
         ))}
       </div>
-      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors line-clamp-2 font-display mt-4 min-h-[2.4em]">
+      <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 leading-tight group-hover:text-[#e5b60d] transition-colors font-display mt-4 pb-1">
         {current.title}
       </h1>
     </Link>
