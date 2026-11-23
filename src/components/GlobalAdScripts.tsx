@@ -1,20 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Script from "next/script";
-import { usePathname } from "next/navigation";
 import { SocialBarAd } from "@/components/ads/SocialBarAd";
 
-const ADSENSE_SRC =
-  "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3584259871242471";
-
+// NOTE: adsbygoogle.js is injected into every public page's HTML by nginx
+// (sub_filter before </body>). It must NOT also be mounted here — a duplicate
+// script load makes Google throw "ins already has ads" errors → black boxes.
 export function GlobalAdScripts() {
-  const pathname = usePathname();
-  const isAdminPath = (p: string) =>
-    p.startsWith("/admin") || p.startsWith("/writer") || p.startsWith("/dashboard");
-  const isAdmin =
-    (pathname ? isAdminPath(pathname) : false) ||
-    (typeof window !== "undefined" && isAdminPath(window.location.pathname));
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
@@ -32,20 +24,6 @@ export function GlobalAdScripts() {
     setEnabled(true);
   }, []);
 
-  // Never load ads inside the admin dashboard (known at render time)
-  if (isAdmin) return null;
-
-  // The <Script> renders on first paint — it must NOT wait for the enabled
-  // effect, or mobile devices request adsbygoogle.js only after full
-  // hydration and units sit empty for seconds.
-  return (
-    <>
-      <Script
-        src={ADSENSE_SRC}
-        strategy="afterInteractive"
-        crossOrigin="anonymous"
-      />
-      {enabled && <SocialBarAd />}
-    </>
-  );
+  if (!enabled) return null;
+  return <SocialBarAd />;
 }
