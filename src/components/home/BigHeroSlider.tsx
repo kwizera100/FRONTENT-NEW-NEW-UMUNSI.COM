@@ -42,7 +42,7 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
               alt=""
               fill
               sizes="50vw"
-              className="object-cover scale-125 blur-2xl opacity-60"
+              className="absolute inset-0 object-cover scale-125 blur-2xl opacity-60"
               aria-hidden
             />
             <SmartImage
@@ -51,7 +51,7 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
               fill
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority={i === 0}
-              className="object-cover object-[50%_30%] group-hover:scale-105 transition-transform duration-700"
+              className="absolute inset-0 object-cover object-[50%_30%] group-hover:scale-105 transition-transform duration-700"
             />
           </div>
         ))}
