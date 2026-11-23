@@ -68,17 +68,11 @@ function preprocessArticleHtml(html: string): string {
 
 function createFallbackAd(slot: string): HTMLElement {
   const wrapper = document.createElement("div");
-  wrapper.className = "my-6 sm:my-8";
+  wrapper.className = "my-4 sm:my-5";
   wrapper.setAttribute("data-umunsi-ad", "1");
-  // Plain block layout — AdSense's responsive measurement fails inside
-  // display:flex parents, returning "unfilled" so the ad never renders.
-  wrapper.style.cssText = "display: block; text-align: center; min-height: 250px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem;";
-
-  const label = document.createElement("span");
-  label.className = "text-xs font-bold text-gray-400 uppercase mb-3";
-  label.style.cssText = "display: block;";
-  label.textContent = "Advertisement";
-  wrapper.appendChild(label);
+  // Bare block — no border/background/label so the ad blends with the
+  // article instead of showing an empty slot when unfilled.
+  wrapper.style.cssText = "display: block; text-align: center;";
 
   const adIns = document.createElement("ins");
   adIns.className = "adsbygoogle";
