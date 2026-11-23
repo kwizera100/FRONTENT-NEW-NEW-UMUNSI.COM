@@ -28,7 +28,7 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
 
   return (
     <Link href={`/article/${current.slug}`} className="group block">
-      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gray-100">
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl bg-gray-950">
         {posts.map((post, i) => (
           <div
             key={post.id}
@@ -37,13 +37,23 @@ export function BigHeroSlider({ posts }: BigHeroSliderProps) {
             }`}
             aria-hidden={i !== index}
           >
+            {/* blurred backdrop fills the frame so portrait images
+                don't get cut off — the sharp image is contained on top */}
+            <SmartImage
+              src={post.coverImage}
+              alt=""
+              fill
+              sizes="50vw"
+              className="object-cover scale-125 blur-2xl opacity-50"
+              aria-hidden
+            />
             <SmartImage
               src={post.coverImage}
               alt={post.title}
               fill
-              sizes="(max-width: 1024px) 100vw, 66vw"
+              sizes="(max-width: 1024px) 100vw, 50vw"
               priority={i === 0}
-              className="object-cover group-hover:scale-105 transition-transform duration-700"
+              className="object-contain group-hover:scale-105 transition-transform duration-700"
             />
           </div>
         ))}

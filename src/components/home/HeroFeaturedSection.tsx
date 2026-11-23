@@ -34,34 +34,62 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
     return out;
   };
 
-  const fillCards = pick([...featured.slice(4), ...popular], 2);
-  const cards = pick([...featured.slice(7), ...popular], 4);
+  const leftCards = pick([...featured.slice(4), ...popular], 3);
+  const fillCards = pick([...featured.slice(7), ...popular], 2);
+  const cards = pick([...featured.slice(10), ...popular], 4);
+
+  const CompactCard = ({ post, titleClass }: { post: Post; titleClass: string }) => (
+    <Link
+      href={`/article/${post.slug}`}
+      className="group block p-2.5 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
+    >
+      <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg mb-2">
+        <SmartImage
+          src={post.coverImage}
+          alt={post.title}
+          fill
+          sizes="25vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+      </div>
+      <h4 className={`font-bold text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-2 font-display ${titleClass}`}>
+        {post.title}
+      </h4>
+    </Link>
+  );
 
   return (
     <section className="py-6 lg:py-8 bg-white">
       <div className="px-4 sm:px-6 lg:px-8 space-y-8">
-        {/* Auto-sliding big image left, smaller feature + cards right */}
+        {/* Cards | BIG slider in the middle | smaller feature + cards */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* BIG auto-slider — left, title below the image */}
-          <div className="lg:col-span-8">
+          {/* BIG auto-slider — center, title below the image */}
+          <div className="lg:col-span-6 lg:order-2">
             <BigHeroSlider posts={slides} />
           </div>
 
+          {/* Compact article cards — left of the big image */}
+          <div className="lg:col-span-3 lg:order-1 flex flex-col gap-4">
+            {leftCards.map((post) => (
+              <CompactCard key={post.id} post={post} titleClass="text-sm" />
+            ))}
+          </div>
+
           {/* Smaller feature + fill cards — right */}
-          <div className="lg:col-span-4 flex flex-col gap-5">
+          <div className="lg:col-span-3 lg:order-3 flex flex-col gap-4">
             {secondary && (
               <Link href={`/article/${secondary.slug}`} className="group block">
-                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl">
+                <div className="relative aspect-[16/10] w-full overflow-hidden rounded-2xl bg-gray-950">
                   <SmartImage
                     src={secondary.coverImage}
                     alt={secondary.title}
                     fill
-                    sizes="(max-width: 1024px) 100vw, 33vw"
+                    sizes="(max-width: 1024px) 100vw, 25vw"
                     priority
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="object-contain group-hover:scale-105 transition-transform duration-700"
                   />
                 </div>
-                <h2 className="text-lg lg:text-xl font-black text-gray-900 leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-3">
+                <h2 className="text-base lg:text-lg font-black text-gray-900 leading-snug group-hover:text-[#e5b60d] transition-colors line-clamp-3 font-display mt-2">
                   {secondary.title}
                 </h2>
               </Link>
@@ -72,18 +100,18 @@ export function HeroFeaturedSection({ featured, popular }: HeroFeaturedSectionPr
               <Link
                 key={post.id}
                 href={`/article/${post.slug}`}
-                className="group flex gap-3 items-center p-3 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
+                className="group flex gap-3 items-center p-2.5 rounded-xl bg-gray-50 hover:bg-white border border-transparent hover:border-gray-200 hover:shadow-sm transition-all"
               >
-                <div className="relative w-20 h-16 shrink-0 overflow-hidden rounded-lg">
+                <div className="relative w-16 h-14 shrink-0 overflow-hidden rounded-lg">
                   <SmartImage
                     src={post.coverImage}
                     alt={post.title}
                     fill
-                    sizes="80px"
+                    sizes="64px"
                     className="object-cover group-hover:scale-110 transition-transform duration-500"
                   />
                 </div>
-                <h4 className="flex-1 min-w-0 font-bold text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-2 font-display">
+                <h4 className="flex-1 min-w-0 font-bold text-xs sm:text-sm text-gray-900 group-hover:text-[#e5b60d] transition-colors leading-snug line-clamp-2 font-display">
                   {post.title}
                 </h4>
               </Link>
