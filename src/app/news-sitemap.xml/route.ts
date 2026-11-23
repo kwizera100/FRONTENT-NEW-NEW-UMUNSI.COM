@@ -24,11 +24,19 @@ function escapeXml(s: string): string {
 export async function GET() {
   let posts: any[] = [];
   try {
-    posts = (await api.getLatestPosts(1000)) as any[];
+    posts = (await api.getLatestPosts(200)) as any[];
   } catch {}
 
+  // Google News spec: news sitemaps may only contain articles published
+  // within the last 48 hours — older entries make the sitemap "invalid".
+  const cutoff = Date.now() - 48 * 60 * 60 * 1000;
+  const recent = posts.filter((p) => {
+    const t = p?.publishedAt ? new Date(p.publishedAt).getTime() : 0;
+    return t >= cutoff;
+  });
+
   const seen = new Set<string>();
-  const urls = posts
+  const urls = recent
     .filter((p) => p?.slug && p?.title)
     .filter((p) => {
       if (seen.has(p.slug)) return false;
