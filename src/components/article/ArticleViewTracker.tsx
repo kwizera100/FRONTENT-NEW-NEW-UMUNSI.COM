@@ -34,20 +34,10 @@ export function ArticleViewTracker({ articleId }: ArticleViewTrackerProps) {
       }
     };
 
-    // Track on every page load — no dedup, every visit counts
+    // Exactly one view per page load — same rule AdSense uses for page views.
+    // (A visibilitychange re-track used to add an extra view every time the
+    // reader switched tabs or locked their phone, inflating counts.)
     track();
-
-    // Also track on page hide/unload as a safety net
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        track();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
   }, [articleId]);
 
   return null;
