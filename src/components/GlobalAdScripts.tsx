@@ -14,6 +14,12 @@ export function GlobalAdScripts() {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
+    // Never show ads inside the admin dashboard — check the real browser
+    // path because usePathname() can be null during prerender.
+    try {
+      if (window.location.pathname.startsWith("/admin")) return;
+    } catch {}
+
     // Never load ads for paid subscribers on public pages
     try {
       if (localStorage.getItem("umunsi_subscribed") === "active") return;

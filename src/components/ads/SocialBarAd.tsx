@@ -23,6 +23,10 @@ export function SocialBarAd() {
   useEffect(() => {
     // Desktop only — the notification-style popup is disabled on mobile
     if (window.matchMedia("(max-width: 767px)").matches) return;
+    // Never inside the admin dashboard or author panels
+    if (window.location.pathname.startsWith("/admin")) return;
+    if (window.location.pathname.startsWith("/writer")) return;
+    if (window.location.pathname.startsWith("/dashboard")) return;
     try {
       if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
     } catch {}
