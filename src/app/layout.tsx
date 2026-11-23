@@ -46,6 +46,11 @@ export const metadata: Metadata = {
     site: "@umunsi",
   },
   robots: { index: true, follow: true },
+  alternates: {
+    types: {
+      "application/rss+xml": [{ url: "/rss.xml", title: "Umunsi — Inkuru za Rwanda" }],
+    },
+  },
   icons: {
     icon: "/images/umunsi-logo.jpg",
     apple: "/images/umunsi-logo.jpg",

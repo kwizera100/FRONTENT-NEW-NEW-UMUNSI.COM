@@ -7,7 +7,14 @@ import type { NextRequest } from "next/server";
 const BAD_BOT_RE =
   /(sqlmap|nikto|nmap|masscan|zgrab|nuclei|wpscan|acunetix|nessus|openvas|dirbuster|gobuster|wfuzz|hydra|metasploit|gptbot|chatgpt-user|claudebot|claude-web|ccbot|bytespider|amazonbot|diffbot|imagesiftbot|timpibot|omgili|dataforseo|scrapy|python-requests|python-urllib|go-http-client|libwww|httpclient|httpie|curl\/|wget\/|ahrefsbot|semrushbot|mj12bot|dotbot|petalbot|blexbot|serpstatbot|megaindex|seokicks|linkdex|majestic|gnowit|barkrowler|zoominfobot|headlesschrome|phantomjs|puppeteer|playwright|selenium)/i;
 
+// Feed/sitemap/robots must stay reachable by EVERY crawler — news
+// aggregators (Phoenix, Google News) fetch these with arbitrary UAs.
+const OPEN_PATHS = /^\/(rss\.xml|feed\.xml|sitemap.*\.xml|robots\.txt|favicon\.ico)/i;
+
 export function middleware(request: NextRequest) {
+  if (OPEN_PATHS.test(request.nextUrl.pathname)) {
+    return NextResponse.next();
+  }
   const ua = request.headers.get("user-agent") || "";
   if (!ua || BAD_BOT_RE.test(ua)) {
     return new NextResponse(null, { status: 403 });
