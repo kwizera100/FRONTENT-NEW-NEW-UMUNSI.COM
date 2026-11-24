@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { formatArticleHtml, normalizeMediaUrl } from "@/lib/utils";
 import { TipModal } from "./TipModal";
+import { SubscribePrompt } from "./SubscribePrompt";
 
 declare global {
   interface Window {
@@ -206,6 +207,7 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
 
   return (
     <>
+    {!isPremium && <SubscribePrompt />}
     <div
       ref={containerRef}
       className="prose prose-base sm:prose-lg max-w-none text-gray-800 leading-8 space-y-6
