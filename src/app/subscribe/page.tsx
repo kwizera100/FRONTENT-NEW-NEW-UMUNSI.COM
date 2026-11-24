@@ -535,7 +535,7 @@ export default function SubscribePage() {
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3 text-sm mb-6">
               <p className="font-black text-[#e5b60d] text-xs uppercase tracking-wider">Gucunga subscription yawe</p>
               <p className="text-gray-300">• Ufite konti — injira kuri device iyo ariyo yose usome nta ads.</p>
-              <p className="text-gray-300">• Ikibazo runaka: twandikire <span className="text-[#e5b60d]">info@umunsi.com</span></p>
+              <p className="text-gray-300">• Ikibazo runaka: twandikire kuri WhatsApp <a href="https://wa.me/250783450859" target="_blank" rel="noopener noreferrer" className="text-[#e5b60d] font-bold underline underline-offset-2">0783 450 859</a></p>
               <p className="text-gray-300">• Ibisubizo bisabwa: 24 hours nshingano.</p>
             </div>
             <Link href="/" className="inline-flex items-center gap-2 bg-[#e5b60d] hover:bg-[#f5c81d] text-[#0f172a] font-black px-8 py-3.5 rounded-xl transition-colors">
