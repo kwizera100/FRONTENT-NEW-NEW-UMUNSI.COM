@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Crown, Sparkles, ArrowRight } from "lucide-react";
+import { isSubscribed } from "@/lib/subscription";
 
 // Small gold rectangle shown before the first paragraph of every article.
 // Hidden for subscribers — localStorage "umunsi_subscribed" === "active".
@@ -10,11 +11,7 @@ export function SubscribePrompt() {
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
-    try {
-      setHidden(localStorage.getItem("umunsi_subscribed") === "active");
-    } catch {
-      setHidden(false);
-    }
+    setHidden(isSubscribed());
   }, []);
 
   if (hidden) return null;

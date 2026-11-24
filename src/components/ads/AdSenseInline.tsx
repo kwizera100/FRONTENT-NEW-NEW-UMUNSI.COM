@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { isSubscribed } from "@/lib/subscription";
 
 declare global {
   interface Window {
@@ -20,7 +21,7 @@ export function AdSenseInline({ slot, className = "" }: AdSenseInlineProps) {
   useEffect(() => {
     try {
       if (typeof window === "undefined") return;
-      if (localStorage.getItem("umunsi_subscribed") === "active") return;
+      if (isSubscribed()) return;
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
       // AdSense script not loaded yet — the push is queued by the array anyway

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { formatArticleHtml, normalizeMediaUrl } from "@/lib/utils";
 import { TipModal } from "./TipModal";
 import { SubscribePrompt } from "./SubscribePrompt";
+import { isSubscribed as isSubscribedUser } from "@/lib/subscription";
 
 declare global {
   interface Window {
@@ -127,14 +128,6 @@ function showAdsense(adConfig?: string | null): boolean {
     return parsed?.showAdsense !== false;
   } catch {
     return true;
-  }
-}
-
-function isSubscribedUser(): boolean {
-  try {
-    return localStorage.getItem("umunsi_subscribed") === "active";
-  } catch {
-    return false;
   }
 }
 

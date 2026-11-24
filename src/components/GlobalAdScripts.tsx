@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SocialBarAd } from "@/components/ads/SocialBarAd";
+import { isSubscribed } from "@/lib/subscription";
 
 // NOTE: adsbygoogle.js is injected into every public page's HTML by nginx
 // (sub_filter before </body>). It must NOT also be mounted here — a duplicate
@@ -18,9 +19,7 @@ export function GlobalAdScripts() {
     } catch {}
 
     // Never load ads for paid subscribers on public pages
-    try {
-      if (localStorage.getItem("umunsi_subscribed") === "active") return;
-    } catch {}
+    if (isSubscribed()) return;
     setEnabled(true);
   }, []);
 

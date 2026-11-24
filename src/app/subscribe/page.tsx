@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Crown, CreditCard, Check, Shield, Zap, X, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon } from "lucide-react";
+import { Crown, Check, Shield, Zap, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon, Smartphone } from "lucide-react";
 
 interface Plan {
   key: string;
@@ -10,6 +10,7 @@ interface Plan {
   sub: string;
   price: number;
   period: string;
+  days: number | null; // null = lifetime
   highlight?: boolean;
   badge?: string;
   icon: React.ReactNode;
@@ -22,6 +23,7 @@ const PLANS: Plan[] = [
     sub: "Monthly",
     price: 500,
     period: "/ukwezi",
+    days: 30,
     icon: <Zap className="w-5 h-5" />,
   },
   {
@@ -30,6 +32,7 @@ const PLANS: Plan[] = [
     sub: "3 Months",
     price: 5000,
     period: "/amezi 3",
+    days: 90,
     highlight: true,
     badge: "IKUNZWE CYANE",
     icon: <Crown className="w-5 h-5" />,
@@ -40,62 +43,79 @@ const PLANS: Plan[] = [
     sub: "Lifetime",
     price: 10000,
     period: "rimwe gusa",
+    days: null,
     icon: <InfinityIcon className="w-5 h-5" />,
   },
 ];
 
 export default function SubscribePage() {
   const [selected, setSelected] = useState<string>("quarterly");
-  const [step, setStep] = useState<"plans" | "form" | "success">("plans");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [step, setStep] = useState<"plans" | "momo" | "pending" | "success">("plans");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const plan = PLANS.find((p) => p.key === selected)!;
 
-  const formatCard = (v: string) =>
-    v.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
-  const formatExpiry = (v: string) => {
-    const d = v.replace(/\D/g, "").slice(0, 4);
-    return d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
-  };
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
-  const handlePay = async () => {
-    if (!name.trim() || !email.trim() || !phone.trim() || cardNumber.replace(/\s/g, "").length < 12 || expiry.length < 4 || cvv.length < 3) {
-      setError("Uzuza imirongo yose neza (amazina, email, telefoni n'ikarita).");
-      return;
-    }
+  const startPayment = async () => {
+    if (!phone.trim()) { setError("Shyiramo numero ya MTN MoMo"); return; }
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/payment/subscribe", {
+      const res = await fetch("/api/payment/mtn/requesttopay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          package: selected,
-          paymentMethod: "card",
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim(),
-        }),
+        body: JSON.stringify({ postId: "subscription", msisdn: phone.trim(), amount: plan.price }),
       });
       const data = await res.json().catch(() => ({}));
-      if (res.ok && data.success !== false) {
-        try { localStorage.setItem("umunsi_subscribed", "active"); } catch {}
-        setStep("success");
-      } else {
-        setError(data.error || "Habayemo ikibazo. Gerageza nyuma.");
+      if (!res.ok || !data.success) {
+        setError(data.error || "Kwishyura ntibikunze. Gerageza nanone.");
+        return;
       }
+      setStep("pending");
+      pollRef.current = setInterval(async () => {
+        try {
+          const sr = await fetch(`/api/payment/mtn/status/${data.referenceId}`);
+          const sd = await sr.json().catch(() => ({}));
+          if (sd.status === "SUCCESS") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            const until = plan.days ? new Date(Date.now() + plan.days * 86400000).toISOString() : null;
+            try {
+              localStorage.setItem("umunsi_subscribed", "active");
+              localStorage.setItem("umunsi_subscription_ref", data.referenceId);
+              localStorage.setItem("umunsi_subscription_plan", plan.key);
+              if (until) localStorage.setItem("umunsi_subscribed_until", until);
+              else localStorage.removeItem("umunsi_subscribed_until");
+            } catch {}
+            setExpiresAt(until);
+            setStep("success");
+          } else if (sd.status === "FAILED") {
+            if (pollRef.current) clearInterval(pollRef.current);
+            setError(
+              sd.reason === "PAYEE_NOT_FOUND" || sd.reason === "PAYER_NOT_FOUND"
+                ? "Numero ya MTN ntibashije kuboneka — shyiramo numero yawe ya MoMo"
+                : sd.reason === "NOT_ENOUGH_FUNDS"
+                  ? "Nta mafrwanda ahagije kuri konti yawe ya MoMo"
+                  : "Kwishyura ntibyagenze neza. Gerageza nanone."
+            );
+            setStep("momo");
+          }
+        } catch {}
+      }, 3000);
     } catch {
-      setError("Ntibishoboye. Gerageza nyuma.");
+      setError("Habayemo ikibazo. Gerageza nanone.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const cancelPending = () => {
+    if (pollRef.current) clearInterval(pollRef.current);
+    setStep("momo");
   };
 
   return (
@@ -124,7 +144,7 @@ export default function SubscribePage() {
               <span className="text-[#e5b60d]"> nta ads zirimo</span>
             </h1>
             <p className="text-gray-400 mt-3 max-w-xl mx-auto text-sm sm:text-base">
-              Wishyure rimwe cyangwa buri gihe — ubone inkuru zisukuye, zidafise advertisement, kuri umunsi.com wose.
+              Wishyure ukoresheje MTN Mobile Money — ubone inkuru zisukuye, zidafise advertisement, kuri umunsi.com wose.
             </p>
           </div>
         )}
@@ -166,29 +186,29 @@ export default function SubscribePage() {
               ))}
             </div>
             <button
-              onClick={() => setStep("form")}
+              onClick={() => setStep("momo")}
               className="w-full sm:max-w-md mx-auto flex items-center justify-center gap-2 bg-[#e5b60d] hover:bg-[#f5c81d] text-[#0f172a] font-black py-4 rounded-2xl transition-colors text-base"
             >
-              <CreditCard className="w-5 h-5" />
-              Ishyura {plan.price.toLocaleString()} RWF — {plan.sub}
+              <Smartphone className="w-5 h-5" />
+              Ishyura {plan.price.toLocaleString()} RWF na MoMo
             </button>
             <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1.5">
-              <Shield className="w-3.5 h-3.5" /> Ubwishyu bwizewe — ikarita ya Visa/Mastercard
+              <Shield className="w-3.5 h-3.5" /> Ubwishyu bwizewe — MTN Mobile Money
             </p>
           </>
         )}
 
-        {/* Card form */}
-        {step === "form" && (
+        {/* MoMo phone entry */}
+        {step === "momo" && (
           <div className="max-w-md mx-auto">
             <button onClick={() => setStep("plans")} className="text-xs text-gray-400 hover:text-white mb-4 flex items-center gap-1">
               <ArrowLeft className="w-3.5 h-3.5" /> Subira inyuma
             </button>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur">
               <div className="flex items-center justify-between mb-5">
-                <h2 className="font-black text-lg font-display">Ishyura n'ikarita</h2>
+                <h2 className="font-black text-lg font-display">Ishyura na MoMo</h2>
                 <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                  <CreditCard className="w-4 h-4 text-[#e5b60d]" /> Visa · Mastercard
+                  <Smartphone className="w-4 h-4 text-[#e5b60d]" /> MTN Mobile Money
                 </div>
               </div>
               <div className="bg-[#e5b60d]/10 border border-[#e5b60d]/30 rounded-xl px-4 py-3 mb-5 flex items-center justify-between">
@@ -196,68 +216,20 @@ export default function SubscribePage() {
                 <span className="font-black text-[#e5b60d]">{plan.price.toLocaleString()} RWF</span>
               </div>
 
-              <div className="space-y-3.5">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Numero y'ikarita *</label>
-                  <input
-                    inputMode="numeric"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(formatCard(e.target.value))}
-                    placeholder="4242 4242 4242 4242"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d] font-mono tracking-wider"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1">Itariki *</label>
-                    <input
-                      inputMode="numeric"
-                      value={expiry}
-                      onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                      placeholder="MM/YY"
-                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d] font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1">CVV *</label>
-                    <input
-                      inputMode="numeric"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                      placeholder="123"
-                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d] font-mono"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Amazina *</label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Amazina yawe yuzuye"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Email *</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="email@urugero.rw"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Telefoni *</label>
+              <div>
+                <label className="block text-xs font-semibold text-gray-400 mb-1">Numero ya MTN *</label>
+                <div className="flex items-center gap-2 bg-white/10 border border-white/15 rounded-xl px-4 py-3 focus-within:border-[#e5b60d]">
+                  <Smartphone className="w-5 h-5 text-gray-400" />
                   <input
                     type="tel"
+                    inputMode="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+250 7XX XXX XXX"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
+                    placeholder="078XXXXXXX"
+                    className="flex-1 bg-transparent outline-none text-sm"
                   />
                 </div>
+                <p className="text-[11px] text-gray-500 mt-2">Uzahamagarwa kuri telefoni yawe — winjize PIN ya MoMo wemeze ubwishyu.</p>
               </div>
 
               {error && (
@@ -268,15 +240,28 @@ export default function SubscribePage() {
               )}
 
               <button
-                onClick={handlePay}
+                onClick={startPayment}
                 disabled={loading}
                 className="w-full mt-5 flex items-center justify-center gap-2 bg-[#e5b60d] hover:bg-[#f5c81d] disabled:opacity-60 text-[#0f172a] font-black py-3.5 rounded-xl transition-colors"
               >
-                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Tegereza...</> : `Ishyura ${plan.price.toLocaleString()} RWF`}
+                {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Kohereza...</> : `Ishyura ${plan.price.toLocaleString()} RWF`}
               </button>
-              <p className="text-center text-[10px] text-gray-500 mt-3">
-                Numero z'ikarita ntizibikwa — zikoreshwa gusa mu kwishyura.
-              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Waiting for MoMo approval */}
+        {step === "pending" && (
+          <div className="max-w-md mx-auto text-center py-8">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
+              <Loader2 className="w-12 h-12 text-[#e5b60d] animate-spin mx-auto mb-5" />
+              <h2 className="font-black text-xl font-display mb-2">Reba telefoni yawe</h2>
+              <p className="text-gray-400 text-sm mb-1">Twakohereje icyifuzo cyo kwishyura kuri</p>
+              <p className="text-[#e5b60d] font-black text-lg mb-4">{phone}</p>
+              <p className="text-gray-400 text-xs mb-6">Injiza PIN ya MoMo wemeze kwishyura <strong className="text-white">{plan.price.toLocaleString()} RWF</strong>. Ikibazo gikimara kugenda — mutaze.</p>
+              <button onClick={cancelPending} className="text-xs text-gray-500 hover:text-white underline underline-offset-2">
+                Rekeza / hindura numero
+              </button>
             </div>
           </div>
         )}
@@ -288,12 +273,17 @@ export default function SubscribePage() {
               <Check className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl sm:text-3xl font-black font-display mb-3">Murakoze! 🎉</h2>
-            <p className="text-gray-400 text-sm mb-6">
-              Icyifuzo cyawe cyakiriwe. Ubu usoma inkuru zose za Umunsi.com <span className="text-[#e5b60d] font-bold">nta ads zirimo</span>.
+            <p className="text-gray-400 text-sm mb-2">
+              Ubwishyu bwemejwe. Ubu usoma inkuru zose za Umunsi.com <span className="text-[#e5b60d] font-bold">nta ads zirimo</span>.
             </p>
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3 text-sm mb-6">
+            {expiresAt && (
+              <p className="text-xs text-gray-500 mb-4">
+                Subscription yawe irangira: <span className="text-gray-300 font-bold">{new Date(expiresAt).toLocaleDateString("rw-RW", { year: "numeric", month: "long", day: "numeric" })}</span>
+              </p>
+            )}
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3 text-sm mb-6 mt-4">
               <p className="font-black text-[#e5b60d] text-xs uppercase tracking-wider">Gucunga subscription yawe</p>
-              <p className="text-gray-300">• Subscription yawe ikora kuri <span className="text-white font-bold">iyi browser</span> — niba ushaka kuyirekura, siba site data.</p>
+              <p className="text-gray-300">• Subscription yawe ikora kuri <span className="text-white font-bold">iyi browser</span> — ukoresheje indi browser, wishyure nanone cyangwa uhindure kuri iyi.</p>
               <p className="text-gray-300">• Ikibazo runaka: twandikire <span className="text-[#e5b60d]">info@umunsi.com</span></p>
               <p className="text-gray-300">• Ibisubizo bisabwa: 24 hours nshingano.</p>
             </div>

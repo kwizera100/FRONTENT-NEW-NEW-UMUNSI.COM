@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Crown } from "lucide-react";
 import { PaymentPopup } from "./PaymentPopup";
+import { isSubscribed } from "@/lib/subscription";
 
 interface PaymentPopupTriggerProps {
   adConfig?: string | null;
@@ -16,13 +17,10 @@ export function PaymentPopupTrigger({ adConfig, isPremium }: PaymentPopupTrigger
 
   useEffect(() => {
     // Check if user is already subscribed (paid users don't see the button)
-    try {
-      const globalAccess = localStorage.getItem("umunsi_subscribed");
-      if (globalAccess === "active") {
-        setSubscribed(true);
-        return;
-      }
-    } catch {}
+    if (isSubscribed()) {
+      setSubscribed(true);
+      return;
+    }
 
     // If this article is premium (no ads), don't show the payment trigger
     if (isPremium) return;
