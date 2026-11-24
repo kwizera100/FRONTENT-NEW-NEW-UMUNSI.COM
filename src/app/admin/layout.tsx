@@ -18,6 +18,7 @@ import {
   Crown,
   MessageCircle,
   Coins,
+  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +32,7 @@ const navItems = [
   { href: "/admin/comments", label: "Comments", icon: MessageCircle },
   { href: "/admin/earnings", label: "Earnings", icon: Coins },
   { href: "/admin/payment", label: "Payment & Ads", icon: Crown },
+  { href: "/admin/payments", label: "Payments", icon: CreditCard },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -72,7 +74,7 @@ export default function AdminLayout({
     if (userRole === "AUTHOR") {
       return ["/admin", "/admin/posts", "/admin/posts/new", "/admin/earnings"].includes(item.href);
     }
-    if (item.href === "/admin/users" || item.href === "/admin/settings" || item.href === "/admin/comments" || item.href === "/admin/payment") {
+    if (item.href === "/admin/users" || item.href === "/admin/settings" || item.href === "/admin/comments" || item.href === "/admin/payment" || item.href === "/admin/payments") {
       return userRole === "ADMIN";
     }
     return true;

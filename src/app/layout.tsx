@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Poppins } from "next/font/google";
 import Script from "next/script";
 import { GlobalAdScripts } from "@/components/GlobalAdScripts";
+import { PremiumSync } from "@/components/PremiumSync";
 import "./globals.css";
 
 const inter = Inter({
@@ -74,6 +75,7 @@ export default function RootLayout({
     <html lang="rw" className={`${inter.variable} ${poppins.variable}`}>
       <body className="font-sans">
         {children}
+        <PremiumSync />
         <GlobalAdScripts />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-1SYPN08WNW"

@@ -2,7 +2,16 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Crown, Check, Shield, Zap, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon, Smartphone } from "lucide-react";
+import Script from "next/script";
+import { Crown, Check, Shield, Zap, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon, Smartphone, Mail, LogIn, UserPlus } from "lucide-react";
+
+declare global {
+  interface Window {
+    google?: any;
+  }
+}
+
+const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 interface Plan {
   key: string;
@@ -55,7 +64,18 @@ export default function SubscribePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [referenceId, setReferenceId] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Account creation / login (after payment or for returning subscribers)
+  const [showAccount, setShowAccount] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
+  const [accountName, setAccountName] = useState("");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [accountPassword, setAccountPassword] = useState("");
+  const [accountLoading, setAccountLoading] = useState(false);
+  const [accountError, setAccountError] = useState("");
+  const [loggedInEmail, setLoggedInEmail] = useState("");
 
   const plan = PLANS.find((p) => p.key === selected)!;
 
@@ -77,6 +97,7 @@ export default function SubscribePage() {
         return;
       }
       setStep("pending");
+      setReferenceId(data.referenceId);
       pollRef.current = setInterval(async () => {
         try {
           const sr = await fetch(`/api/payment/mtn/status/${data.referenceId}`);
@@ -117,6 +138,131 @@ export default function SubscribePage() {
     if (pollRef.current) clearInterval(pollRef.current);
     setStep("momo");
   };
+
+  // After a backend login/signup returns a JWT — store it and sync premium
+  const finishLogin = async (token: string, email: string) => {
+    try { localStorage.setItem("umunsi_reader_token", token); } catch {}
+    setLoggedInEmail(email);
+    try {
+      const res = await fetch("/api/payment/subscription/me", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await res.json().catch(() => ({}));
+      if (d?.active) {
+        try {
+          localStorage.setItem("umunsi_subscribed", "active");
+          localStorage.setItem("umunsi_subscription_plan", "account");
+          if (d.premiumUntil) localStorage.setItem("umunsi_subscribed_until", d.premiumUntil);
+          setExpiresAt(d.premiumUntil && new Date(d.premiumUntil).getFullYear() < 2090 ? d.premiumUntil : null);
+        } catch {}
+      }
+    } catch {}
+  };
+
+  const handleSignup = async () => {
+    if (!accountEmail.trim() || accountPassword.length < 6) {
+      setAccountError("Shyiramo email n'ijambobanga (6+ inyuguti).");
+      return;
+    }
+    setAccountError("");
+    setAccountLoading(true);
+    try {
+      const res = await fetch("/api/payment/subscribe-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          referenceId: referenceId || undefined,
+          email: accountEmail.trim(),
+          password: accountPassword,
+          name: accountName.trim() || accountEmail.split("@")[0],
+        }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.token) {
+        await finishLogin(d.token, d.user?.email || accountEmail.trim());
+      } else {
+        setAccountError(d.error || "Konti ntiyaremwe. Gerageza nanone.");
+      }
+    } catch {
+      setAccountError("Habayemo ikibazo. Gerageza nanone.");
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!accountEmail.trim() || !accountPassword) {
+      setAccountError("Shyiramo email n'ijambobanga.");
+      return;
+    }
+    setAccountError("");
+    setAccountLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: accountEmail.trim(), password: accountPassword }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.token) {
+        await finishLogin(d.token, d.user?.email || accountEmail.trim());
+        setStep("success");
+      } else {
+        setAccountError(d.error || d.message || "Injira ntibikunze — reba email n'ijambobanga.");
+      }
+    } catch {
+      setAccountError("Habayemo ikibazo. Gerageza nanone.");
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
+  // Google sign-in callback — receives the Google ID token
+  const handleGoogleCredential = async (response: { credential?: string }) => {
+    if (!response?.credential) return;
+    setAccountError("");
+    setAccountLoading(true);
+    try {
+      const res = await fetch("/api/payment/subscribe-google", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken: response.credential, referenceId: referenceId || undefined }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok && d?.token) {
+        await finishLogin(d.token, d.user?.email || "");
+        setStep("success");
+      } else {
+        setAccountError(d.error || "Google sign-in ntibikunze.");
+      }
+    } catch {
+      setAccountError("Habayemo ikibazo. Gerageza nanone.");
+    } finally {
+      setAccountLoading(false);
+    }
+  };
+
+  // Render the Google button once its script loads
+  const initGoogle = () => {
+    if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id) return;
+    try {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleCredential,
+      });
+      const el = document.getElementById("google-signin-btn");
+      if (el && el.childElementCount === 0) {
+        window.google.accounts.id.renderButton(el, { theme: "outline", size: "large", width: 320, text: "continue_with" });
+      }
+    } catch {}
+  };
+
+  useEffect(() => {
+    if ((step === "success" || showLogin) && GOOGLE_CLIENT_ID) {
+      const t = setTimeout(initGoogle, 400);
+      return () => clearTimeout(t);
+    }
+  }, [step, showLogin, showAccount]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f172a] via-[#16213a] to-[#0f172a] text-white">
@@ -195,6 +341,51 @@ export default function SubscribePage() {
             <p className="text-center text-xs text-gray-500 mt-4 flex items-center justify-center gap-1.5">
               <Shield className="w-3.5 h-3.5" /> Ubwishyu bwizewe — MTN Mobile Money
             </p>
+
+            {/* Returning subscribers */}
+            <div className="text-center mt-8">
+              <button
+                onClick={() => setShowLogin(!showLogin)}
+                className="text-sm text-[#e5b60d] hover:text-[#f5c81d] font-bold inline-flex items-center gap-1.5"
+              >
+                <LogIn className="w-4 h-4" /> Wamaze kwishyura? Injira hano
+              </button>
+
+              {showLogin && (
+                <div className="max-w-sm mx-auto mt-5 bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
+                  <p className="font-bold text-sm mb-3">Injira kuri konti yawe</p>
+                  <div className="space-y-3">
+                    <input
+                      type="email"
+                      value={accountEmail}
+                      onChange={(e) => setAccountEmail(e.target.value)}
+                      placeholder="Email yawe"
+                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
+                    />
+                    <input
+                      type="password"
+                      value={accountPassword}
+                      onChange={(e) => setAccountPassword(e.target.value)}
+                      placeholder="Ijambobanga"
+                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
+                    />
+                    {accountError && (
+                      <p className="text-red-300 text-xs flex items-start gap-1.5">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {accountError}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleLogin}
+                      disabled={accountLoading}
+                      className="w-full flex items-center justify-center gap-2 bg-[#e5b60d] hover:bg-[#f5c81d] disabled:opacity-60 text-[#0f172a] font-black py-3 rounded-xl transition-colors text-sm"
+                    >
+                      {accountLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Injira</>}
+                    </button>
+                    {GOOGLE_CLIENT_ID && <div id="google-signin-btn" className="flex justify-center pt-1" />}
+                  </div>
+                </div>
+              )}
+            </div>
           </>
         )}
 
@@ -281,9 +472,69 @@ export default function SubscribePage() {
                 Subscription yawe irangira: <span className="text-gray-300 font-bold">{new Date(expiresAt).toLocaleDateString("rw-RW", { year: "numeric", month: "long", day: "numeric" })}</span>
               </p>
             )}
-            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3 text-sm mb-6 mt-4">
+            {/* Account creation — use premium on any device */}
+            {loggedInEmail ? (
+              <div className="bg-[#e5b60d]/10 border border-[#e5b60d]/30 rounded-2xl p-5 mb-6 mt-4">
+                <div className="flex items-center justify-center gap-2 text-[#e5b60d] font-black mb-1">
+                  <Check className="w-5 h-5" /> Konti yemejwe
+                </div>
+                <p className="text-sm text-gray-300">
+                  Winjiye nka <span className="text-white font-bold">{loggedInEmail}</span>. Kuri device iyo ariyo yose — injira ubashe gusoma nta ads.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left mb-6 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <UserPlus className="w-4 h-4 text-[#e5b60d]" />
+                  <p className="font-black text-sm">Fungura konti — koresha kuri device zose</p>
+                </div>
+                <p className="text-xs text-gray-400 mb-4">Shyiramo email n'ijambobanga, cyangwa ukoreshe Google — wishobore kwinjira kuri telefoni n'undi mudasobwa.</p>
+
+                {GOOGLE_CLIENT_ID && <div id="google-signin-btn" className="flex justify-center mb-3" />}
+
+                <div className="space-y-3">
+                  <input
+                    value={accountName}
+                    onChange={(e) => setAccountName(e.target.value)}
+                    placeholder="Amazina yawe"
+                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
+                  />
+                  <div className="flex items-center gap-2 bg-white/10 border border-white/15 rounded-xl px-4 py-3 focus-within:border-[#e5b60d]">
+                    <Mail className="w-4 h-4 text-gray-400 shrink-0" />
+                    <input
+                      type="email"
+                      value={accountEmail}
+                      onChange={(e) => setAccountEmail(e.target.value)}
+                      placeholder="Email yawe (Gmail)"
+                      className="flex-1 bg-transparent outline-none text-sm"
+                    />
+                  </div>
+                  <input
+                    type="password"
+                    value={accountPassword}
+                    onChange={(e) => setAccountPassword(e.target.value)}
+                    placeholder="Ijambobanga (6+ inyuguti)"
+                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
+                  />
+                  {accountError && (
+                    <p className="text-red-300 text-xs flex items-start gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {accountError}
+                    </p>
+                  )}
+                  <button
+                    onClick={handleSignup}
+                    disabled={accountLoading}
+                    className="w-full flex items-center justify-center gap-2 bg-[#e5b60d] hover:bg-[#f5c81d] disabled:opacity-60 text-[#0f172a] font-black py-3 rounded-xl transition-colors text-sm"
+                  >
+                    {accountLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Fungura konti yanjye"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-5 text-left space-y-3 text-sm mb-6">
               <p className="font-black text-[#e5b60d] text-xs uppercase tracking-wider">Gucunga subscription yawe</p>
-              <p className="text-gray-300">• Subscription yawe ikora kuri <span className="text-white font-bold">iyi browser</span> — ukoresheje indi browser, wishyure nanone cyangwa uhindure kuri iyi.</p>
+              <p className="text-gray-300">• Ufite konti — injira kuri device iyo ariyo yose usome nta ads.</p>
               <p className="text-gray-300">• Ikibazo runaka: twandikire <span className="text-[#e5b60d]">info@umunsi.com</span></p>
               <p className="text-gray-300">• Ibisubizo bisabwa: 24 hours nshingano.</p>
             </div>
@@ -293,6 +544,10 @@ export default function SubscribePage() {
           </div>
         )}
       </div>
+
+      {GOOGLE_CLIENT_ID && (
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" onLoad={initGoogle} />
+      )}
     </div>
   );
 }
