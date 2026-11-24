@@ -28,6 +28,13 @@ const IN_CONTENT_ADS: Array<{ afterParagraph: number; slot: string }> = [
 
 const END_AD_SLOT = "1008591184";
 
+// Adsterra in-article banners — appended alongside the AdSense slots
+// (both networks stay; nothing is removed).
+const ADSTERRA_ADS: Array<{ afterParagraph: number; containerId: string; script: string }> = [
+  { afterParagraph: 2, containerId: "container-533b579a4ffcc3c134a9961c1a434570", script: "https://bauval.org/21/533b579a4ffcc3c134a9961c1a434570" },
+  { afterParagraph: 6, containerId: "container-5b46e2d36f21bea432152fac20277690", script: "https://bauval.org/21/5b46e2d36f21bea432152fac20277690" },
+];
+
 const IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|gif|webp|svg)(\?[^\s<>]*)?$/i;
 
 function decodeHtmlEntities(raw: string): string {
@@ -85,6 +92,22 @@ function createFallbackAd(slot: string): HTMLElement {
   adIns.setAttribute("data-full-width-responsive", "true");
 
   wrapper.appendChild(adIns);
+  return wrapper;
+}
+
+function createAdsterraAd(containerId: string, scriptSrc: string): HTMLElement {
+  const wrapper = document.createElement("div");
+  wrapper.className = "my-4 sm:my-5";
+  wrapper.setAttribute("data-umunsi-ad", "1");
+  wrapper.style.cssText = "display: block; text-align: center;";
+  const holder = document.createElement("div");
+  holder.id = containerId;
+  wrapper.appendChild(holder);
+  const s = document.createElement("script");
+  s.async = true;
+  s.setAttribute("data-cfasync", "false");
+  s.src = scriptSrc;
+  wrapper.appendChild(s);
   return wrapper;
 }
 
@@ -150,12 +173,21 @@ export function ArticleContent({ html, isPremium, adConfig, postId }: ArticleCon
     const paragraphs = container.querySelectorAll("p");
 
     if (adsense) {
+      const anchorByIndex = new Map<number, HTMLElement>();
       IN_CONTENT_ADS.forEach(({ afterParagraph, slot }) => {
         if (paragraphs.length > afterParagraph) {
           const target = paragraphs[afterParagraph];
           const adEl = createFallbackAd(slot);
           target.insertAdjacentElement("afterend", adEl);
+          anchorByIndex.set(afterParagraph, adEl);
         }
+      });
+      // Adsterra banners — placed right below the AdSense unit at the
+      // same paragraph (both networks coexist at that position).
+      ADSTERRA_ADS.forEach(({ afterParagraph, containerId, script }) => {
+        if (paragraphs.length <= afterParagraph) return;
+        const anchor = anchorByIndex.get(afterParagraph) ?? paragraphs[afterParagraph];
+        anchor.insertAdjacentElement("afterend", createAdsterraAd(containerId, script));
       });
 
       const endAd = createFallbackAd(END_AD_SLOT);
