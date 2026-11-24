@@ -81,6 +81,16 @@ export default function SubscribePage() {
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
 
+  // ?login=1 — auto-open the returning-subscriber login form
+  useEffect(() => {
+    try {
+      if (window.location.search.includes("login=1")) {
+        setShowLogin(true);
+        setTimeout(() => document.getElementById("login-section")?.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+      }
+    } catch {}
+  }, []);
+
   const startPayment = async () => {
     if (!phone.trim()) { setError("Shyiramo numero ya MTN MoMo"); return; }
     setError("");
@@ -352,7 +362,7 @@ export default function SubscribePage() {
               </button>
 
               {showLogin && (
-                <div className="max-w-sm mx-auto mt-5 bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
+                <div id="login-section" className="max-w-sm mx-auto mt-5 bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
                   <p className="font-bold text-sm mb-3">Injira kuri konti yawe</p>
                   <div className="space-y-3">
                     <input

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, ChevronDown } from "lucide-react";
+import { Menu, X, Search, ChevronDown, Crown, User } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isSubscribed } from "@/lib/subscription";
 import { TopBanner } from "@/components/home/TopBanner";
 
 interface HeaderCategory {
@@ -28,10 +29,14 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [subscriber, setSubscriber] = useState(false);
+  const [hasAccount, setHasAccount] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
+    setSubscriber(isSubscribed());
+    try { setHasAccount(!!localStorage.getItem("umunsi_reader_token")); } catch {}
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -140,6 +145,33 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Subscribe / Premium */}
+            {subscriber ? (
+              <Link
+                href="/subscribe"
+                className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] text-[#0f172a] text-xs font-black px-4 py-2 rounded-full shadow-sm"
+              >
+                <Crown className="w-3.5 h-3.5" /> PREMIUM
+              </Link>
+            ) : (
+              <Link
+                href="/subscribe"
+                className="flex items-center gap-1.5 bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] hover:from-[#f5c81d] hover:to-[#d9b00c] text-[#0f172a] text-xs font-black px-3 sm:px-4 py-2 rounded-full shadow-sm transition-all"
+              >
+                <Crown className="w-3.5 h-3.5" /> <span className="hidden xs:inline sm:inline">SUBSCRIBE</span>
+              </Link>
+            )}
+
+            {/* Login / Account */}
+            <Link
+              href="/subscribe?login=1"
+              title={hasAccount ? "Konti yawe" : "Injira"}
+              className="flex items-center gap-1.5 p-2.5 sm:px-3.5 rounded-full border border-gray-200 hover:border-[#e5b60d] hover:text-[#e5b60d] text-gray-700 transition-colors text-xs font-bold"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">{hasAccount ? "Konti" : "Injira"}</span>
+            </Link>
+
             <button
               onClick={() => setSearchOpen(!searchOpen)}
               className="p-2.5 rounded-full hover:bg-gray-100 text-gray-700 transition-colors"
@@ -188,6 +220,23 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
                 {item.name}
               </Link>
             ))}
+            <div className="border-t border-gray-100 my-2" />
+            <div className="flex gap-2 px-2 py-2">
+              <Link
+                href="/subscribe"
+                onClick={() => setIsOpen(false)}
+                className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-[#e5b60d] to-[#c9a00c] text-[#0f172a] text-sm font-black px-4 py-3 rounded-xl"
+              >
+                <Crown className="w-4 h-4" /> {subscriber ? "PREMIUM" : "SUBSCRIBE"}
+              </Link>
+              <Link
+                href="/subscribe?login=1"
+                onClick={() => setIsOpen(false)}
+                className="flex-1 flex items-center justify-center gap-1.5 border-2 border-gray-200 text-gray-700 text-sm font-black px-4 py-3 rounded-xl"
+              >
+                <User className="w-4 h-4" /> {hasAccount ? "Konti" : "Injira"}
+              </Link>
+            </div>
             <div className="border-t border-gray-100 my-2" />
             {categories.map((cat) => (
               <Link
