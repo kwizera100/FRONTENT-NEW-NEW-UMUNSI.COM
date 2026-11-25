@@ -150,8 +150,16 @@ export default function SubscribePage() {
   };
 
   // After a backend login/signup returns a JWT — store it and sync premium
-  const finishLogin = async (token: string, email: string) => {
-    try { localStorage.setItem("umunsi_reader_token", token); } catch {}
+  const finishLogin = async (token: string, email: string, user?: any) => {
+    try {
+      localStorage.setItem("umunsi_reader_token", token);
+      localStorage.setItem("umunsi_reader_user", JSON.stringify({
+        email: user?.email || email,
+        firstName: user?.firstName || "",
+        lastName: user?.lastName || "",
+        avatar: user?.avatar || "",
+      }));
+    } catch {}
     setLoggedInEmail(email);
     try {
       const res = await fetch("/api/payment/subscription/me", {
@@ -189,7 +197,7 @@ export default function SubscribePage() {
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d?.token) {
-        await finishLogin(d.token, d.user?.email || accountEmail.trim());
+        await finishLogin(d.token, d.user?.email || accountEmail.trim(), d.user);
       } else {
         setAccountError(d.error || "Konti ntiyaremwe. Gerageza nanone.");
       }
@@ -215,7 +223,7 @@ export default function SubscribePage() {
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d?.token) {
-        await finishLogin(d.token, d.user?.email || accountEmail.trim());
+        await finishLogin(d.token, d.user?.email || accountEmail.trim(), d.user);
         setStep("success");
       } else {
         setAccountError(d.error || d.message || "Injira ntibikunze — reba email n'ijambobanga.");
@@ -240,7 +248,7 @@ export default function SubscribePage() {
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d?.token) {
-        await finishLogin(d.token, d.user?.email || "");
+        await finishLogin(d.token, d.user?.email || "", d.user);
         setStep("success");
       } else {
         setAccountError(d.error || "Google sign-in ntibikunze.");
@@ -365,6 +373,14 @@ export default function SubscribePage() {
                 <div id="login-section" className="max-w-sm mx-auto mt-5 bg-white/5 border border-white/10 rounded-2xl p-5 text-left">
                   <p className="font-bold text-sm mb-3">Injira kuri konti yawe</p>
                   <div className="space-y-3">
+                    {GOOGLE_CLIENT_ID && (
+                      <>
+                        <div id="google-signin-btn" className="flex justify-center" />
+                        <div className="flex items-center gap-3 text-gray-500 text-xs">
+                          <div className="flex-1 h-px bg-white/10" /> cyangwa na email <div className="flex-1 h-px bg-white/10" />
+                        </div>
+                      </>
+                    )}
                     <input
                       type="email"
                       value={accountEmail}
@@ -391,7 +407,6 @@ export default function SubscribePage() {
                     >
                       {accountLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Injira</>}
                     </button>
-                    {GOOGLE_CLIENT_ID && <div id="google-signin-btn" className="flex justify-center pt-1" />}
                   </div>
                 </div>
               )}

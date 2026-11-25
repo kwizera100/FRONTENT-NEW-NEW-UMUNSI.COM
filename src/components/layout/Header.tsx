@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Menu, X, Search, ChevronDown, Crown, User } from "lucide-react";
+import { Menu, X, Search, ChevronDown, Crown, User, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isSubscribed } from "@/lib/subscription";
 import { TopBanner } from "@/components/home/TopBanner";
@@ -31,14 +31,35 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [subscriber, setSubscriber] = useState(false);
   const [hasAccount, setHasAccount] = useState(false);
+  const [readerUser, setReaderUser] = useState<{ email?: string; firstName?: string; lastName?: string; avatar?: string } | null>(null);
+  const [accountMenu, setAccountMenu] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     setSubscriber(isSubscribed());
-    try { setHasAccount(!!localStorage.getItem("umunsi_reader_token")); } catch {}
+    try {
+      setHasAccount(!!localStorage.getItem("umunsi_reader_token"));
+      const u = localStorage.getItem("umunsi_reader_user");
+      if (u) setReaderUser(JSON.parse(u));
+    } catch {}
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const signOut = () => {
+    try {
+      localStorage.removeItem("umunsi_reader_token");
+      localStorage.removeItem("umunsi_reader_user");
+      if (localStorage.getItem("umunsi_subscription_plan") === "account") {
+        localStorage.removeItem("umunsi_subscribed");
+        localStorage.removeItem("umunsi_subscribed_until");
+        localStorage.removeItem("umunsi_subscription_plan");
+      }
+    } catch {}
+    window.location.reload();
+  };
+
+  const avatarInitial = (readerUser?.firstName || readerUser?.email || "U").trim().charAt(0).toUpperCase();
 
   return (
     <header
@@ -163,14 +184,53 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
             )}
 
             {/* Login / Account */}
-            <Link
-              href="/subscribe?login=1"
-              title={hasAccount ? "Konti yawe" : "Injira"}
-              className="flex items-center gap-1.5 p-2.5 sm:px-3.5 rounded-full border border-gray-200 hover:border-[#e5b60d] hover:text-[#e5b60d] text-gray-700 transition-colors text-xs font-bold"
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden sm:inline">{hasAccount ? "Konti" : "Injira"}</span>
-            </Link>
+            {hasAccount ? (
+              <div className="relative">
+                <button
+                  onClick={() => setAccountMenu(!accountMenu)}
+                  className="w-9 h-9 rounded-full overflow-hidden border-2 border-[#e5b60d] hover:border-[#f5c81d] transition-colors"
+                  title="Konti yawe"
+                >
+                  {readerUser?.avatar ? (
+                    <img src={readerUser.avatar} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <span className="w-full h-full bg-gradient-to-br from-[#e5b60d] to-[#c9a00c] text-[#0f172a] font-black flex items-center justify-center text-sm">
+                      {avatarInitial}
+                    </span>
+                  )}
+                </button>
+                {accountMenu && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl py-2 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="font-black text-sm text-gray-900 truncate">
+                        {readerUser?.firstName ? `${readerUser.firstName} ${readerUser.lastName || ""}`.trim() : "Reader"}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{readerUser?.email}</p>
+                      {subscriber && (
+                        <span className="inline-flex items-center gap-1 mt-1.5 bg-[#e5b60d]/15 text-[#b8940a] text-[10px] font-black px-2 py-0.5 rounded-full">
+                          <Crown className="w-3 h-3" /> PREMIUM — nta ads
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={signOut}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> Sohoka (Sign out)
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/subscribe?login=1"
+                title="Injira"
+                className="flex items-center gap-1.5 p-2.5 sm:px-3.5 rounded-full border border-gray-200 hover:border-[#e5b60d] hover:text-[#e5b60d] text-gray-700 transition-colors text-xs font-bold"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Injira</span>
+              </Link>
+            )}
 
             <button
               onClick={() => setSearchOpen(!searchOpen)}
@@ -229,13 +289,22 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
               >
                 <Crown className="w-4 h-4" /> {subscriber ? "PREMIUM" : "SUBSCRIBE"}
               </Link>
-              <Link
-                href="/subscribe?login=1"
-                onClick={() => setIsOpen(false)}
-                className="flex-1 flex items-center justify-center gap-1.5 border-2 border-gray-200 text-gray-700 text-sm font-black px-4 py-3 rounded-xl"
-              >
-                <User className="w-4 h-4" /> {hasAccount ? "Konti" : "Injira"}
-              </Link>
+              {hasAccount ? (
+                <button
+                  onClick={() => { setIsOpen(false); signOut(); }}
+                  className="flex-1 flex items-center justify-center gap-1.5 border-2 border-red-200 text-red-600 text-sm font-black px-4 py-3 rounded-xl"
+                >
+                  <LogOut className="w-4 h-4" /> Sohoka
+                </button>
+              ) : (
+                <Link
+                  href="/subscribe?login=1"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1 flex items-center justify-center gap-1.5 border-2 border-gray-200 text-gray-700 text-sm font-black px-4 py-3 rounded-xl"
+                >
+                  <User className="w-4 h-4" /> Injira
+                </Link>
+              )}
             </div>
             <div className="border-t border-gray-100 my-2" />
             {categories.map((cat) => (

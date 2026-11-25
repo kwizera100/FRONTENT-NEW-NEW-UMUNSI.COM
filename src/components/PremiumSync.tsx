@@ -18,6 +18,14 @@ export function PremiumSync() {
       .then((r) => r.json().catch(() => ({})))
       .then((d) => {
         try {
+          if (d?.success && d?.email) {
+            localStorage.setItem("umunsi_reader_user", JSON.stringify({
+              email: d.email,
+              firstName: d.firstName || "",
+              lastName: d.lastName || "",
+              avatar: d.avatar || "",
+            }));
+          }
           if (d?.active) {
             localStorage.setItem("umunsi_subscribed", "active");
             localStorage.setItem("umunsi_subscription_plan", "account");
