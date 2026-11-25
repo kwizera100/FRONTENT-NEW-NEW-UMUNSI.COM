@@ -212,6 +212,13 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
                         </span>
                       )}
                     </div>
+                    <Link
+                      href="/account"
+                      onClick={() => setAccountMenu(false)}
+                      className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-gray-800 hover:bg-gray-50 transition-colors"
+                    >
+                      <User className="w-4 h-4" /> Konti yanjye (My Account)
+                    </Link>
                     <button
                       onClick={signOut}
                       className="w-full flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors"
@@ -290,12 +297,21 @@ export function Header({ categories = [] }: { categories?: HeaderCategory[] }) {
                 <Crown className="w-4 h-4" /> {subscriber ? "PREMIUM" : "SUBSCRIBE"}
               </Link>
               {hasAccount ? (
-                <button
-                  onClick={() => { setIsOpen(false); signOut(); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 border-2 border-red-200 text-red-600 text-sm font-black px-4 py-3 rounded-xl"
-                >
-                  <LogOut className="w-4 h-4" /> Sohoka
-                </button>
+                <>
+                  <Link
+                    href="/account"
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1 flex items-center justify-center gap-1.5 border-2 border-gray-200 text-gray-700 text-sm font-black px-4 py-3 rounded-xl"
+                  >
+                    <User className="w-4 h-4" /> Konti
+                  </Link>
+                  <button
+                    onClick={() => { setIsOpen(false); signOut(); }}
+                    className="flex-1 flex items-center justify-center gap-1.5 border-2 border-red-200 text-red-600 text-sm font-black px-4 py-3 rounded-xl"
+                  >
+                    <LogOut className="w-4 h-4" /> Sohoka
+                  </button>
+                </>
               ) : (
                 <Link
                   href="/subscribe?login=1"
