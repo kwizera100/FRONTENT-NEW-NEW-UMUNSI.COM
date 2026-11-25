@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Script from "next/script";
-import { Crown, Check, Shield, Zap, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon, Smartphone, Mail, LogIn, UserPlus } from "lucide-react";
+import { Crown, Check, Shield, Zap, Loader2, AlertCircle, ArrowLeft, Infinity as InfinityIcon, Smartphone, Mail, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
 
 declare global {
   interface Window {
@@ -76,6 +76,13 @@ export default function SubscribePage() {
   const [accountLoading, setAccountLoading] = useState(false);
   const [accountError, setAccountError] = useState("");
   const [loggedInEmail, setLoggedInEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Restore access by MoMo number
+  const [showRestore, setShowRestore] = useState(false);
+  const [restorePhone, setRestorePhone] = useState("");
+  const [restoreLoading, setRestoreLoading] = useState(false);
+  const [restoreMsg, setRestoreMsg] = useState("");
 
   const plan = PLANS.find((p) => p.key === selected)!;
 
@@ -149,6 +156,12 @@ export default function SubscribePage() {
     setStep("momo");
   };
 
+  // Payment ref stored on this device when they paid — lets a returning payer
+  // link their new account to that payment even after a restart.
+  const getStoredRef = () => {
+    try { return localStorage.getItem("umunsi_subscription_ref") || ""; } catch { return ""; }
+  };
+
   // After a backend login/signup returns a JWT — store it and sync premium
   const finishLogin = async (token: string, email: string, user?: any) => {
     try {
@@ -189,7 +202,7 @@ export default function SubscribePage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          referenceId: referenceId || undefined,
+          referenceId: referenceId || getStoredRef() || undefined,
           email: accountEmail.trim(),
           password: accountPassword,
           name: accountName.trim() || accountEmail.split("@")[0],
@@ -244,7 +257,7 @@ export default function SubscribePage() {
       const res = await fetch("/api/payment/subscribe-google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: response.credential, referenceId: referenceId || undefined }),
+        body: JSON.stringify({ idToken: response.credential, referenceId: referenceId || getStoredRef() || undefined }),
       });
       const d = await res.json().catch(() => ({}));
       if (res.ok && d?.token) {
@@ -257,6 +270,33 @@ export default function SubscribePage() {
       setAccountError("Habayemo ikibazo. Gerageza nanone.");
     } finally {
       setAccountLoading(false);
+    }
+  };
+
+  // Restore premium for a returning payer — checks the MoMo number they paid with
+  const handleRestore = async () => {
+    if (!restorePhone.trim()) { setRestoreMsg("Shyiramo numero ya MoMo wakoresheje"); return; }
+    setRestoreMsg("");
+    setRestoreLoading(true);
+    try {
+      const res = await fetch(`/api/payment/subscription/restore?msisdn=${encodeURIComponent(restorePhone.trim())}`);
+      const d = await res.json().catch(() => ({}));
+      if (d?.active) {
+        try {
+          localStorage.setItem("umunsi_subscribed", "active");
+          if (d.referenceId) localStorage.setItem("umunsi_subscription_ref", d.referenceId);
+          if (d.until) localStorage.setItem("umunsi_subscribed_until", d.until);
+          else localStorage.removeItem("umunsi_subscribed_until");
+        } catch {}
+        setExpiresAt(d.until || null);
+        setStep("success");
+      } else {
+        setRestoreMsg("Nta bwishyu bwabonetse kuri iyi numero — reba neza cyangwa wishyure.");
+      }
+    } catch {
+      setRestoreMsg("Habayemo ikibazo. Gerageza nanone.");
+    } finally {
+      setRestoreLoading(false);
     }
   };
 
@@ -388,13 +428,23 @@ export default function SubscribePage() {
                       placeholder="Email yawe"
                       className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
                     />
-                    <input
-                      type="password"
-                      value={accountPassword}
-                      onChange={(e) => setAccountPassword(e.target.value)}
-                      placeholder="Ijambobanga"
-                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        value={accountPassword}
+                        onChange={(e) => setAccountPassword(e.target.value)}
+                        placeholder="Ijambobanga"
+                        className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 pr-11 text-sm outline-none focus:border-[#e5b60d]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                        title={showPassword ? "Hisha" : "Reba ijambobanga"}
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
                     {accountError && (
                       <p className="text-red-300 text-xs flex items-start gap-1.5">
                         <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {accountError}
@@ -407,6 +457,36 @@ export default function SubscribePage() {
                     >
                       {accountLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <><LogIn className="w-4 h-4" /> Injira</>}
                     </button>
+
+                    {/* Restore by MoMo number */}
+                    <div className="pt-2 border-t border-white/10">
+                      <button
+                        onClick={() => setShowRestore(!showRestore)}
+                        className="text-xs text-[#e5b60d] hover:text-[#f5c81d] font-bold inline-flex items-center gap-1.5"
+                      >
+                        <Smartphone className="w-3.5 h-3.5" /> Wishyuye mbere? Shyiramo numero yawe
+                      </button>
+                      {showRestore && (
+                        <div className="mt-3 flex gap-2">
+                          <input
+                            type="tel"
+                            inputMode="tel"
+                            value={restorePhone}
+                            onChange={(e) => setRestorePhone(e.target.value)}
+                            placeholder="078XXXXXXX"
+                            className="flex-1 bg-white/10 border border-white/15 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#e5b60d]"
+                          />
+                          <button
+                            onClick={handleRestore}
+                            disabled={restoreLoading}
+                            className="bg-[#e5b60d] hover:bg-[#f5c81d] disabled:opacity-60 text-[#0f172a] font-black px-4 py-2.5 rounded-xl text-sm whitespace-nowrap"
+                          >
+                            {restoreLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Subiza"}
+                          </button>
+                        </div>
+                      )}
+                      {restoreMsg && <p className="text-red-300 text-xs mt-2">{restoreMsg}</p>}
+                    </div>
                   </div>
                 </div>
               )}
@@ -534,13 +614,23 @@ export default function SubscribePage() {
                       className="flex-1 bg-transparent outline-none text-sm"
                     />
                   </div>
-                  <input
-                    type="password"
-                    value={accountPassword}
-                    onChange={(e) => setAccountPassword(e.target.value)}
-                    placeholder="Ijambobanga (6+ inyuguti)"
-                    className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5b60d]"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={accountPassword}
+                      onChange={(e) => setAccountPassword(e.target.value)}
+                      placeholder="Ijambobanga (6+ inyuguti)"
+                      className="w-full bg-white/10 border border-white/15 rounded-xl px-4 py-3 pr-11 text-sm outline-none focus:border-[#e5b60d]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      title={showPassword ? "Hisha" : "Reba ijambobanga"}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {accountError && (
                     <p className="text-red-300 text-xs flex items-start gap-1.5">
                       <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {accountError}
